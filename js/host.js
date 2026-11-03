@@ -38,6 +38,8 @@
   const guestTypeLabel = (type) => {
     if (type === "bridesmaid") return "Bridesmaid";
     if (type === "groomsman") return "Groomsman";
+    if (type === "infant") return "Infant (0–3)";
+    if (type === "child") return "Child (4–13)";
     return "Guest";
   };
 
@@ -51,6 +53,8 @@
         <input data-guest-name value="${escapeHtml(guest.name || "")}" placeholder="Guest name" required />
         <fieldset class="guest-type" aria-label="Guest type">
           <label><input type="radio" name="${id}" data-guest-type value="guest" ${type === "guest" ? "checked" : ""} /> Guest</label>
+          <label><input type="radio" name="${id}" data-guest-type value="infant" ${type === "infant" ? "checked" : ""} /> Infant (0–3)</label>
+          <label><input type="radio" name="${id}" data-guest-type value="child" ${type === "child" ? "checked" : ""} /> Child (4–13)</label>
           <label><input type="radio" name="${id}" data-guest-type value="groomsman" ${type === "groomsman" ? "checked" : ""} /> Groomsman</label>
           <label><input type="radio" name="${id}" data-guest-type value="bridesmaid" ${type === "bridesmaid" ? "checked" : ""} /> Bridesmaid</label>
         </fieldset>

@@ -348,7 +348,7 @@
       const label = data.party.label?.trim();
       invitationSection.querySelector("[data-invite-heading]").textContent = label ? `You’re invited, ${label}` : "You’re invited";
       invitationSection.querySelector("[data-invite-names]").textContent =
-        `This invitation is for ${listNames(named)}${plusText}. Only these guests are invited.`;
+        `This invitation is for ${listNames(named)}${plusText}. Only these guests are invited with this invitation. No extra guests unless your invite says so.`;
       document.querySelectorAll('a[href="#rsvp"], a[data-hero-rsvp], a[data-stay-rsvp]').forEach((link) => {
         link.setAttribute("href", "#your-invitation");
       });
