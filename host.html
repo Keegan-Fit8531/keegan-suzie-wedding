@@ -48,7 +48,7 @@
       <section class="host-briefs">
         <p class="section__eyebrow section__eyebrow--caps">Wedding party</p>
         <h2 class="section__title">Private briefs</h2>
-        <p>These appear only on personalised wedding-party invitations. You can fill them in later.</p>
+        <p>These appear only when an invitation includes a bridesmaid or groomsman. You can fill them in later.</p>
         <div data-brief-list></div>
       </section>
     </section>
@@ -62,11 +62,9 @@
       </div>
       <input type="hidden" name="id" />
       <label class="form-field">Household label<input name="label" placeholder="e.g. Dad’s family" required /></label>
-      <label class="form-field">Personal note <span>Shown under the hero before RSVP</span><textarea name="personal_note" rows="4" placeholder="A short warm note for this household"></textarea></label>
-      <label class="form-field">Wedding party side <span>Leave blank for regular guests</span><select name="wedding_side"><option value="">Regular guests</option><option value="bride">Bride’s side</option><option value="groom">Groom’s side</option></select></label>
       <fieldset class="guest-editor">
         <legend>Named guests</legend>
-        <p>Each person receives their own Coming / Not coming choice.</p>
+        <p>Each person receives their own Coming / Not coming choice. Mark guest type if they are in the wedding party.</p>
         <div data-guest-fields></div>
         <button class="text-link" type="button" data-add-guest>Add another guest</button>
       </fieldset>

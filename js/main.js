@@ -133,8 +133,16 @@
   const inviteCode = new URLSearchParams(window.location.search).get("invite");
   const invitationSection = document.querySelector("#your-invitation");
   const partySection = document.querySelector("#wedding-party");
+  const partyCards = document.querySelector("[data-wedding-party-cards]");
   const rsvpApp = document.querySelector("[data-rsvp-app]");
-  const rsvpEmpty = document.querySelector("[data-rsvp-empty]");
+  const rsvpDialog = document.querySelector("[data-rsvp-dialog]");
+  const rsvpSummary = document.querySelector("[data-rsvp-summary]");
+  const openRsvpButton = document.querySelector("[data-open-rsvp]");
+  const publicRsvp = document.querySelector("[data-public-rsvp]");
+  const welcomeAside = document.querySelector("[data-welcome-aside]");
+  const listNames = (names = []) => new Intl.ListFormat("en-NZ", { style: "long", type: "conjunction" }).format(names);
+  let inviteData = null;
+
   const escapeHtml = (value = "") =>
     String(value).replace(/[&<>"']/g, (character) => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
@@ -155,25 +163,79 @@
     return body;
   };
 
-  const renderWeddingParty = (brief) => {
-    if (!brief || !partySection) return;
-    partySection.hidden = false;
-    partySection.querySelector("[data-brief-title]").textContent = brief.title;
-    partySection.querySelector("[data-brief-body]").textContent = brief.body;
+  const openRsvpDialog = () => {
+    if (!inviteData || !rsvpDialog) return;
+    if (!inviteData.rsvp_open && inviteData.rsvp) {
+      renderSummary(inviteData);
+      return;
+    }
+    renderForm(inviteData);
+    if (typeof rsvpDialog.showModal === "function") rsvpDialog.showModal();
+    else rsvpDialog.setAttribute("open", "");
   };
 
-  const renderConfirmation = (data) => {
+  const closeRsvpDialog = () => {
+    if (!rsvpDialog) return;
+    if (typeof rsvpDialog.close === "function") rsvpDialog.close();
+    else rsvpDialog.removeAttribute("open");
+  };
+
+  const renderWeddingParty = (weddingParty) => {
+    if (!partySection || !partyCards || !weddingParty) return;
+    const cards = [];
+    const bridesmaids = weddingParty.bridesmaids?.names || [];
+    const groomsmen = weddingParty.groomsmen?.names || [];
+
+    if (bridesmaids.length) {
+      const brief = weddingParty.bridesmaids.brief || {};
+      cards.push(`
+        <div class="invitation-card invitation-card--party">
+          <p class="section__eyebrow section__eyebrow--caps">Bridesmaid${bridesmaids.length > 1 ? "s" : ""}</p>
+          <h2 class="section__title">${escapeHtml(brief.title || "For the bridal party")}</h2>
+          <p class="wedding-party__for">This section is for ${escapeHtml(listNames(bridesmaids))}.</p>
+          <p class="section__body">${escapeHtml(brief.body || "Your day-of details will be shared here soon.")}</p>
+        </div>`);
+    }
+
+    if (groomsmen.length) {
+      const brief = weddingParty.groomsmen.brief || {};
+      cards.push(`
+        <div class="invitation-card invitation-card--party">
+          <p class="section__eyebrow section__eyebrow--caps">Groomsm${groomsmen.length > 1 ? "en" : "an"}</p>
+          <h2 class="section__title">${escapeHtml(brief.title || "For the groomsmen")}</h2>
+          <p class="wedding-party__for">This section is for ${escapeHtml(listNames(groomsmen))}.</p>
+          <p class="section__body">${escapeHtml(brief.body || "Your day-of details will be shared here soon.")}</p>
+        </div>`);
+    }
+
+    if (!cards.length) {
+      partySection.hidden = true;
+      partyCards.innerHTML = "";
+      return;
+    }
+
+    partySection.hidden = false;
+    partyCards.innerHTML = cards.join("");
+  };
+
+  const renderSummary = (data) => {
+    if (!rsvpSummary || !openRsvpButton) return;
     const { rsvp, guests } = data;
-    if (!rsvp || !rsvpApp) return renderForm(data);
+    if (!rsvp) {
+      rsvpSummary.innerHTML = `<p>Please reply by <strong>1 January 2027</strong> so we can plan for you, including overnight cabin stays.</p>`;
+      openRsvpButton.textContent = "Reply to your invitation";
+      openRsvpButton.hidden = !data.rsvp_open;
+      return;
+    }
+
     const attendance = guests.map((guest) =>
       `<li><span>${escapeHtml(guest.name)}</span><strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong></li>`
     ).join("");
-    const editable = data.rsvp_open;
-    rsvpApp.hidden = false;
-    rsvpApp.innerHTML = `
-      <div class="rsvp-confirmation">
+
+    rsvpSummary.innerHTML = `
+      <div class="rsvp-confirmation rsvp-confirmation--inline">
         <p class="section__eyebrow section__eyebrow--caps">Your RSVP</p>
-        <h3 class="section__title">You’re all set</h3>
+        <h3 class="section__title" id="rsvp-dialog-title">You’re all set</h3>
         <p>Thank you for your reply. Here is what we have saved.</p>
         <ul class="rsvp-summary">${attendance}</ul>
         <dl class="rsvp-summary__details">
@@ -182,14 +244,19 @@
           ${rsvp.dietary_notes ? `<div><dt>Dietary needs or allergies</dt><dd>${escapeHtml(rsvp.dietary_notes)}</dd></div>` : ""}
           ${rsvp.note ? `<div><dt>Your note</dt><dd>${escapeHtml(rsvp.note)}</dd></div>` : ""}
         </dl>
-        ${editable ? `<button class="btn btn--primary" type="button" data-edit-rsvp>Edit reply</button>` : `<p class="rsvp-closed">RSVP is now closed. If you need to change your reply, please contact Keegan.</p>`}
+        ${data.rsvp_open ? "" : `<p class="rsvp-closed">RSVP is now closed. If you need to change your reply, please contact Keegan.</p>`}
       </div>`;
-    rsvpApp.querySelector("[data-edit-rsvp]")?.addEventListener("click", () => renderForm(data));
+    openRsvpButton.textContent = "Edit reply";
+    openRsvpButton.hidden = !data.rsvp_open;
   };
 
   const renderForm = (data) => {
     if (!rsvpApp) return;
-    if (!data.rsvp_open) return renderConfirmation(data);
+    if (!data.rsvp_open) {
+      renderSummary(data);
+      closeRsvpDialog();
+      return;
+    }
     const saved = data.rsvp || {};
     const guests = data.guests.map((guest) => {
       const attending = saved.guest_responses?.[guest.id];
@@ -200,12 +267,12 @@
           <label><input type="radio" name="guest-${guest.id}" value="false" ${attending === false ? "checked" : ""} /> Not coming</label>
         </fieldset>`;
     }).join("");
-    rsvpApp.hidden = false;
+
     rsvpApp.innerHTML = `
       <form class="rsvp-form" data-rsvp-form>
         <p class="section__eyebrow section__eyebrow--caps">Your RSVP</p>
-        <h3 class="section__title">Will you be there?</h3>
-        <p class="rsvp-form__intro">Please reply for each named guest.</p>
+        <h3 class="section__title" id="rsvp-dialog-title">Will you be there?</h3>
+        <p class="rsvp-form__intro">Please reply by <strong>1 January 2027</strong> for each named guest.</p>
         <div class="rsvp-people">${guests}</div>
         <fieldset class="rsvp-choice">
           <legend>Would you like to stay overnight?</legend>
@@ -219,6 +286,7 @@
         <p class="form-status" aria-live="polite"></p>
         <button class="btn btn--primary" type="submit">Save RSVP</button>
       </form>`;
+
     const form = rsvpApp.querySelector("[data-rsvp-form]");
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -241,7 +309,9 @@
           p_note: formData.get("note"),
           p_guest_responses: guestResponses
         });
-        renderConfirmation(updated);
+        inviteData = updated;
+        renderSummary(updated);
+        closeRsvpDialog();
       } catch (error) {
         status.textContent = error.message;
         submit.disabled = false;
@@ -254,23 +324,39 @@
     try {
       const data = await rpc("guest_invite", { p_invite_code: inviteCode });
       if (!data?.party || !invitationSection) return;
+      inviteData = data;
       const names = data.guests.map((guest) => guest.name);
       invitationSection.hidden = false;
+      if (publicRsvp) publicRsvp.hidden = true;
+      if (welcomeAside) welcomeAside.hidden = true;
       invitationSection.querySelector("[data-invite-heading]").textContent = `You’re invited, ${data.party.label}`;
       invitationSection.querySelector("[data-invite-names]").textContent =
-        `This invitation is for ${new Intl.ListFormat("en-NZ", { style: "long", type: "conjunction" }).format(names)}.`;
-      const note = invitationSection.querySelector("[data-invite-note]");
-      if (data.party.personal_note) {
-        note.hidden = false;
-        note.textContent = data.party.personal_note;
-      }
-      rsvpEmpty.hidden = true;
-      renderWeddingParty(data.brief);
-      renderConfirmation(data);
+        `This invitation is for ${listNames(names)}.`;
+      document.querySelectorAll('a[href="#rsvp"], a[data-hero-rsvp]').forEach((link) => {
+        link.setAttribute("href", "#your-invitation");
+      });
+      renderWeddingParty(data.wedding_party);
+      renderSummary(data);
     } catch (error) {
-      if (rsvpEmpty) rsvpEmpty.innerHTML = `<p>We could not load this invitation. Please contact Keegan for help.</p>`;
+      if (invitationSection) {
+        invitationSection.hidden = false;
+        invitationSection.querySelector("[data-invite-names]").textContent =
+          "We could not load this invitation. Please contact Keegan for help.";
+      }
     }
   };
+
+  openRsvpButton?.addEventListener("click", openRsvpDialog);
+  document.querySelector("[data-close-rsvp]")?.addEventListener("click", closeRsvpDialog);
+  rsvpDialog?.addEventListener("click", (event) => {
+    if (event.target === rsvpDialog) closeRsvpDialog();
+  });
+  document.querySelector("[data-hero-rsvp]")?.addEventListener("click", (event) => {
+    if (!inviteCode || !inviteData) return;
+    event.preventDefault();
+    invitationSection?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    openRsvpDialog();
+  });
 
   loadInvitation();
 })();

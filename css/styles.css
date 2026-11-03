@@ -451,7 +451,7 @@ button {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.85rem;
+  gap: 1.25rem 1.5rem;
 }
 
 /* Buttons
@@ -1149,27 +1149,82 @@ button {
   font-weight: 500;
 }
 
-.invitation-card__note {
-  margin: 1.5rem 0;
-  padding-left: 1.2rem;
-  border-left: 2px solid var(--copper);
-  white-space: pre-line;
-}
-
-.invitation-card .btn {
-  margin-top: 1.25rem;
-}
-
-.rsvp-empty {
-  padding: 1.25rem 1.5rem;
-  border-left: 2px solid var(--copper);
+.invitation-card__deadline {
+  margin: 0.85rem 0 0;
   color: rgba(42, 50, 39, 0.78);
+}
+
+.invitation-card__rsvp {
+  margin-top: 1.5rem;
+}
+
+.invitation-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 1.5rem;
+  margin-top: 1.75rem;
+}
+
+.wedding-party__for {
+  margin: 0.35rem 0 1rem;
+  color: var(--sage-deep);
+  font-weight: 500;
+}
+
+.section--wedding-party .shell {
+  display: grid;
+  gap: 1.25rem;
 }
 
 .rsvp-form,
 .rsvp-confirmation {
-  margin-top: 2rem;
   background: var(--white);
+}
+
+.rsvp-confirmation--inline {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rsvp-dialog {
+  width: min(42rem, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  padding: 0;
+  border: 0;
+  border-radius: 1rem;
+  background: transparent;
+  color: var(--ink);
+}
+
+.rsvp-dialog::backdrop {
+  background: rgba(20, 28, 18, 0.55);
+}
+
+.rsvp-dialog__panel {
+  position: relative;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border-radius: 1rem;
+  background: var(--ivory);
+  box-shadow: 0 20px 70px rgba(20, 28, 18, 0.35);
+}
+
+.rsvp-dialog__close {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.9rem;
+  z-index: 2;
+  border: 0;
+  background: transparent;
+  color: var(--forest);
+  cursor: pointer;
+  font-size: 1.8rem;
+  line-height: 1;
 }
 
 .rsvp-people,
@@ -1346,8 +1401,10 @@ button {
 .guest-editor { margin: 1.5rem 0; padding: 1rem; border: 1px solid var(--wire); border-radius: 0.65rem; }
 .guest-editor legend { padding: 0 0.3rem; color: var(--forest); font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; }
 .guest-editor > p { margin-top: 0; color: rgba(42, 50, 39, 0.7); font-size: 0.9rem; }
-.guest-editor__row { display: grid; grid-template-columns: 1.2fr 1fr auto; gap: 0.6rem; margin: 0.6rem 0; }
-.guest-editor__row input, .form-field select { min-width: 0; padding: 0.65rem 0.75rem; border: 1px solid var(--wire); border-radius: 0.4rem; background: var(--white); font: inherit; }
+.guest-editor__row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) auto; gap: 0.6rem; align-items: center; margin: 0.75rem 0; }
+.guest-editor__row > input, .form-field select { min-width: 0; padding: 0.65rem 0.75rem; border: 1px solid var(--wire); border-radius: 0.4rem; background: var(--white); font: inherit; }
+.guest-type { display: flex; flex-wrap: wrap; gap: 0.55rem 0.85rem; margin: 0; padding: 0.55rem 0.7rem; border: 1px solid var(--wire); border-radius: 0.5rem; background: var(--white); }
+.guest-type label { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.92rem; font-weight: 400; color: var(--ink); }
 .host-dialog__actions { justify-content: flex-end; margin-top: 1.5rem; }
 
 /* Motion
@@ -1485,7 +1542,7 @@ button {
     grid-template-columns: 1fr auto;
   }
 
-  .guest-editor__row input:nth-child(2) {
+  .guest-editor__row .guest-type {
     grid-column: 1 / -1;
   }
 }

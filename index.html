@@ -62,7 +62,7 @@
         <p class="hero__date reveal">20 February 2027 · Hunua Falls Camp</p>
         <p class="hero__lede reveal">Invite you to join us as we celebrate our wedding.</p>
         <div class="hero__actions reveal">
-          <a class="btn btn--primary" href="#rsvp">Kindly RSVP</a>
+          <a class="btn btn--primary" href="#rsvp" data-hero-rsvp>Kindly RSVP</a>
           <a
             class="btn btn--ghost"
             href="https://calendar.google.com/calendar/event?action=TEMPLATE&amp;tmeid=NnBjZGcxczVtaW01NWZoaTdtZ2dicGFxMDUga2VlZ2FuMWZpdHpnZXJhbGRAbQ&amp;tmsrc=keegan1fitzgerald%40gmail.com"
@@ -82,21 +82,33 @@
           <h2 class="section__title" data-invite-heading>You’re invited</h2>
           <p class="section__body" data-invite-names></p>
           <p class="invitation-card__rule">Only these guests are invited.</p>
-          <p class="invitation-card__note" data-invite-note hidden></p>
-          <a class="btn btn--primary" href="#rsvp">Reply to your invitation</a>
+          <p class="invitation-card__deadline">Please RSVP by <strong>1 January 2027</strong>.</p>
+          <div class="invitation-card__rsvp" data-rsvp-summary></div>
+          <div class="invitation-card__actions">
+            <button class="btn btn--primary" type="button" data-open-rsvp>Reply to your invitation</button>
+            <a
+              class="btn btn--secondary"
+              href="https://calendar.google.com/calendar/event?action=TEMPLATE&amp;tmeid=NnBjZGcxczVtaW01NWZoaTdtZ2dicGFxMDUga2VlZ2FuMWZpdHpnZXJhbGRAbQ&amp;tmsrc=keegan1fitzgerald%40gmail.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Add to calendar
+            </a>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="section section--wedding-party" id="wedding-party" hidden>
-      <div class="shell">
-        <div class="invitation-card invitation-card--party">
-          <p class="section__eyebrow section__eyebrow--caps">Wedding party</p>
-          <h2 class="section__title" data-brief-title></h2>
-          <p class="section__body" data-brief-body></p>
-        </div>
-      </div>
+      <div class="shell" data-wedding-party-cards></div>
     </section>
+
+    <dialog class="rsvp-dialog" data-rsvp-dialog aria-labelledby="rsvp-dialog-title">
+      <div class="rsvp-dialog__panel">
+        <button class="rsvp-dialog__close" type="button" data-close-rsvp aria-label="Close RSVP">×</button>
+        <div data-rsvp-app></div>
+      </div>
+    </dialog>
 
     <section class="section section--welcome" id="welcome">
       <div class="shell">
@@ -107,7 +119,7 @@
             Please RSVP by <strong>1 January 2027</strong> so we can plan for you,
             including overnight cabin stays at the camp.
           </p>
-          <p class="section__aside reveal">
+          <p class="section__aside reveal" data-welcome-aside>
             Only the people named on your invitation are invited, including any plus one listed by name.
             Please do not bring additional guests.
           </p>
@@ -319,22 +331,15 @@
       </div>
     </section>
 
-    <section class="section section--rsvp" id="rsvp">
+    <section class="section section--rsvp" id="rsvp" data-public-rsvp>
       <div class="shell">
         <div class="measure">
           <p class="section__eyebrow section__eyebrow--caps reveal">Kindly RSVP</p>
           <h2 class="section__title reveal">We cannot wait to celebrate with you</h2>
           <p class="section__body reveal">
-            Please reply by <strong>1 January 2027</strong>.
-            Open your personal invitation link to confirm who is coming and request a cabin room.
+            Please reply by <strong>1 January 2027</strong> using the personal invitation link we sent you.
           </p>
-
-          <div class="rsvp-empty reveal" data-rsvp-empty>
-            <p>Your RSVP form will appear here when you open your personal invitation link.</p>
-          </div>
-          <div data-rsvp-app hidden></div>
-
-          <div class="hero__actions reveal" data-rsvp-calendar>
+          <div class="invitation-card__actions reveal">
             <a
               class="btn btn--secondary"
               href="https://calendar.google.com/calendar/event?action=TEMPLATE&amp;tmeid=NnBjZGcxczVtaW01NWZoaTdtZ2dicGFxMDUga2VlZ2FuMWZpdHpnZXJhbGRAbQ&amp;tmsrc=keegan1fitzgerald%40gmail.com"
