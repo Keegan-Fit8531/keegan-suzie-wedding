@@ -259,9 +259,12 @@
       const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
       const plusComing = plusOnes.filter((plusOne) => saved.guest_responses?.[plusOne.id]).length;
       const plusField = plusOnes.length ? `
-        <label class="form-field">Plus ones coming <span>Up to ${plusOnes.length}</span>
-          <input name="plus-${guest.id}" type="number" min="0" max="${plusOnes.length}" value="${plusComing}" required />
-        </label>` : "";
+        <fieldset class="rsvp-plus">
+          <legend>Plus ones coming</legend>
+          ${Array.from({ length: plusOnes.length + 1 }, (_, count) => `
+            <label><input type="radio" name="plus-${guest.id}" value="${count}" ${plusComing === count ? "checked" : ""} required /> ${count}</label>
+          `).join("")}
+        </fieldset>` : "";
       return `
         <fieldset class="rsvp-person">
           <legend>${escapeHtml(guest.name)}</legend>

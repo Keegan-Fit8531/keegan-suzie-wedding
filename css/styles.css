@@ -1274,6 +1274,30 @@ button {
   margin-top: 0.55rem;
 }
 
+.rsvp-plus {
+  margin: 0.9rem 0 0;
+  padding: 0.85rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--wire);
+}
+
+.rsvp-plus legend {
+  padding: 0;
+  color: var(--sage-deep);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rsvp-plus label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.55rem 1rem 0 0;
+}
+
 .rsvp-choice p {
   margin: 0.2rem 0 0.7rem;
   color: rgba(42, 50, 39, 0.72);
