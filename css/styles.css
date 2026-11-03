@@ -25,7 +25,6 @@
   --header-h: 4.25rem;
   --page-gutter: clamp(1.5rem, 5vw, 3.5rem);
   --shell-max: 1120px;
-  --shell-offset: var(--page-gutter);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --focus-ring: 0 0 0 3px var(--ivory), 0 0 0 6px var(--copper);
 }
@@ -760,6 +759,7 @@ button {
 
 .gallery-slider__scroller {
   overflow: hidden;
+  width: 100%;
 }
 
 .gallery-slider__track {
@@ -768,7 +768,7 @@ button {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  padding: 0.25rem var(--page-gutter) 1rem var(--shell-offset);
+  padding: 0.25rem 0 1rem;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: var(--sage) transparent;
@@ -781,7 +781,7 @@ button {
 
 .gallery-slider__slide {
   margin: 0;
-  flex: 0 0 min(72vw, 520px);
+  flex: 0 0 min(72vw, 500px);
   height: clamp(240px, 42vw, 360px);
   overflow: hidden;
   border-radius: var(--radius-soft);
