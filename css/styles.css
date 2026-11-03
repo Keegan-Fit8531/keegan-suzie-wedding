@@ -46,9 +46,9 @@ body {
     radial-gradient(1200px 600px at 80% -10%, rgba(183, 192, 170, 0.28), transparent 60%),
     radial-gradient(900px 500px at 0% 20%, rgba(138, 101, 72, 0.08), transparent 55%),
     var(--ivory);
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  line-height: 1.6;
+  font-family: var(--font-ui);
+  font-size: 1.0625rem;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -539,21 +539,16 @@ button {
   padding: var(--space-6) 0;
 }
 
-.section__eyebrow {
-  margin: 0 0 0.75rem;
-  font-family: var(--font-script);
-  font-size: 1.7rem;
-  color: var(--sage-deep);
-  line-height: 1;
-}
-
+.section__eyebrow,
 .section__eyebrow--caps {
+  margin: 0 0 0.75rem;
   font-family: var(--font-ui);
   font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--copper);
+  line-height: 1;
 }
 
 .section__title {
@@ -1013,7 +1008,7 @@ button {
 
 
 .section--rsvp .section__eyebrow {
-  color: var(--sage-deep);
+  color: var(--copper);
 }
 
 .section--rsvp .section__title {
