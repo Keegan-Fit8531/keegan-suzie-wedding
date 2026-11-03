@@ -30,7 +30,10 @@
     return body;
   };
 
-  const inviteUrl = (code) => `${window.location.origin}${window.location.pathname.replace(/host\.html$/, "index.html")}?invite=${code}`;
+  const inviteUrl = (code) => {
+    const path = window.location.pathname.replace(/host\.html$/, "").replace(/\/?$/, "/");
+    return `${window.location.origin}${path}?invite=${encodeURIComponent(code)}`;
+  };
 
   const guestTypeLabel = (type) => {
     if (type === "bridesmaid") return "Bridesmaid";
@@ -129,6 +132,7 @@
       const previous = button.textContent;
       button.textContent = "Preparing…";
       try {
+        if (!window.QRCode?.toDataURL) throw new Error("QR library missing");
         const dataUrl = await window.QRCode.toDataURL(inviteUrl(button.dataset.qr), {
           margin: 2,
           width: 720,
@@ -138,9 +142,12 @@
         const slug = (button.dataset.qrName || "invite").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
         download.href = dataUrl;
         download.download = `${slug || "invite"}-qr.png`;
+        document.body.appendChild(download);
         download.click();
+        download.remove();
         button.textContent = "Downloaded";
       } catch (error) {
+        console.error(error);
         button.textContent = "QR unavailable";
       }
       setTimeout(() => { button.textContent = previous; }, 1500);
