@@ -163,27 +163,23 @@ button {
 }
 
 .brand__mark {
-  width: 2.6rem;
-  height: 2.6rem;
-  border-radius: 999px;
+  width: 2.75rem;
+  height: 2.75rem;
   display: grid;
   place-items: center;
   color: var(--ivory);
-  background: rgba(20, 28, 18, 0.22);
-  transition:
-    background 0.85s var(--ease),
-    color 0.85s var(--ease);
+  transition: color 0.85s var(--ease);
 }
 
 .brand__monogram {
   width: 100%;
   height: 100%;
   display: block;
+  overflow: visible;
 }
 
 .site-header.is-scrolled .brand__mark,
 .site-header.has-nav-open .brand__mark {
-  background: rgba(255, 252, 247, 0.82);
   color: var(--forest);
 }
 
