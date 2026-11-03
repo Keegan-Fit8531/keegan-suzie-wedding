@@ -98,14 +98,18 @@
 
     partyList.innerHTML = parties.length ? parties.map((party) => {
       const rsvp = party.rsvp;
-      const guests = party.guests.map((guest) => {
+      const guests = party.guests.flatMap((guest) => {
         const response = rsvp?.guest_responses?.[guest.id];
         const text = response === true ? "Coming" : response === false ? "Not coming" : "Pending";
         const type = guest.guest_type && guest.guest_type !== "guest" ? ` <small>${escapeHtml(guestTypeLabel(guest.guest_type))}</small>` : "";
-        const plusCount = guest.plus_ones?.length || 0;
-        const plusComing = (guest.plus_ones || []).filter((plusOne) => rsvp?.guest_responses?.[plusOne.id] === true).length;
-        const plusLabel = plusCount ? `<small>${plusComing} of ${plusCount} plus ${plusCount === 1 ? "one" : "ones"} coming</small>` : "";
-        return `<li><span>${escapeHtml(guest.name)}${type} ${plusLabel}</span><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong></li>`;
+        const rows = [`<li><span>${escapeHtml(guest.name)}${type}</span><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong></li>`];
+        (guest.plus_ones || []).forEach((plusOne, index) => {
+          const plusResponse = rsvp?.guest_responses?.[plusOne.id];
+          const plusText = plusResponse === true ? "Coming" : plusResponse === false ? "Not coming" : "Pending";
+          const plusLabel = (guest.plus_ones.length > 1) ? `Plus one ${index + 1}` : "Plus one";
+          rows.push(`<li class="host-guest-list__plus"><span>${plusLabel}</span><strong class="status status--${plusText.toLowerCase().replace(" ", "-")}">${plusText}</strong></li>`);
+        });
+        return rows;
       }).join("");
       return `<article class="host-party-card">
         <div class="host-party-card__top"><div><h2>${escapeHtml(partyTitle(party))}</h2><p>${rsvp ? `RSVP received ${new Date(rsvp.submitted_at).toLocaleDateString("en-NZ")}` : "No RSVP yet"}</p></div>

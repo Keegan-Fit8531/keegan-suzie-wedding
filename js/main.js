@@ -223,12 +223,9 @@
       return;
     }
 
-    const namedGuests = guests.filter((guest) => !guest.is_plus_one);
-    const attendance = namedGuests.map((guest) => {
-      const plusOnes = guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
-      const plusComing = plusOnes.filter((plusOne) => rsvp.guest_responses?.[plusOne.id]).length;
-      const plusText = plusOnes.length ? `<small>${plusComing} of ${plusOnes.length} plus ${plusOnes.length === 1 ? "one" : "ones"}</small>` : "";
-      return `<li><span>${escapeHtml(guest.name)} ${plusText}</span><strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong></li>`;
+    const attendance = guests.map((guest) => {
+      const label = guest.is_plus_one ? "Plus one" : escapeHtml(guest.name);
+      return `<li><span>${label}</span><strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong></li>`;
     }).join("");
 
     rsvpSummary.innerHTML = `
