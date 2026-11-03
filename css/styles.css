@@ -339,14 +339,23 @@ button {
   overflow: hidden;
 }
 
+/* Drift on a wrapper so blur stays a static layer (avoids per-frame re-blur jitter). */
+.hero__photo-drift {
+  position: absolute;
+  inset: -6%;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0) scale(1.06);
+  animation: heroDrift 36s ease-in-out infinite alternate;
+}
+
 .hero__photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center 42%;
-  transform: scale(1.12);
   filter: blur(5px);
-  animation: heroDrift 18s var(--ease) infinite alternate;
+  transform: translateZ(0);
 }
 
 .hero__veil {
@@ -1117,8 +1126,8 @@ button {
 }
 
 @keyframes heroDrift {
-  from { transform: scale(1.12) translate3d(0, 0, 0); }
-  to { transform: scale(1.18) translate3d(0, -1.2%, 0); }
+  from { transform: translate3d(0, 0, 0) scale(1.06); }
+  to { transform: translate3d(0, -18px, 0) scale(1.12); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1130,8 +1139,9 @@ button {
     transition: none;
   }
 
-  .hero__photo {
+  .hero__photo-drift {
     animation: none;
+    inset: 0;
     transform: none;
   }
 
