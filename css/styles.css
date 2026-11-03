@@ -651,6 +651,10 @@ button {
   color: rgba(42, 50, 39, 0.82);
 }
 
+.timeline__note {
+  margin: 1.75rem 0 0;
+}
+
 .text-link {
   width: fit-content;
   display: inline-flex;
