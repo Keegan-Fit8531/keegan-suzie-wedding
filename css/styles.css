@@ -280,48 +280,16 @@ button {
 .hero__media {
   position: absolute;
   inset: 0;
+  overflow: hidden;
 }
 
-.hero__backdrop {
+.hero__photo {
   width: 100%;
   height: 100%;
-  display: grid;
-  place-items: center;
-  padding: 5rem 1.5rem 8rem;
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 35%, rgba(183, 192, 170, 0.22), transparent 70%),
-    linear-gradient(165deg, #7f8c72 0%, #55634c 38%, #2f3b2c 100%);
-}
-
-.hero__arch {
-  width: min(420px, 100%);
-  aspect-ratio: 127 / 178;
-  border-radius: 210px 210px 28px 28px;
-  background:
-    linear-gradient(180deg, rgba(246, 242, 234, 0.16), rgba(246, 242, 234, 0.05)),
-    rgba(246, 242, 234, 0.1);
-  border: 1px solid rgba(255, 252, 247, 0.22);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.25rem;
-  box-shadow: 0 30px 80px rgba(20, 28, 18, 0.28);
+  object-fit: cover;
+  object-position: center 40%;
+  transform: scale(1.04);
   animation: heroDrift 18s var(--ease) infinite alternate;
-}
-
-.hero__botanical {
-  width: min(96px, 28%);
-  color: rgba(255, 252, 247, 0.78);
-}
-
-.hero__monogram-date {
-  margin: 0;
-  font-family: var(--font-ui);
-  font-size: 0.78rem;
-  letter-spacing: 0.35em;
-  text-indent: 0.35em;
-  color: rgba(255, 252, 247, 0.82);
 }
 
 .hero__veil {
@@ -330,10 +298,10 @@ button {
   background:
     linear-gradient(
       180deg,
-      rgba(47, 59, 44, 0.35) 0%,
-      rgba(47, 59, 44, 0.15) 32%,
-      rgba(47, 59, 44, 0.55) 58%,
-      rgba(26, 34, 24, 0.88) 100%
+      rgba(26, 34, 24, 0.45) 0%,
+      rgba(26, 34, 24, 0.2) 35%,
+      rgba(26, 34, 24, 0.62) 62%,
+      rgba(20, 28, 18, 0.9) 100%
     );
   pointer-events: none;
 }
@@ -559,12 +527,12 @@ button {
   font-weight: 400;
 }
 
-/* Timeline / venue
+/* Timeline
    ========================================================================== */
 
 .timeline {
   list-style: none;
-  margin: 0 0 var(--space-5);
+  margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -595,34 +563,6 @@ button {
 
 .timeline__copy {
   margin: 0;
-  color: rgba(42, 50, 39, 0.82);
-}
-
-.venue {
-  display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 2rem;
-  align-items: stretch;
-}
-
-.venue__copy {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 1rem 0;
-}
-
-.venue__title {
-  margin: 0 0 0.5rem;
-  font-size: clamp(2rem, 4vw, 2.8rem);
-  font-weight: 500;
-  color: var(--forest);
-}
-
-.venue__address {
-  margin: 0 0 1.25rem;
-  font-size: 1.2rem;
-  font-style: italic;
   color: rgba(42, 50, 39, 0.82);
 }
 
@@ -663,6 +603,47 @@ button {
   border-radius: 4px;
 }
 
+/* Venue gallery
+   ========================================================================== */
+
+.section--venue .section__intro {
+  margin-bottom: var(--space-4);
+}
+
+.section--venue .text-link {
+  margin-top: 1rem;
+}
+
+.venue-gallery {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  grid-template-rows: 260px 220px;
+  gap: 0.85rem;
+  margin-bottom: var(--space-4);
+}
+
+.venue-gallery figure {
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius-soft);
+  background: var(--cream);
+}
+
+.venue-gallery img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s var(--ease);
+}
+
+.venue-gallery figure:hover img {
+  transform: scale(1.04);
+}
+
+.venue-gallery__feature {
+  grid-row: 1 / span 2;
+}
+
 .venue__map {
   min-height: 320px;
   border-radius: var(--radius-soft);
@@ -672,6 +653,10 @@ button {
   box-shadow: 0 18px 40px rgba(47, 59, 44, 0.08);
 }
 
+.venue__map--wide {
+  min-height: 360px;
+}
+
 .venue__map iframe {
   display: block;
   width: 100%;
@@ -679,6 +664,10 @@ button {
   min-height: 320px;
   border: 0;
   filter: saturate(0.85) contrast(0.97);
+}
+
+.venue__map--wide iframe {
+  min-height: 360px;
 }
 
 /* Details
@@ -879,8 +868,8 @@ button {
 }
 
 @keyframes heroDrift {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to { transform: translate3d(0, -1.2%, 0) scale(1.03); }
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to { transform: scale(1.1) translate3d(0, -1.5%, 0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -892,8 +881,13 @@ button {
     transition: none;
   }
 
-  .hero__arch {
+  .hero__photo {
     animation: none;
+    transform: none;
+  }
+
+  .venue-gallery figure:hover img {
+    transform: none;
   }
 
   .btn:hover,
@@ -909,9 +903,23 @@ button {
 
 @media (max-width: 900px) {
   .timeline,
-  .details-grid,
-  .venue {
+  .details-grid {
     grid-template-columns: 1fr;
+  }
+
+  .venue-gallery {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+  }
+
+  .venue-gallery__feature {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    min-height: 280px;
+  }
+
+  .venue-gallery__item {
+    min-height: 200px;
   }
 }
 
@@ -957,8 +965,8 @@ button {
     padding-bottom: 3.25rem;
   }
 
-  .hero__backdrop {
-    padding: 4.5rem 1rem 10rem;
+  .venue-gallery {
+    grid-template-columns: 1fr;
   }
 
   .section {
