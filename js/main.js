@@ -283,7 +283,7 @@
         <fieldset class="rsvp-choice">
           <legend>Would you like to stay overnight?</legend>
           <p>Cabin rooms have multiple bunks. Please bring your own bedding and be packed by 10:00 am the next morning.</p>
-          <label><input type="radio" name="cabin_requested" value="true" ${saved.cabin_requested ? "checked" : ""} required /> Yes, please reserve a cabin room for our party</label>
+          <label><input type="radio" name="cabin_requested" value="true" ${saved.cabin_requested ? "checked" : ""} required /> Yes, please reserve a cabin room for our group</label>
           <label><input type="radio" name="cabin_requested" value="false" ${saved.cabin_requested === false ? "checked" : ""} /> No, we are day guests only</label>
         </fieldset>
         <label class="form-field">Contact email<input name="contact_email" type="email" autocomplete="email" value="${escapeHtml(saved.contact_email || "")}" required /></label>
