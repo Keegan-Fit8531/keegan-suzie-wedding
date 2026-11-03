@@ -314,10 +314,6 @@ button {
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
 }
 
-.hero__name {
-  text-shadow: 0 3px 28px rgba(0, 0, 0, 0.5);
-}
-
 .hero__content {
   position: relative;
   z-index: 1;
@@ -348,7 +344,7 @@ button {
   line-height: 0.92;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-shadow: 0 2px 24px rgba(20, 28, 18, 0.35);
+  text-shadow: 0 3px 28px rgba(0, 0, 0, 0.5);
 }
 
 .hero__ampersand {
