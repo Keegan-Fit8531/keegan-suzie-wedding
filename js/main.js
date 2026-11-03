@@ -6,7 +6,7 @@
 
   const setHeaderState = () => {
     if (!header) return;
-    header.classList.toggle("is-scrolled", window.scrollY > 24);
+    header.classList.toggle("is-scrolled", window.scrollY > 48);
   };
 
   const getFocusable = () => {
