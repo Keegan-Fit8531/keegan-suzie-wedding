@@ -618,7 +618,7 @@ button {
 .venue-gallery {
   display: grid;
   grid-template-columns: 1.4fr 1fr 1fr;
-  grid-template-rows: 260px 220px;
+  grid-auto-rows: 220px;
   gap: 0.85rem;
   margin-bottom: var(--space-4);
 }
@@ -643,6 +643,7 @@ button {
 
 .venue-gallery__feature {
   grid-row: 1 / span 2;
+  min-height: 460px;
 }
 
 .venue__map {
