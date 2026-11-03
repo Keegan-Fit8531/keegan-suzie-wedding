@@ -25,6 +25,7 @@
   --header-h: 4.25rem;
   --page-gutter: clamp(1.5rem, 5vw, 3.5rem);
   --shell-max: 1120px;
+  --shell-offset: var(--page-gutter);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --focus-ring: 0 0 0 3px var(--ivory), 0 0 0 6px var(--copper);
 }
@@ -103,9 +104,9 @@ button {
   margin-inline: auto;
 }
 
-.shell--narrow {
-  width: min(680px, calc(100% - (var(--page-gutter) * 2)));
-  margin-inline: auto;
+.measure {
+  max-width: 40rem;
+  width: 100%;
 }
 
 /* Header
@@ -595,12 +596,6 @@ button {
   padding-block: var(--space-5);
 }
 
-.section--welcome .shell--narrow,
-.section--rsvp .shell--narrow {
-  margin-inline: var(--page-gutter) auto;
-  width: min(680px, calc(100% - (var(--page-gutter) * 2)));
-}
-
 .section--welcome .section__title {
   font-style: italic;
   font-weight: 400;
@@ -764,22 +759,16 @@ button {
 }
 
 .gallery-slider__scroller {
-  display: grid;
-  grid-template-columns:
-    [full-start] minmax(var(--page-gutter), 1fr)
-    [content-start] min(var(--shell-max), calc(100% - (var(--page-gutter) * 2)))
-    [content-end] minmax(var(--page-gutter), 1fr)
-    [full-end];
+  overflow: hidden;
 }
 
 .gallery-slider__track {
-  grid-column: content-start / full-end;
   display: flex;
   gap: 0.9rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  padding: 0.25rem var(--page-gutter) 1rem 0;
+  padding: 0.25rem var(--page-gutter) 1rem var(--shell-offset);
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: var(--sage) transparent;

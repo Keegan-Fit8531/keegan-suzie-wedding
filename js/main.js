@@ -75,6 +75,18 @@
   window.addEventListener("scroll", setHeaderState, { passive: true });
   setHeaderState();
 
+  const syncShellOffset = () => {
+    const shell = document.querySelector(".shell");
+    if (!shell) return;
+    const offset = Math.max(0, Math.round(shell.getBoundingClientRect().left));
+    document.documentElement.style.setProperty("--shell-offset", `${offset}px`);
+  };
+
+  syncShellOffset();
+  requestAnimationFrame(syncShellOffset);
+  window.addEventListener("load", syncShellOffset);
+  window.addEventListener("resize", syncShellOffset);
+
   document.querySelectorAll("[data-gallery]").forEach((gallery) => {
     const track = gallery.querySelector("[data-gallery-track]");
     const prev = gallery.querySelector("[data-gallery-prev]");
