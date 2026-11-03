@@ -120,7 +120,7 @@
         : `<p class="host-rsvp-pending">No RSVP yet.</p>`;
       return `<article class="host-party-card">
         <div class="host-party-card__top"><div><h2>${escapeHtml(partyTitle(party))}</h2>${rsvpNote}</div>
-        <div class="host-party-card__actions"><button type="button" class="text-link" data-copy="${escapeHtml(party.invite_code)}" data-copy-name="${escapeHtml(partyTitle(party))}">Copy invite</button><button type="button" class="text-link" data-qr="${escapeHtml(party.invite_code)}" data-qr-name="${escapeHtml(partyTitle(party))}">Download QR</button><button type="button" class="text-link" data-edit="${party.id}">Edit</button><button type="button" class="text-link text-link--danger" data-delete="${party.id}">Delete</button></div></div>
+        <div class="host-party-card__actions"><button type="button" class="text-link" data-copy="${escapeHtml(party.invite_code)}">Copy invite</button><button type="button" class="text-link" data-qr="${escapeHtml(party.invite_code)}" data-qr-name="${escapeHtml(partyTitle(party))}">Download QR</button><button type="button" class="text-link" data-edit="${party.id}">Edit</button><button type="button" class="text-link text-link--danger" data-delete="${party.id}">Delete</button></div></div>
         <ul class="host-guest-list">${guests}</ul>
         ${rsvp ? `<div class="host-rsvp-details"><p><strong>Cabin:</strong> ${rsvp.cabin_requested ? "Requested" : "No"}</p><p><strong>Email:</strong> ${escapeHtml(rsvp.contact_email)}</p>${rsvp.dietary_notes ? `<p><strong>Dietary:</strong> ${escapeHtml(rsvp.dietary_notes)}</p>` : ""}${rsvp.note ? `<p><strong>Note from guests:</strong> ${escapeHtml(rsvp.note)}</p>` : ""}</div>` : ""}
       </article>`;
@@ -135,10 +135,7 @@
 
   const bindActions = () => {
     partyList.querySelectorAll("[data-copy]").forEach((button) => button.addEventListener("click", async () => {
-      const name = button.dataset.copyName?.trim();
-      const greeting = name ? `Hi ${name},` : "Hi,";
-      const message = `${greeting}\n\nYou're invited to Suzie and Keegan's wedding on 20 February 2027 at Hunua Falls Camp.\n\nOpen your personal invitation to RSVP:\n${inviteUrl(button.dataset.copy)}`;
-      await navigator.clipboard.writeText(message);
+      await navigator.clipboard.writeText(inviteUrl(button.dataset.copy));
       button.textContent = "Copied";
       setTimeout(() => { button.textContent = "Copy invite"; }, 1500);
     }));
