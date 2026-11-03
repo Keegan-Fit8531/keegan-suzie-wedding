@@ -1417,10 +1417,9 @@ button {
 .guest-editor__block { margin: 0.85rem 0 1.15rem; padding-bottom: 0.85rem; border-bottom: 1px solid var(--wire); }
 .guest-editor__block .text-link { font-size: 0.92rem; }
 .guest-editor__row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) auto; gap: 0.6rem; align-items: center; margin: 0.75rem 0 0.45rem; }
-.plus-ones { display: grid; gap: 0.45rem; margin: 0.35rem 0 0.55rem 1rem; }
-.plus-one-row { display: grid; grid-template-columns: 1fr auto; gap: 0.45rem; align-items: center; }
-.plus-one-row input { min-width: 0; padding: 0.55rem 0.7rem; border: 1px solid var(--wire); border-radius: 0.4rem; background: var(--white); font: inherit; }
-.plus-one-row button { border: 0; background: transparent; color: var(--forest); cursor: pointer; font-size: 1.4rem; line-height: 1; }
+.plus-one-count { display: flex; align-items: center; gap: 0.55rem; margin: 0.35rem 0 0.2rem; color: var(--sage-deep); font-size: 0.92rem; }
+.plus-one-count button { width: 1.8rem; height: 1.8rem; border: 1px solid var(--wire); border-radius: 999px; background: var(--white); color: var(--forest); cursor: pointer; }
+.plus-one-count output { min-width: 1rem; color: var(--ink); font-weight: 500; }
 .host-guest-list__plus { padding-left: 1rem; }
 .guest-editor__row > input, .form-field select { min-width: 0; padding: 0.65rem 0.75rem; border: 1px solid var(--wire); border-radius: 0.4rem; background: var(--white); font: inherit; }
 .guest-type { display: flex; flex-wrap: wrap; gap: 0.55rem 0.85rem; margin: 0; padding: 0.55rem 0.7rem; border: 1px solid var(--wire); border-radius: 0.5rem; background: var(--white); }

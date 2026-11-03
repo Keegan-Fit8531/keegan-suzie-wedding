@@ -38,16 +38,10 @@
     return "Guest";
   };
 
-  const plusOneField = (plusOne = {}) => `
-    <div class="plus-one-row">
-      <input data-plus-name value="${escapeHtml(plusOne.name || "")}" placeholder="Plus one name" />
-      <button type="button" data-remove-plus aria-label="Remove plus one">×</button>
-    </div>`;
-
   const guestField = (guest = {}) => {
     const id = `guest-type-${guestFieldId++}`;
     const type = guest.guest_type || "guest";
-    const plusOnes = guest.plus_ones || [];
+    const plusCount = guest.plus_ones?.length || 0;
     return `
     <div class="guest-editor__block">
       <div class="guest-editor__row">
@@ -59,31 +53,39 @@
         </fieldset>
         <button type="button" class="guest-editor__remove" data-remove-guest aria-label="Remove guest">×</button>
       </div>
-      <div class="plus-ones" data-plus-ones>${plusOnes.map(plusOneField).join("")}</div>
-      <button type="button" class="text-link" data-add-plus>Add plus one</button>
+      <div class="plus-one-count">
+        <span>Plus ones</span>
+        <button type="button" data-plus-minus aria-label="Remove a plus one">−</button>
+        <output data-plus-value>${plusCount}</output>
+        <button type="button" data-plus-plus aria-label="Add a plus one">+</button>
+      </div>
     </div>`;
   };
 
   const partyTitle = (party) => {
     if (party.label?.trim()) return party.label.trim();
-    const names = party.guests.flatMap((guest) => [guest.name, ...(guest.plus_ones || []).map((plusOne) => plusOne.name)]);
+    const names = party.guests.map((guest) => guest.name).filter(Boolean);
     return names.join(", ") || "Untitled invitation";
   };
 
   const render = () => {
     const parties = dashboard.parties || [];
-    const invited = parties.reduce((total, party) => total + party.guests.length, 0);
+    const invited = parties.reduce((total, party) => total + party.guests.reduce((count, guest) => count + 1 + (guest.plus_ones?.length || 0), 0), 0);
     let coming = 0;
     let declined = 0;
     let pending = 0;
     let cabins = 0;
+    const countResponse = (party, id) => {
+      const response = party.rsvp?.guest_responses?.[id];
+      if (response === true) coming += 1;
+      else if (response === false) declined += 1;
+      else pending += 1;
+    };
     parties.forEach((party) => {
       if (party.rsvp?.cabin_requested) cabins += 1;
       party.guests.forEach((guest) => {
-        const response = party.rsvp?.guest_responses?.[guest.id];
-        if (response === true) coming += 1;
-        else if (response === false) declined += 1;
-        else pending += 1;
+        countResponse(party, guest.id);
+        (guest.plus_ones || []).forEach((plusOne) => countResponse(party, plusOne.id));
       });
     });
     stats.innerHTML = [
@@ -97,12 +99,10 @@
         const response = rsvp?.guest_responses?.[guest.id];
         const text = response === true ? "Coming" : response === false ? "Not coming" : "Pending";
         const type = guest.guest_type && guest.guest_type !== "guest" ? ` <small>${escapeHtml(guestTypeLabel(guest.guest_type))}</small>` : "";
-        const plusOnes = (guest.plus_ones || []).map((plusOne) => {
-          const plusResponse = rsvp?.guest_responses?.[plusOne.id];
-          const plusText = plusResponse === true ? "Coming" : plusResponse === false ? "Not coming" : "Pending";
-          return `<li class="host-guest-list__plus"><span>${escapeHtml(plusOne.name)} <small>Plus one</small></span><strong class="status status--${plusText.toLowerCase().replace(" ", "-")}">${plusText}</strong></li>`;
-        }).join("");
-        return `<li><span>${escapeHtml(guest.name)}${type}</span><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong></li>${plusOnes}`;
+        const plusCount = guest.plus_ones?.length || 0;
+        const plusComing = (guest.plus_ones || []).filter((plusOne) => rsvp?.guest_responses?.[plusOne.id] === true).length;
+        const plusLabel = plusCount ? `<small>${plusComing} of ${plusCount} plus ${plusCount === 1 ? "one" : "ones"} coming</small>` : "";
+        return `<li><span>${escapeHtml(guest.name)}${type} ${plusLabel}</span><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong></li>`;
       }).join("");
       return `<article class="host-party-card">
         <div class="host-party-card__top"><div><h2>${escapeHtml(partyTitle(party))}</h2><p>${rsvp ? `RSVP received ${new Date(rsvp.submitted_at).toLocaleDateString("en-NZ")}` : "No RSVP yet"}</p></div>
@@ -202,12 +202,9 @@
     partyForm.querySelector("[data-guest-fields]").insertAdjacentHTML("beforeend", guestField());
   });
   partyForm.querySelector("[data-guest-fields]").addEventListener("click", (event) => {
-    if (event.target.matches("[data-add-plus]")) {
-      event.target.previousElementSibling.insertAdjacentHTML("beforeend", plusOneField());
-    }
-    if (event.target.matches("[data-remove-plus]")) {
-      event.target.closest(".plus-one-row").remove();
-    }
+    const output = event.target.closest(".plus-one-count")?.querySelector("[data-plus-value]");
+    if (output && event.target.matches("[data-plus-plus]")) output.textContent = Math.min(10, Number(output.textContent) + 1);
+    if (output && event.target.matches("[data-plus-minus]")) output.textContent = Math.max(0, Number(output.textContent) - 1);
     if (event.target.matches("[data-remove-guest]") && partyForm.querySelectorAll(".guest-editor__block").length > 1) {
       event.target.closest(".guest-editor__block").remove();
     }
@@ -220,9 +217,7 @@
       name: block.querySelector("[data-guest-name]").value.trim(),
       guest_type: block.querySelector("[data-guest-type]:checked")?.value || "guest",
       sort_order,
-      plus_ones: [...block.querySelectorAll("[data-plus-name]")]
-        .map((input) => ({ name: input.value.trim() }))
-        .filter((plusOne) => plusOne.name)
+      plus_one_count: Number(block.querySelector("[data-plus-value]").textContent) || 0
     })).filter((guest) => guest.name);
     const status = partyForm.querySelector(".form-status");
     if (!guests.length) {

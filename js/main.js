@@ -221,9 +221,13 @@
       return;
     }
 
-    const attendance = guests.map((guest) =>
-      `<li><span>${escapeHtml(guest.name)}${guest.is_plus_one ? " <small>Plus one</small>" : ""}</span><strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong></li>`
-    ).join("");
+    const namedGuests = guests.filter((guest) => !guest.is_plus_one);
+    const attendance = namedGuests.map((guest) => {
+      const plusOnes = guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
+      const plusComing = plusOnes.filter((plusOne) => rsvp.guest_responses?.[plusOne.id]).length;
+      const plusText = plusOnes.length ? `<small>${plusComing} of ${plusOnes.length} plus ${plusOnes.length === 1 ? "one" : "ones"}</small>` : "";
+      return `<li><span>${escapeHtml(guest.name)} ${plusText}</span><strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong></li>`;
+    }).join("");
 
     rsvpSummary.innerHTML = `
       <div class="rsvp-confirmation rsvp-confirmation--inline">
@@ -249,13 +253,21 @@
       return;
     }
     const saved = data.rsvp || {};
-    const guests = data.guests.map((guest) => {
+    const namedGuests = data.guests.filter((guest) => !guest.is_plus_one);
+    const guests = namedGuests.map((guest) => {
       const attending = saved.guest_responses?.[guest.id];
+      const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
+      const plusComing = plusOnes.filter((plusOne) => saved.guest_responses?.[plusOne.id]).length;
+      const plusField = plusOnes.length ? `
+        <label class="form-field">Plus ones coming <span>Up to ${plusOnes.length}</span>
+          <input name="plus-${guest.id}" type="number" min="0" max="${plusOnes.length}" value="${plusComing}" required />
+        </label>` : "";
       return `
         <fieldset class="rsvp-person">
-          <legend>${escapeHtml(guest.name)}${guest.is_plus_one ? " · plus one" : ""}</legend>
+          <legend>${escapeHtml(guest.name)}</legend>
           <label><input type="radio" name="guest-${guest.id}" value="true" ${attending === true ? "checked" : ""} required /> Coming</label>
           <label><input type="radio" name="guest-${guest.id}" value="false" ${attending === false ? "checked" : ""} /> Not coming</label>
+          ${plusField}
         </fieldset>`;
     }).join("");
 
@@ -284,7 +296,15 @@
       const submit = form.querySelector('[type="submit"]');
       const status = form.querySelector(".form-status");
       const formData = new FormData(form);
-      const guestResponses = Object.fromEntries(data.guests.map((guest) => [guest.id, formData.get(`guest-${guest.id}`)]));
+      const guestResponses = {};
+      data.guests.filter((guest) => !guest.is_plus_one).forEach((guest) => {
+        guestResponses[guest.id] = formData.get(`guest-${guest.id}`);
+        const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
+        const coming = Math.max(0, Math.min(plusOnes.length, Number(formData.get(`plus-${guest.id}`)) || 0));
+        plusOnes.forEach((plusOne, index) => {
+          guestResponses[plusOne.id] = index < coming ? "true" : "false";
+        });
+      });
       if (!Object.values(guestResponses).includes("true") && formData.get("cabin_requested") === "true") {
         status.textContent = "A cabin can only be requested when someone is coming.";
         return;
@@ -316,14 +336,16 @@
       const data = await rpc("guest_invite", { p_invite_code: inviteCode });
       if (!data?.party || !invitationSection) return;
       inviteData = data;
-      const names = data.guests.map((guest) => guest.name);
+      const named = data.guests.filter((guest) => !guest.is_plus_one).map((guest) => guest.name);
+      const plusCount = data.guests.filter((guest) => guest.is_plus_one).length;
+      const plusText = plusCount === 1 ? " and a plus one" : plusCount > 1 ? ` and ${plusCount} plus ones` : "";
       invitationSection.hidden = false;
       if (publicRsvp) publicRsvp.hidden = true;
       if (welcomeSection) welcomeSection.hidden = true;
       const label = data.party.label?.trim();
       invitationSection.querySelector("[data-invite-heading]").textContent = label ? `You’re invited, ${label}` : "You’re invited";
       invitationSection.querySelector("[data-invite-names]").textContent =
-        `This invitation is for ${listNames(names)}. Only these guests are invited.`;
+        `This invitation is for ${listNames(named)}${plusText}. Only these guests are invited.`;
       document.querySelectorAll('a[href="#rsvp"], a[data-hero-rsvp]').forEach((link) => {
         link.setAttribute("href", "#your-invitation");
       });
