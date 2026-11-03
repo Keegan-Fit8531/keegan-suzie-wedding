@@ -163,36 +163,34 @@ button {
 }
 
 .brand__mark {
-  width: 2.25rem;
-  height: 2.25rem;
-  border: 1px solid rgba(255, 252, 247, 0.55);
+  width: 2.6rem;
+  height: 2.6rem;
   border-radius: 999px;
   display: grid;
   place-items: center;
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  font-family: var(--font-ui);
-  font-weight: 500;
-  background: rgba(20, 28, 18, 0.28);
   color: var(--ivory);
+  background: rgba(20, 28, 18, 0.22);
   transition:
-    border-color 0.85s var(--ease),
     background 0.85s var(--ease),
     color 0.85s var(--ease);
 }
 
+.brand__monogram {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .site-header.is-scrolled .brand__mark,
 .site-header.has-nav-open .brand__mark {
-  border-color: rgba(47, 59, 44, 0.35);
-  background: rgba(255, 252, 247, 0.7);
+  background: rgba(255, 252, 247, 0.82);
   color: var(--forest);
 }
 
 .brand__text {
   font-family: var(--font-display);
   font-size: 1.05rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .nav-toggle {
@@ -405,11 +403,9 @@ button {
 .hero__name {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(3.4rem, 10vw, 6.5rem);
-  line-height: 0.92;
-  letter-spacing: 0.08em;
-  margin-right: -0.08em;
-  text-transform: uppercase;
+  font-size: clamp(3.4rem, 10vw, 6.2rem);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
   text-shadow: 0 3px 28px rgba(0, 0, 0, 0.5);
 }
 
