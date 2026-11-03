@@ -1116,7 +1116,7 @@ button {
   }
 
   .hero__content {
-    padding-bottom: 3.25rem;
+    padding: calc(var(--header-h) * 0.35) 0 0;
   }
 
   .venue-gallery {
