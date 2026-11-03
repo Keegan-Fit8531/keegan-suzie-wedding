@@ -1276,19 +1276,28 @@ button {
 
 .rsvp-plus {
   margin: 0.9rem 0 0;
-  padding: 0.85rem 0 0;
+  padding: 0;
   border: 0;
-  border-top: 1px solid var(--wire);
+  min-inline-size: 0;
 }
 
 .rsvp-plus legend {
+  float: left;
+  width: 100%;
   padding: 0;
+  margin: 0 0 0.35rem;
   color: var(--sage-deep);
   font-family: var(--font-ui);
   font-size: 0.82rem;
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.rsvp-plus::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 .rsvp-plus label {
