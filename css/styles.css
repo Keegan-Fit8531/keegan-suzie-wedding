@@ -1111,6 +1111,245 @@ button {
   color: rgba(42, 50, 39, 0.7);
 }
 
+/* Invitations and RSVP
+   ========================================================================== */
+
+[hidden] {
+  display: none !important;
+}
+
+.section--invitation,
+.section--wedding-party {
+  padding: var(--space-5) 0;
+}
+
+.section--invitation {
+  background: var(--cream);
+}
+
+.section--wedding-party {
+  padding-top: 0;
+  background: var(--cream);
+}
+
+.invitation-card,
+.rsvp-form,
+.rsvp-confirmation {
+  max-width: 44rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid rgba(47, 59, 44, 0.14);
+  border-radius: var(--radius-soft);
+  background: rgba(255, 252, 247, 0.68);
+  box-shadow: 0 18px 40px rgba(47, 59, 44, 0.06);
+}
+
+.invitation-card__rule {
+  margin: 1.25rem 0 0;
+  color: var(--sage-deep);
+  font-weight: 500;
+}
+
+.invitation-card__note {
+  margin: 1.5rem 0;
+  padding-left: 1.2rem;
+  border-left: 2px solid var(--copper);
+  white-space: pre-line;
+}
+
+.invitation-card .btn {
+  margin-top: 1.25rem;
+}
+
+.rsvp-empty {
+  padding: 1.25rem 1.5rem;
+  border-left: 2px solid var(--copper);
+  color: rgba(42, 50, 39, 0.78);
+}
+
+.rsvp-form,
+.rsvp-confirmation {
+  margin-top: 2rem;
+  background: var(--white);
+}
+
+.rsvp-people,
+.rsvp-choice {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.rsvp-person,
+.rsvp-choice {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--wire);
+  border-radius: 0.65rem;
+}
+
+.rsvp-person legend,
+.rsvp-choice legend {
+  padding: 0 0.3rem;
+  color: var(--forest);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.rsvp-person label,
+.rsvp-choice label {
+  display: block;
+  margin-top: 0.55rem;
+}
+
+.rsvp-choice p {
+  margin: 0.2rem 0 0.7rem;
+  color: rgba(42, 50, 39, 0.72);
+  font-size: 0.94rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.42rem;
+  margin-top: 1.2rem;
+  color: var(--forest);
+  font-weight: 500;
+}
+
+.form-field span {
+  color: rgba(42, 50, 39, 0.58);
+  font-size: 0.82rem;
+  font-weight: 400;
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--wire);
+  border-radius: 0.4rem;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+}
+
+.form-field textarea {
+  resize: vertical;
+}
+
+.form-field input:focus,
+.form-field textarea:focus,
+.rsvp-person input:focus,
+.rsvp-choice input:focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.rsvp-form .btn {
+  margin-top: 1.5rem;
+}
+
+.form-status {
+  min-height: 1.6em;
+  margin: 1rem 0 0;
+  color: var(--sage-deep);
+}
+
+.rsvp-summary {
+  padding: 0;
+  margin: 1.5rem 0;
+  list-style: none;
+  border-top: 1px solid var(--wire);
+}
+
+.rsvp-summary li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--wire);
+}
+
+.rsvp-summary__details {
+  display: grid;
+  gap: 1rem;
+}
+
+.rsvp-summary__details div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.rsvp-summary__details dt {
+  color: var(--sage-deep);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rsvp-summary__details dd {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.rsvp-confirmation .btn {
+  margin-top: 1.5rem;
+}
+
+.rsvp-closed {
+  margin-top: 1.5rem;
+  padding: 0.85rem 1rem;
+  background: var(--cream);
+}
+
+/* Host dashboard */
+.host-page { min-height: 100vh; }
+.host-header { border-bottom: 1px solid rgba(47, 59, 44, 0.1); background: rgba(255, 252, 247, 0.86); }
+.host-header__inner, .host-heading, .host-party-card__top, .host-dialog__heading, .host-dialog__actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.host-header__inner { min-height: var(--header-h); }
+.host-header__inner > p { margin: 0; color: var(--sage-deep); font-size: 0.85rem; }
+.host-main { padding: clamp(3rem, 7vw, 6rem) 0; }
+.host-login { max-width: 30rem; margin: 8vh auto; }
+.host-heading { margin-bottom: 2rem; }
+.host-heading .section__title { margin-bottom: 0; }
+.host-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+.host-stats article, .host-party-card, .brief-card { padding: 1.25rem; border: 1px solid rgba(47, 59, 44, 0.13); border-radius: 0.8rem; background: rgba(255, 252, 247, 0.72); }
+.host-stats strong { display: block; font-family: var(--font-display); font-size: 2.3rem; line-height: 1; color: var(--forest); }
+.host-stats span { display: block; margin-top: 0.45rem; color: var(--sage-deep); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.host-party-list { display: grid; gap: 1rem; }
+.host-party-card h2, .brief-card h3 { margin: 0; font-family: var(--font-display); font-size: 1.7rem; font-weight: 500; }
+.host-party-card__top p { margin: 0.25rem 0 0; color: rgba(42, 50, 39, 0.68); font-size: 0.92rem; }
+.host-party-card__actions { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+.text-link { border: 0; padding: 0; background: transparent; color: var(--sage-deep); cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 0.2em; }
+.text-link--danger { color: #9b3e38; }
+.host-guest-list { display: grid; gap: 0.5rem; padding: 0; margin: 1.25rem 0; list-style: none; }
+.host-guest-list li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0; border-bottom: 1px solid var(--wire); }
+.host-guest-list small { color: var(--sage-deep); }
+.status { font-size: 0.82rem; }
+.status--coming { color: #3e7545; }
+.status--not-coming { color: #9b3e38; }
+.status--pending { color: var(--copper); }
+.host-rsvp-details { display: grid; gap: 0.25rem; padding-top: 0.5rem; color: rgba(42, 50, 39, 0.8); font-size: 0.92rem; }
+.host-rsvp-details p { margin: 0; white-space: pre-line; }
+.host-empty { padding: 2rem; border: 1px dashed var(--wire); border-radius: 0.8rem; text-align: center; }
+.host-briefs { margin-top: 4rem; }
+.host-briefs > .section__title { margin-bottom: 0.35rem; }
+.host-briefs > p { margin-top: 0; }
+.host-briefs [data-brief-list] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.brief-card p:not(.section__eyebrow) { min-height: 3rem; white-space: pre-line; }
+.host-dialog { width: min(42rem, calc(100% - 2rem)); max-height: calc(100% - 2rem); border: 0; border-radius: 1rem; background: var(--ivory); color: var(--ink); box-shadow: 0 20px 70px rgba(20, 28, 18, 0.35); }
+.host-dialog::backdrop { background: rgba(20, 28, 18, 0.55); }
+.host-dialog form { padding: clamp(1.25rem, 4vw, 2rem); }
+.host-dialog__heading { margin-bottom: 1.5rem; }
+.host-dialog__heading .section__title { margin: 0; }
+.host-dialog__close, .guest-editor__remove { border: 0; background: transparent; color: var(--forest); cursor: pointer; font-size: 1.8rem; line-height: 1; }
+.guest-editor { margin: 1.5rem 0; padding: 1rem; border: 1px solid var(--wire); border-radius: 0.65rem; }
+.guest-editor legend { padding: 0 0.3rem; color: var(--forest); font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; }
+.guest-editor > p { margin-top: 0; color: rgba(42, 50, 39, 0.7); font-size: 0.9rem; }
+.guest-editor__row { display: grid; grid-template-columns: 1.2fr 1fr auto; gap: 0.6rem; margin: 0.6rem 0; }
+.guest-editor__row input, .form-field select { min-width: 0; padding: 0.65rem 0.75rem; border: 1px solid var(--wire); border-radius: 0.4rem; background: var(--white); font: inherit; }
+.host-dialog__actions { justify-content: flex-end; margin-top: 1.5rem; }
+
 /* Motion
    ========================================================================== */
 
@@ -1229,5 +1468,24 @@ button {
 
   .section--welcome {
     padding-block: 3.5rem;
+  }
+
+  .host-heading,
+  .host-party-card__top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .host-stats,
+  .host-briefs [data-brief-list] {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .guest-editor__row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .guest-editor__row input:nth-child(2) {
+    grid-column: 1 / -1;
   }
 }

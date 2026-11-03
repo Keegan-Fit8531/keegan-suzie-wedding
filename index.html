@@ -75,6 +75,29 @@
       </div>
     </section>
 
+    <section class="section section--invitation" id="your-invitation" hidden aria-live="polite">
+      <div class="shell">
+        <div class="invitation-card">
+          <p class="section__eyebrow section__eyebrow--caps">Your invitation</p>
+          <h2 class="section__title" data-invite-heading>You’re invited</h2>
+          <p class="section__body" data-invite-names></p>
+          <p class="invitation-card__rule">Only these guests are invited.</p>
+          <p class="invitation-card__note" data-invite-note hidden></p>
+          <a class="btn btn--primary" href="#rsvp">Reply to your invitation</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--wedding-party" id="wedding-party" hidden>
+      <div class="shell">
+        <div class="invitation-card invitation-card--party">
+          <p class="section__eyebrow section__eyebrow--caps">Wedding party</p>
+          <h2 class="section__title" data-brief-title></h2>
+          <p class="section__body" data-brief-body></p>
+        </div>
+      </div>
+    </section>
+
     <section class="section section--welcome" id="welcome">
       <div class="shell">
         <div class="measure">
@@ -85,8 +108,8 @@
             including overnight cabin stays at the camp.
           </p>
           <p class="section__aside reveal">
-            Your invitation lists the guests who are invited by name.
-            Please do not bring a plus one unless your invite says so.
+            Only the people named on your invitation are invited, including any plus one listed by name.
+            Please do not bring additional guests.
           </p>
         </div>
       </div>
@@ -266,15 +289,30 @@
             <h3 class="detail__title">Getting there</h3>
             <p class="detail__copy">
               Hunua Falls Camp is at 203 Falls Road, Hunua 2583.
-              Allow extra time for rural roads, and plan to arrive before 3:00 pm for the ceremony.
+              Allow extra time for rural roads, plan to arrive before 3:00 pm for the ceremony,
+              and carpool where you can as parking is limited.
             </p>
           </article>
 
           <article class="detail reveal">
             <h3 class="detail__title">Who is invited</h3>
             <p class="detail__copy">
-              Only the guests named on your invitation are invited.
-              There are no plus ones unless your invite clearly says so.
+              Only the people named on your invitation are invited, including any plus one listed by name.
+              Please do not bring additional guests.
+            </p>
+          </article>
+          <article class="detail reveal">
+            <h3 class="detail__title">Gifts</h3>
+            <p class="detail__copy">
+              Thank you for being part of our special day. Your presence is gift enough.
+              If you feel inclined to give a wedding gift, a contribution toward our honeymoon would help us start newlywed life off right.
+            </p>
+          </article>
+          <article class="detail reveal">
+            <h3 class="detail__title">Questions</h3>
+            <p class="detail__copy">
+              Call or text Keegan on <a href="tel:+64220426068">022 042 6068</a>,
+              or email <a href="mailto:keegan1fitzgerald@gmail.com">keegan1fitzgerald@gmail.com</a>.
             </p>
           </article>
         </div>
@@ -288,24 +326,15 @@
           <h2 class="section__title reveal">We cannot wait to celebrate with you</h2>
           <p class="section__body reveal">
             Please reply by <strong>1 January 2027</strong>.
-            Confirm who is coming from your invite, and request a cabin room if you would like to stay the night.
+            Open your personal invitation link to confirm who is coming and request a cabin room.
           </p>
 
-          <ul class="rsvp-checklist reveal">
-            <li>Confirm attendance for named guests only</li>
-            <li>Request a cabin room to stay overnight</li>
-            <li>Remember: out by 10:00 am the next morning</li>
-          </ul>
+          <div class="rsvp-empty reveal" data-rsvp-empty>
+            <p>Your RSVP form will appear here when you open your personal invitation link.</p>
+          </div>
+          <div data-rsvp-app hidden></div>
 
-          <div class="hero__actions reveal">
-            <a
-              class="btn btn--primary"
-              href="https://docs.google.com/forms/d/e/1FAIpQLSfdsW4KizbK0DPToj-lKG3N6Y120LoP4bXfkBF3tTZ0qoiT9Q/viewform?usp=dialog"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Open RSVP form
-            </a>
+          <div class="hero__actions reveal" data-rsvp-calendar>
             <a
               class="btn btn--secondary"
               href="https://calendar.google.com/calendar/event?action=TEMPLATE&amp;tmeid=NnBjZGcxczVtaW01NWZoaTdtZ2dicGFxMDUga2VlZ2FuMWZpdHpnZXJhbGRAbQ&amp;tmsrc=keegan1fitzgerald%40gmail.com"
