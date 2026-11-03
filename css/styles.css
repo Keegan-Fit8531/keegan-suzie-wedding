@@ -409,13 +409,14 @@ button {
 }
 
 .hero__ampersand {
-  font-family: var(--font-script);
-  font-size: 0.72em;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.78em;
   line-height: 1;
   color: var(--mist);
-  padding-inline: 0.02em;
+  padding-inline: 0.06em;
   position: relative;
-  top: 0.04em;
+  top: -0.02em;
 }
 
 .hero__date {
@@ -575,7 +576,7 @@ button {
 .section__aside {
   margin: 1.25rem 0 0;
   font-size: 1rem;
-  font-style: italic;
+  font-weight: 400;
   color: rgba(42, 50, 39, 0.68);
 }
 
@@ -591,8 +592,7 @@ button {
 }
 
 .section--welcome .section__title {
-  font-style: italic;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .section--day,
@@ -1098,7 +1098,7 @@ button {
 
 .site-footer__place {
   margin: 0.55rem 0 0;
-  font-style: italic;
+  font-weight: 400;
   color: rgba(42, 50, 39, 0.7);
 }
 
