@@ -1425,6 +1425,8 @@ button {
 .host-party-list { display: grid; gap: 1rem; }
 .host-party-card h2, .brief-card h3 { margin: 0; font-family: var(--font-display); font-size: 1.7rem; font-weight: 500; }
 .host-party-card__top p { margin: 0.25rem 0 0; color: rgba(42, 50, 39, 0.68); font-size: 0.92rem; }
+.host-rsvp-banner { color: #3e7545 !important; font-weight: 500; }
+.host-rsvp-pending { color: var(--copper) !important; }
 .host-party-card__actions { display: flex; flex-wrap: wrap; gap: 0.8rem; }
 .text-link { border: 0; padding: 0; background: transparent; color: var(--sage-deep); cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 0.2em; }
 .text-link--danger { color: #9b3e38; }
