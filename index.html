@@ -133,33 +133,52 @@
           </a>
         </div>
 
-        <div class="venue-gallery">
-          <figure class="venue-gallery__feature reveal">
+      </div>
+
+      <div class="gallery-slider reveal" data-gallery>
+        <div class="gallery-slider__bar shell">
+          <p class="gallery-slider__label">Venue gallery</p>
+          <div class="gallery-slider__controls">
+            <button class="gallery-slider__btn" type="button" data-gallery-prev aria-label="Previous photos">
+              <span aria-hidden="true">←</span>
+            </button>
+            <button class="gallery-slider__btn" type="button" data-gallery-next aria-label="Next photos">
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+        <div class="gallery-slider__track" data-gallery-track tabindex="0" aria-label="Venue photos">
+          <figure class="gallery-slider__slide">
             <img src="images/venue/entrance.webp" alt="Tree-lined entrance driveway to Hunua Falls Camp" width="1200" height="800" loading="lazy" />
           </figure>
-          <figure class="venue-gallery__item reveal">
+          <figure class="gallery-slider__slide">
             <img src="images/venue/waterfall.jpg" alt="Hunua Falls cascading into a forest pool" width="1200" height="800" loading="lazy" />
           </figure>
-          <figure class="venue-gallery__item reveal">
+          <figure class="gallery-slider__slide">
             <img src="images/venue/fields.jpg" alt="Open grassy fields and countryside views near the camp" width="1200" height="800" loading="lazy" />
           </figure>
-          <figure class="venue-gallery__item reveal">
+          <figure class="gallery-slider__slide">
             <img src="images/venue/lawn.jpg" alt="Open lawn and outdoor gathering space at the camp" width="1200" height="800" loading="lazy" />
           </figure>
-          <figure class="venue-gallery__item reveal">
+          <figure class="gallery-slider__slide">
             <img src="images/venue/lodge.webp" alt="Lodge accommodation buildings at Hunua Falls Camp" width="1200" height="800" loading="lazy" />
           </figure>
-          <figure class="venue-gallery__item reveal">
+          <figure class="gallery-slider__slide">
             <img src="images/venue/grounds.webp" alt="Wooded grounds and outdoor spaces at the camp" width="1200" height="800" loading="lazy" />
           </figure>
-          <figure class="venue-gallery__item reveal">
+          <figure class="gallery-slider__slide gallery-slider__slide--tall">
             <img src="images/venue/forest-light.jpg" alt="Sunlight through the trees at Hunua Falls Camp" width="900" height="1200" loading="lazy" />
           </figure>
-          <figure class="venue-gallery__item reveal">
+          <figure class="gallery-slider__slide">
             <img src="images/venue/falls-aerial.jpg" alt="Aerial view of Hunua Falls and the surrounding park" width="1200" height="800" loading="lazy" />
           </figure>
+          <figure class="gallery-slider__slide">
+            <img src="images/venue/bunks.jpg" alt="Cabin bunk room at Hunua Falls Camp" width="1200" height="900" loading="lazy" />
+          </figure>
         </div>
+      </div>
 
+      <div class="shell">
         <div class="venue__map venue__map--wide reveal">
           <iframe
             title="Map of Hunua Falls Camp, 203 Falls Road, Hunua 2583"

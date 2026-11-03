@@ -75,6 +75,37 @@
   window.addEventListener("scroll", setHeaderState, { passive: true });
   setHeaderState();
 
+  document.querySelectorAll("[data-gallery]").forEach((gallery) => {
+    const track = gallery.querySelector("[data-gallery-track]");
+    const prev = gallery.querySelector("[data-gallery-prev]");
+    const next = gallery.querySelector("[data-gallery-next]");
+    if (!track || !prev || !next) return;
+
+    const getStep = () => {
+      const slide = track.querySelector(".gallery-slider__slide");
+      if (!slide) return track.clientWidth * 0.8;
+      const styles = window.getComputedStyle(track);
+      const gap = Number.parseFloat(styles.columnGap || styles.gap || "0") || 0;
+      return slide.getBoundingClientRect().width + gap;
+    };
+
+    const updateButtons = () => {
+      const maxScroll = track.scrollWidth - track.clientWidth - 4;
+      prev.disabled = track.scrollLeft <= 4;
+      next.disabled = track.scrollLeft >= maxScroll;
+    };
+
+    const scrollByDir = (dir) => {
+      track.scrollBy({ left: dir * getStep(), behavior: reduceMotion ? "auto" : "smooth" });
+    };
+
+    prev.addEventListener("click", () => scrollByDir(-1));
+    next.addEventListener("click", () => scrollByDir(1));
+    track.addEventListener("scroll", updateButtons, { passive: true });
+    window.addEventListener("resize", updateButtons);
+    updateButtons();
+  });
+
   if (!reduceMotion) {
     const reveals = document.querySelectorAll(".reveal");
     const observer = new IntersectionObserver(
