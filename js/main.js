@@ -349,9 +349,13 @@
       invitationSection.querySelector("[data-invite-heading]").textContent = label ? `You’re invited, ${label}` : "You’re invited";
       invitationSection.querySelector("[data-invite-names]").textContent =
         `This invitation is for ${listNames(named)}${plusText}. Only these guests are invited.`;
-      document.querySelectorAll('a[href="#rsvp"], a[data-hero-rsvp]').forEach((link) => {
+      document.querySelectorAll('a[href="#rsvp"], a[data-hero-rsvp], a[data-stay-rsvp]').forEach((link) => {
         link.setAttribute("href", "#your-invitation");
       });
+      const heroRsvp = document.querySelector("[data-hero-rsvp]");
+      if (heroRsvp) heroRsvp.textContent = "Kindly RSVP";
+      const stayRsvp = document.querySelector("[data-stay-rsvp]");
+      if (stayRsvp) stayRsvp.textContent = "Request a cabin in the RSVP";
       renderWeddingParty(data.wedding_party);
       renderSummary(data);
     } catch (error) {
