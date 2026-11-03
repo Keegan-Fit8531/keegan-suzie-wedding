@@ -214,10 +214,12 @@
     const { rsvp, guests } = data;
     const deadline = invitationSection?.querySelector(".invitation-card__deadline");
     if (deadline) deadline.hidden = Boolean(rsvp);
+    const heroRsvp = document.querySelector("[data-hero-rsvp]");
     if (!rsvp) {
       rsvpSummary.innerHTML = "";
       openRsvpButton.textContent = "Reply to your invitation";
       openRsvpButton.hidden = !data.rsvp_open;
+      if (heroRsvp) heroRsvp.textContent = "Kindly RSVP";
       return;
     }
 
@@ -241,8 +243,9 @@
         </dl>
         ${data.rsvp_open ? "" : `<p class="rsvp-closed">RSVP is now closed. If you need to change your reply, please contact Keegan.</p>`}
       </div>`;
-    openRsvpButton.textContent = "Edit reply";
+    openRsvpButton.textContent = "Edit RSVP";
     openRsvpButton.hidden = !data.rsvp_open;
+    if (heroRsvp) heroRsvp.textContent = "Edit RSVP";
   };
 
   const renderForm = (data) => {
