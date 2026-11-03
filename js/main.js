@@ -139,7 +139,7 @@
   const rsvpSummary = document.querySelector("[data-rsvp-summary]");
   const openRsvpButton = document.querySelector("[data-open-rsvp]");
   const publicRsvp = document.querySelector("[data-public-rsvp]");
-  const welcomeAside = document.querySelector("[data-welcome-aside]");
+  const welcomeSection = document.querySelector("#welcome");
   const listNames = (names = []) => new Intl.ListFormat("en-NZ", { style: "long", type: "conjunction" }).format(names);
   let inviteData = null;
 
@@ -180,33 +180,24 @@
     else rsvpDialog.removeAttribute("open");
   };
 
+  const partyCard = (singular, plural, names, brief) => {
+    const title = names.length === 1 ? names[0] : listNames(names);
+    return `
+      <div class="invitation-card invitation-card--party">
+        <p class="section__eyebrow section__eyebrow--caps">${names.length === 1 ? singular : plural}</p>
+        <h2 class="section__title">${escapeHtml(title)}</h2>
+        <p class="section__body">${escapeHtml(brief?.body || "Day-of details will be added here.")}</p>
+      </div>`;
+  };
+
   const renderWeddingParty = (weddingParty) => {
     if (!partySection || !partyCards || !weddingParty) return;
     const cards = [];
     const bridesmaids = weddingParty.bridesmaids?.names || [];
     const groomsmen = weddingParty.groomsmen?.names || [];
 
-    if (bridesmaids.length) {
-      const brief = weddingParty.bridesmaids.brief || {};
-      cards.push(`
-        <div class="invitation-card invitation-card--party">
-          <p class="section__eyebrow section__eyebrow--caps">Bridesmaid${bridesmaids.length > 1 ? "s" : ""}</p>
-          <h2 class="section__title">${escapeHtml(brief.title || "For the bridal party")}</h2>
-          <p class="wedding-party__for">This section is for ${escapeHtml(listNames(bridesmaids))}.</p>
-          <p class="section__body">${escapeHtml(brief.body || "Your day-of details will be shared here soon.")}</p>
-        </div>`);
-    }
-
-    if (groomsmen.length) {
-      const brief = weddingParty.groomsmen.brief || {};
-      cards.push(`
-        <div class="invitation-card invitation-card--party">
-          <p class="section__eyebrow section__eyebrow--caps">Groomsm${groomsmen.length > 1 ? "en" : "an"}</p>
-          <h2 class="section__title">${escapeHtml(brief.title || "For the groomsmen")}</h2>
-          <p class="wedding-party__for">This section is for ${escapeHtml(listNames(groomsmen))}.</p>
-          <p class="section__body">${escapeHtml(brief.body || "Your day-of details will be shared here soon.")}</p>
-        </div>`);
-    }
+    if (bridesmaids.length) cards.push(partyCard("Bridesmaid", "Bridesmaids", bridesmaids, weddingParty.bridesmaids.brief));
+    if (groomsmen.length) cards.push(partyCard("Groomsman", "Groomsmen", groomsmen, weddingParty.groomsmen.brief));
 
     if (!cards.length) {
       partySection.hidden = true;
@@ -221,22 +212,22 @@
   const renderSummary = (data) => {
     if (!rsvpSummary || !openRsvpButton) return;
     const { rsvp, guests } = data;
+    const deadline = invitationSection?.querySelector(".invitation-card__deadline");
+    if (deadline) deadline.hidden = Boolean(rsvp);
     if (!rsvp) {
-      rsvpSummary.innerHTML = `<p>Please reply by <strong>1 January 2027</strong> so we can plan for you, including overnight cabin stays.</p>`;
+      rsvpSummary.innerHTML = "";
       openRsvpButton.textContent = "Reply to your invitation";
       openRsvpButton.hidden = !data.rsvp_open;
       return;
     }
 
     const attendance = guests.map((guest) =>
-      `<li><span>${escapeHtml(guest.name)}</span><strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong></li>`
+      `<li><span>${escapeHtml(guest.name)}${guest.is_plus_one ? " <small>Plus one</small>" : ""}</span><strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong></li>`
     ).join("");
 
     rsvpSummary.innerHTML = `
       <div class="rsvp-confirmation rsvp-confirmation--inline">
-        <p class="section__eyebrow section__eyebrow--caps">Your RSVP</p>
-        <h3 class="section__title" id="rsvp-dialog-title">You’re all set</h3>
-        <p>Thank you for your reply. Here is what we have saved.</p>
+        <p class="section__eyebrow section__eyebrow--caps">Your reply</p>
         <ul class="rsvp-summary">${attendance}</ul>
         <dl class="rsvp-summary__details">
           <div><dt>Staying overnight</dt><dd>${rsvp.cabin_requested ? "Yes, cabin requested" : "No, day guests only"}</dd></div>
@@ -262,7 +253,7 @@
       const attending = saved.guest_responses?.[guest.id];
       return `
         <fieldset class="rsvp-person">
-          <legend>${escapeHtml(guest.name)}</legend>
+          <legend>${escapeHtml(guest.name)}${guest.is_plus_one ? " · plus one" : ""}</legend>
           <label><input type="radio" name="guest-${guest.id}" value="true" ${attending === true ? "checked" : ""} required /> Coming</label>
           <label><input type="radio" name="guest-${guest.id}" value="false" ${attending === false ? "checked" : ""} /> Not coming</label>
         </fieldset>`;
@@ -328,10 +319,11 @@
       const names = data.guests.map((guest) => guest.name);
       invitationSection.hidden = false;
       if (publicRsvp) publicRsvp.hidden = true;
-      if (welcomeAside) welcomeAside.hidden = true;
-      invitationSection.querySelector("[data-invite-heading]").textContent = `You’re invited, ${data.party.label}`;
+      if (welcomeSection) welcomeSection.hidden = true;
+      const label = data.party.label?.trim();
+      invitationSection.querySelector("[data-invite-heading]").textContent = label ? `You’re invited, ${label}` : "You’re invited";
       invitationSection.querySelector("[data-invite-names]").textContent =
-        `This invitation is for ${listNames(names)}.`;
+        `This invitation is for ${listNames(names)}. Only these guests are invited.`;
       document.querySelectorAll('a[href="#rsvp"], a[data-hero-rsvp]').forEach((link) => {
         link.setAttribute("href", "#your-invitation");
       });

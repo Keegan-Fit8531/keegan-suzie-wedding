@@ -38,19 +38,36 @@
     return "Guest";
   };
 
+  const plusOneField = (plusOne = {}) => `
+    <div class="plus-one-row">
+      <input data-plus-name value="${escapeHtml(plusOne.name || "")}" placeholder="Plus one name" />
+      <button type="button" data-remove-plus aria-label="Remove plus one">×</button>
+    </div>`;
+
   const guestField = (guest = {}) => {
     const id = `guest-type-${guestFieldId++}`;
     const type = guest.guest_type || "guest";
+    const plusOnes = guest.plus_ones || [];
     return `
-    <div class="guest-editor__row">
-      <input data-guest-name value="${escapeHtml(guest.name || "")}" placeholder="Guest name" required />
-      <fieldset class="guest-type" aria-label="Guest type">
-        <label><input type="radio" name="${id}" data-guest-type value="guest" ${type === "guest" ? "checked" : ""} /> Guest</label>
-        <label><input type="radio" name="${id}" data-guest-type value="groomsman" ${type === "groomsman" ? "checked" : ""} /> Groomsman</label>
-        <label><input type="radio" name="${id}" data-guest-type value="bridesmaid" ${type === "bridesmaid" ? "checked" : ""} /> Bridesmaid</label>
-      </fieldset>
-      <button type="button" class="guest-editor__remove" data-remove-guest aria-label="Remove guest">×</button>
+    <div class="guest-editor__block">
+      <div class="guest-editor__row">
+        <input data-guest-name value="${escapeHtml(guest.name || "")}" placeholder="Guest name" required />
+        <fieldset class="guest-type" aria-label="Guest type">
+          <label><input type="radio" name="${id}" data-guest-type value="guest" ${type === "guest" ? "checked" : ""} /> Guest</label>
+          <label><input type="radio" name="${id}" data-guest-type value="groomsman" ${type === "groomsman" ? "checked" : ""} /> Groomsman</label>
+          <label><input type="radio" name="${id}" data-guest-type value="bridesmaid" ${type === "bridesmaid" ? "checked" : ""} /> Bridesmaid</label>
+        </fieldset>
+        <button type="button" class="guest-editor__remove" data-remove-guest aria-label="Remove guest">×</button>
+      </div>
+      <div class="plus-ones" data-plus-ones>${plusOnes.map(plusOneField).join("")}</div>
+      <button type="button" class="text-link" data-add-plus>Add plus one</button>
     </div>`;
+  };
+
+  const partyTitle = (party) => {
+    if (party.label?.trim()) return party.label.trim();
+    const names = party.guests.flatMap((guest) => [guest.name, ...(guest.plus_ones || []).map((plusOne) => plusOne.name)]);
+    return names.join(", ") || "Untitled invitation";
   };
 
   const render = () => {
@@ -80,11 +97,16 @@
         const response = rsvp?.guest_responses?.[guest.id];
         const text = response === true ? "Coming" : response === false ? "Not coming" : "Pending";
         const type = guest.guest_type && guest.guest_type !== "guest" ? ` <small>${escapeHtml(guestTypeLabel(guest.guest_type))}</small>` : "";
-        return `<li><span>${escapeHtml(guest.name)}${type}</span><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong></li>`;
+        const plusOnes = (guest.plus_ones || []).map((plusOne) => {
+          const plusResponse = rsvp?.guest_responses?.[plusOne.id];
+          const plusText = plusResponse === true ? "Coming" : plusResponse === false ? "Not coming" : "Pending";
+          return `<li class="host-guest-list__plus"><span>${escapeHtml(plusOne.name)} <small>Plus one</small></span><strong class="status status--${plusText.toLowerCase().replace(" ", "-")}">${plusText}</strong></li>`;
+        }).join("");
+        return `<li><span>${escapeHtml(guest.name)}${type}</span><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong></li>${plusOnes}`;
       }).join("");
       return `<article class="host-party-card">
-        <div class="host-party-card__top"><div><h2>${escapeHtml(party.label)}</h2><p>${rsvp ? `RSVP received ${new Date(rsvp.submitted_at).toLocaleDateString("en-NZ")}` : "No RSVP yet"}</p></div>
-        <div class="host-party-card__actions"><button type="button" class="text-link" data-copy="${escapeHtml(party.invite_code)}">Copy link</button><button type="button" class="text-link" data-edit="${party.id}">Edit</button><button type="button" class="text-link text-link--danger" data-delete="${party.id}">Delete</button></div></div>
+        <div class="host-party-card__top"><div><h2>${escapeHtml(partyTitle(party))}</h2><p>${rsvp ? `RSVP received ${new Date(rsvp.submitted_at).toLocaleDateString("en-NZ")}` : "No RSVP yet"}</p></div>
+        <div class="host-party-card__actions"><button type="button" class="text-link" data-copy="${escapeHtml(party.invite_code)}">Copy link</button><button type="button" class="text-link" data-qr="${escapeHtml(party.invite_code)}" data-qr-name="${escapeHtml(partyTitle(party))}">Download QR</button><button type="button" class="text-link" data-edit="${party.id}">Edit</button><button type="button" class="text-link text-link--danger" data-delete="${party.id}">Delete</button></div></div>
         <ul class="host-guest-list">${guests}</ul>
         ${rsvp ? `<div class="host-rsvp-details"><p><strong>Cabin:</strong> ${rsvp.cabin_requested ? "Requested" : "No"}</p><p><strong>Email:</strong> ${escapeHtml(rsvp.contact_email)}</p>${rsvp.dietary_notes ? `<p><strong>Dietary:</strong> ${escapeHtml(rsvp.dietary_notes)}</p>` : ""}${rsvp.note ? `<p><strong>Note:</strong> ${escapeHtml(rsvp.note)}</p>` : ""}</div>` : ""}
       </article>`;
@@ -103,10 +125,30 @@
       button.textContent = "Copied";
       setTimeout(() => { button.textContent = "Copy link"; }, 1500);
     }));
+    partyList.querySelectorAll("[data-qr]").forEach((button) => button.addEventListener("click", async () => {
+      const previous = button.textContent;
+      button.textContent = "Preparing…";
+      try {
+        const dataUrl = await window.QRCode.toDataURL(inviteUrl(button.dataset.qr), {
+          margin: 2,
+          width: 720,
+          color: { dark: "#2f3b2c", light: "#fffaf3" }
+        });
+        const download = document.createElement("a");
+        const slug = (button.dataset.qrName || "invite").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        download.href = dataUrl;
+        download.download = `${slug || "invite"}-qr.png`;
+        download.click();
+        button.textContent = "Downloaded";
+      } catch (error) {
+        button.textContent = "QR unavailable";
+      }
+      setTimeout(() => { button.textContent = previous; }, 1500);
+    }));
     partyList.querySelectorAll("[data-edit]").forEach((button) => button.addEventListener("click", () => openParty(button.dataset.edit)));
     partyList.querySelectorAll("[data-delete]").forEach((button) => button.addEventListener("click", async () => {
       const party = dashboard.parties.find((item) => item.id === button.dataset.delete);
-      if (!window.confirm(`Delete ${party.label} and their RSVP?`)) return;
+      if (!window.confirm(`Delete ${partyTitle(party)} and their RSVP?`)) return;
       dashboard = await rpc("host_delete_party", { p_pin: pin, p_party_id: party.id });
       render();
     }));
@@ -118,7 +160,7 @@
     partyForm.reset();
     partyForm.querySelector("[name=id]").value = party?.id || "";
     partyForm.querySelector("[name=label]").value = party?.label || "";
-    partyForm.querySelector("[data-party-form-title]").textContent = party ? `Edit ${party.label}` : "New invitation";
+    partyForm.querySelector("[data-party-form-title]").textContent = party ? `Edit ${partyTitle(party)}` : "New invitation";
     partyForm.querySelector("[data-guest-fields]").innerHTML = (party?.guests?.length ? party.guests : [{}]).map(guestField).join("");
     partyDialog.showModal();
   };
@@ -160,18 +202,27 @@
     partyForm.querySelector("[data-guest-fields]").insertAdjacentHTML("beforeend", guestField());
   });
   partyForm.querySelector("[data-guest-fields]").addEventListener("click", (event) => {
-    if (event.target.matches("[data-remove-guest]") && partyForm.querySelectorAll(".guest-editor__row").length > 1) {
-      event.target.closest(".guest-editor__row").remove();
+    if (event.target.matches("[data-add-plus]")) {
+      event.target.previousElementSibling.insertAdjacentHTML("beforeend", plusOneField());
+    }
+    if (event.target.matches("[data-remove-plus]")) {
+      event.target.closest(".plus-one-row").remove();
+    }
+    if (event.target.matches("[data-remove-guest]") && partyForm.querySelectorAll(".guest-editor__block").length > 1) {
+      event.target.closest(".guest-editor__block").remove();
     }
   });
 
   partyForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const data = new FormData(partyForm);
-    const guests = [...partyForm.querySelectorAll(".guest-editor__row")].map((row, sort_order) => ({
-      name: row.querySelector("[data-guest-name]").value.trim(),
-      guest_type: row.querySelector("[data-guest-type]:checked")?.value || "guest",
-      sort_order
+    const guests = [...partyForm.querySelectorAll(".guest-editor__block")].map((block, sort_order) => ({
+      name: block.querySelector("[data-guest-name]").value.trim(),
+      guest_type: block.querySelector("[data-guest-type]:checked")?.value || "guest",
+      sort_order,
+      plus_ones: [...block.querySelectorAll("[data-plus-name]")]
+        .map((input) => ({ name: input.value.trim() }))
+        .filter((plusOne) => plusOne.name)
     })).filter((guest) => guest.name);
     const status = partyForm.querySelector(".form-status");
     if (!guests.length) {
