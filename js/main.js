@@ -266,19 +266,12 @@
     const nickname = (guest.name || "").trim();
     const legalName = (guest.legal_name || "").trim();
     if (nickname && legalName && legalName.toLowerCase() !== nickname.toLowerCase()) {
-      return `${nickname} (also known as ${legalName})`;
+      return `${legalName} (${nickname})`;
     }
-    return nickname || legalName;
+    return legalName || nickname;
   };
 
-  const guestFormLegend = (guest = {}) => {
-    const nickname = (guest.name || "").trim();
-    const legalName = (guest.legal_name || "").trim();
-    if (nickname && legalName && legalName.toLowerCase() !== nickname.toLowerCase()) {
-      return `${escapeHtml(nickname)} <span class="rsvp-person__aka">also known as ${escapeHtml(legalName)}</span>`;
-    }
-    return escapeHtml(nickname || legalName);
-  };
+  const guestFormLegend = (guest = {}) => escapeHtml(guestInviteLabel(guest));
 
   const renderSummary = (data) => {
     if (!rsvpSummary || !openRsvpButton) return;

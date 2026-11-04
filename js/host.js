@@ -47,15 +47,21 @@
     const nickname = (guest.name || "").trim();
     const legalName = (guest.legal_name || "").trim();
     if (nickname && legalName && legalName.toLowerCase() !== nickname.toLowerCase()) {
-      return `${nickname} (${legalName})`;
+      return `${legalName} (${nickname})`;
     }
-    return nickname || legalName;
+    return legalName || nickname;
   };
 
   const guestField = (guest = {}) => {
     const id = `guest-type-${guestFieldId++}`;
     const type = guest.guest_type || "guest";
     const plusCount = guest.plus_ones?.length || 0;
+    const nickname = (guest.name || "").trim();
+    const legalName = (guest.legal_name || "").trim();
+    const realNameValue = legalName || (!legalName && nickname ? nickname : "");
+    const nicknameValue = legalName && nickname && legalName.toLowerCase() !== nickname.toLowerCase()
+      ? nickname
+      : "";
     return `
     <article class="guest-editor__block">
       <div class="guest-editor__header">
@@ -64,12 +70,12 @@
       </div>
       <div class="guest-editor__names">
         <label class="form-field">
-          <span class="form-field__heading">Nickname / name on invite</span>
-          <input data-guest-name value="${escapeHtml(guest.name || "")}" placeholder="e.g. Grandad" required />
+          <span class="form-field__heading">Real name</span>
+          <input data-guest-legal-name value="${escapeHtml(realNameValue)}" placeholder="e.g. Mike Fitzgerald" required />
         </label>
         <label class="form-field">
-          <span class="form-field__heading">Real name <span>Optional</span></span>
-          <input data-guest-legal-name value="${escapeHtml(guest.legal_name || "")}" placeholder="e.g. Mike Fitzgerald" />
+          <span class="form-field__heading">Nickname <span>Optional</span></span>
+          <input data-guest-name value="${escapeHtml(nicknameValue)}" placeholder="e.g. Grandad" />
         </label>
       </div>
       <div class="guest-editor__meta">
@@ -255,13 +261,18 @@
   partyForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const data = new FormData(partyForm);
-    const guests = [...partyForm.querySelectorAll(".guest-editor__block")].map((block, sort_order) => ({
-      name: block.querySelector("[data-guest-name]").value.trim(),
-      legal_name: block.querySelector("[data-guest-legal-name]").value.trim(),
-      guest_type: block.querySelector("[data-guest-type]:checked")?.value || "guest",
-      sort_order,
-      plus_one_count: Number(block.querySelector("[data-plus-value]").textContent) || 0
-    })).filter((guest) => guest.name);
+    const guests = [...partyForm.querySelectorAll(".guest-editor__block")].map((block, sort_order) => {
+      const realName = block.querySelector("[data-guest-legal-name]").value.trim();
+      const nickname = block.querySelector("[data-guest-name]").value.trim();
+      const hasDistinctNickname = Boolean(nickname && nickname.toLowerCase() !== realName.toLowerCase());
+      return {
+        name: hasDistinctNickname ? nickname : realName,
+        legal_name: hasDistinctNickname ? realName : "",
+        guest_type: block.querySelector("[data-guest-type]:checked")?.value || "guest",
+        sort_order,
+        plus_one_count: Number(block.querySelector("[data-plus-value]").textContent) || 0
+      };
+    }).filter((guest) => guest.name);
     const status = partyForm.querySelector(".form-status");
     if (!guests.length) {
       status.textContent = "Add at least one named guest.";
