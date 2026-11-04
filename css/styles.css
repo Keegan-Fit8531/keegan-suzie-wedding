@@ -1230,13 +1230,14 @@ button {
   font-weight: 500;
 }
 
-.invitation-card__deadline {
-  margin: 1.1rem 0 0;
-  color: rgba(42, 50, 39, 0.78);
-}
-
-.invitation-card .section__title {
-  margin-bottom: 0.65rem;
+.invitation-card__title {
+  margin: 0 0 1.35rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.85rem, 3.5vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  color: var(--forest);
 }
 
 .invitation-card .section__body {
@@ -1244,30 +1245,34 @@ button {
 }
 
 .invitation-card__people {
-  margin-top: 0.35rem;
+  margin: 0;
 }
 
 .invitation-card__for {
   margin: 0;
-  font-size: 1.05rem;
-  color: rgba(42, 50, 39, 0.72);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--copper);
 }
 
 .invitation-card__guests {
   list-style: none;
-  margin: 0.85rem 0 0;
+  margin: 0.9rem 0 0;
   padding: 0;
   display: grid;
-  gap: 0.55rem;
+  gap: 0.65rem;
 }
 
 .invitation-card__guests li {
   position: relative;
   padding-left: 1.15rem;
   font-family: var(--font-display);
-  font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+  font-size: clamp(1.55rem, 3vw, 2rem);
   font-weight: 500;
-  line-height: 1.25;
+  line-height: 1.2;
   color: var(--forest);
 }
 
@@ -1282,6 +1287,16 @@ button {
   background: var(--copper);
 }
 
+.invitation-card__nick {
+  margin-left: 0.2em;
+  font-family: var(--font-ui);
+  font-size: 0.62em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: rgba(42, 50, 39, 0.58);
+  vertical-align: baseline;
+}
+
 .invitation-card__guests .invitation-card__plus {
   font-family: var(--font-ui);
   font-size: 1.05rem;
@@ -1290,20 +1305,43 @@ button {
 }
 
 .invitation-card__limit {
-  margin: 1rem 0 0;
-  font-size: 1rem;
-  color: rgba(42, 50, 39, 0.68);
+  margin: 0.95rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: rgba(42, 50, 39, 0.62);
 }
 
 .invitation-card__rsvp {
   margin-top: 1.5rem;
 }
 
+.invitation-card__footer {
+  margin-top: 1.75rem;
+  padding-top: 1.35rem;
+  border-top: 1px solid rgba(47, 59, 44, 0.1);
+}
+
+.invitation-card__deadline {
+  margin: 0 0 1.1rem;
+  font-family: var(--font-ui);
+  font-size: 1.05rem;
+  color: var(--forest);
+}
+
+.invitation-card__deadline strong {
+  font-weight: 600;
+}
+
 .invitation-card__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.25rem 1.5rem;
-  margin-top: 1.75rem;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 0;
+}
+
+.invitation-card__actions .text-link {
+  min-height: 2.75rem;
 }
 
 .wedding-party__for {

@@ -271,6 +271,15 @@
     return legalName || nickname;
   };
 
+  const guestInviteMarkup = (guest = {}) => {
+    const nickname = (guest.name || "").trim();
+    const legalName = (guest.legal_name || "").trim();
+    if (nickname && legalName && legalName.toLowerCase() !== nickname.toLowerCase()) {
+      return `${escapeHtml(legalName)} <span class="invitation-card__nick">(${escapeHtml(nickname)})</span>`;
+    }
+    return escapeHtml(legalName || nickname);
+  };
+
   const guestFormLegend = (guest = {}) => escapeHtml(guestInviteLabel(guest));
 
   const renderSummary = (data) => {
@@ -403,7 +412,7 @@
       const data = await rpc("guest_invite", { p_invite_code: inviteCode });
       if (!data?.party || !invitationSection) return;
       inviteData = data;
-      const named = data.guests.filter((guest) => !guest.is_plus_one).map((guest) => guestInviteLabel(guest));
+      const namedGuests = data.guests.filter((guest) => !guest.is_plus_one);
       const plusCount = data.guests.filter((guest) => guest.is_plus_one).length;
       const plusLabel = plusCount === 1
         ? "Plus one"
@@ -420,10 +429,10 @@
         namesTarget.innerHTML = `
           <p class="invitation-card__for">This invitation is for</p>
           <ul class="invitation-card__guests">
-            ${named.map((name) => `<li>${escapeHtml(name)}</li>`).join("")}
+            ${namedGuests.map((guest) => `<li>${guestInviteMarkup(guest)}</li>`).join("")}
             ${plusLabel ? `<li class="invitation-card__plus">${escapeHtml(plusLabel)}</li>` : ""}
           </ul>
-          <p class="invitation-card__limit">Only these guests are invited with this invitation. No extra guests unless your invite says so.</p>
+          <p class="invitation-card__limit">Only the people listed above are invited.</p>
         `;
       }
       document.querySelectorAll('a[href="#rsvp"], a[data-hero-rsvp], a[data-stay-rsvp]').forEach((link) => {
