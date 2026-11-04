@@ -405,14 +405,27 @@
       inviteData = data;
       const named = data.guests.filter((guest) => !guest.is_plus_one).map((guest) => guestInviteLabel(guest));
       const plusCount = data.guests.filter((guest) => guest.is_plus_one).length;
-      const plusText = plusCount === 1 ? " and a plus one" : plusCount > 1 ? ` and ${plusCount} plus ones` : "";
+      const plusLabel = plusCount === 1
+        ? "Plus one"
+        : plusCount > 1
+          ? `${plusCount} plus ones`
+          : "";
       invitationSection.hidden = false;
       if (publicRsvp) publicRsvp.hidden = true;
       if (welcomeSection) welcomeSection.hidden = true;
       const label = data.party.label?.trim();
       invitationSection.querySelector("[data-invite-heading]").textContent = label ? `You’re invited, ${label}` : "You’re invited";
-      invitationSection.querySelector("[data-invite-names]").textContent =
-        `This invitation is for ${listNames(named)}${plusText}. Only these guests are invited with this invitation. No extra guests unless your invite says so.`;
+      const namesTarget = invitationSection.querySelector("[data-invite-names]");
+      if (namesTarget) {
+        namesTarget.innerHTML = `
+          <p class="invitation-card__for">This invitation is for</p>
+          <ul class="invitation-card__guests">
+            ${named.map((name) => `<li>${escapeHtml(name)}</li>`).join("")}
+            ${plusLabel ? `<li class="invitation-card__plus">${escapeHtml(plusLabel)}</li>` : ""}
+          </ul>
+          <p class="invitation-card__limit">Only these guests are invited with this invitation. No extra guests unless your invite says so.</p>
+        `;
+      }
       document.querySelectorAll('a[href="#rsvp"], a[data-hero-rsvp], a[data-stay-rsvp]').forEach((link) => {
         link.setAttribute("href", "#your-invitation");
       });
@@ -425,8 +438,10 @@
     } catch (error) {
       if (invitationSection) {
         invitationSection.hidden = false;
-        invitationSection.querySelector("[data-invite-names]").textContent =
-          "We could not load this invitation. Please contact Keegan for help.";
+        const namesTarget = invitationSection.querySelector("[data-invite-names]");
+        if (namesTarget) {
+          namesTarget.innerHTML = `<p class="invitation-card__limit">We could not load this invitation. Please contact Keegan for help.</p>`;
+        }
       }
     }
   };

@@ -309,7 +309,7 @@ button {
   box-shadow: var(--focus-ring);
 }
 
-.site-nav__rsvp {
+.site-nav a.site-nav__rsvp {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -330,23 +330,23 @@ button {
     transform 0.25s var(--ease);
 }
 
-.site-nav__rsvp:hover,
-.site-nav__rsvp:focus-visible {
+.site-nav a.site-nav__rsvp:hover,
+.site-nav a.site-nav__rsvp:focus-visible {
   background: var(--cream);
   color: var(--forest) !important;
   transform: translateY(-1px);
 }
 
-.site-header.is-scrolled .site-nav__rsvp,
-.site-header.has-nav-open .site-nav__rsvp {
+.site-header.is-scrolled .site-nav a.site-nav__rsvp,
+.site-header.has-nav-open .site-nav a.site-nav__rsvp {
   background: var(--forest);
   color: var(--white) !important;
 }
 
-.site-header.is-scrolled .site-nav__rsvp:hover,
-.site-header.is-scrolled .site-nav__rsvp:focus-visible,
-.site-header.has-nav-open .site-nav__rsvp:hover,
-.site-header.has-nav-open .site-nav__rsvp:focus-visible {
+.site-header.is-scrolled .site-nav a.site-nav__rsvp:hover,
+.site-header.is-scrolled .site-nav a.site-nav__rsvp:focus-visible,
+.site-header.has-nav-open .site-nav a.site-nav__rsvp:hover,
+.site-header.has-nav-open .site-nav a.site-nav__rsvp:focus-visible {
   background: var(--sage-deep);
   color: var(--white) !important;
 }
@@ -1243,6 +1243,58 @@ button {
   margin-bottom: 0;
 }
 
+.invitation-card__people {
+  margin-top: 0.35rem;
+}
+
+.invitation-card__for {
+  margin: 0;
+  font-size: 1.05rem;
+  color: rgba(42, 50, 39, 0.72);
+}
+
+.invitation-card__guests {
+  list-style: none;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.invitation-card__guests li {
+  position: relative;
+  padding-left: 1.15rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--forest);
+}
+
+.invitation-card__guests li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--copper);
+}
+
+.invitation-card__guests .invitation-card__plus {
+  font-family: var(--font-ui);
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: rgba(42, 50, 39, 0.72);
+}
+
+.invitation-card__limit {
+  margin: 1rem 0 0;
+  font-size: 1rem;
+  color: rgba(42, 50, 39, 0.68);
+}
+
 .invitation-card__rsvp {
   margin-top: 1.5rem;
 }
@@ -1831,8 +1883,9 @@ body.has-nav-open {
     gap: 1rem;
   }
 
-  .site-nav__rsvp {
+  .site-nav a.site-nav__rsvp {
     width: 100%;
+    border-radius: 999px;
   }
 
   .brand__text--full {
