@@ -2,7 +2,11 @@
   const header = document.querySelector("[data-header]");
   const nav = document.querySelector("[data-nav]");
   const toggle = document.querySelector("[data-nav-toggle]");
+  const backdrop = document.querySelector("[data-nav-backdrop]");
+  const main = document.getElementById("main");
+  const footer = document.querySelector(".site-footer");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const navDrawerQuery = window.matchMedia("(max-width: 900px)");
 
   const setHeaderState = () => {
     if (!header) return;
@@ -10,27 +14,54 @@
   };
 
   const getFocusable = () => {
-    if (!nav) return [];
-    return [...nav.querySelectorAll('a[href], button:not([disabled])')].filter(
+    if (!nav || !toggle) return [];
+    const navItems = [...nav.querySelectorAll("a[href], button:not([disabled])")].filter(
       (el) => !el.hasAttribute("disabled") && el.getAttribute("aria-hidden") !== "true"
     );
+    return [toggle, ...navItems];
+  };
+
+  const setPageInert = (inert) => {
+    if (inert) {
+      main?.setAttribute("inert", "");
+      footer?.setAttribute("inert", "");
+    } else {
+      main?.removeAttribute("inert");
+      footer?.removeAttribute("inert");
+    }
   };
 
   const closeNav = ({ restoreFocus = false } = {}) => {
     if (!nav || !toggle) return;
     nav.classList.remove("is-open");
+    nav.removeAttribute("aria-modal");
     toggle.setAttribute("aria-expanded", "false");
     header?.classList.remove("has-nav-open");
+    document.body.classList.remove("has-nav-open");
+    backdrop?.classList.remove("is-visible");
+    if (backdrop) {
+      backdrop.hidden = true;
+      backdrop.setAttribute("aria-hidden", "true");
+    }
+    setPageInert(false);
     if (restoreFocus) toggle.focus();
   };
 
   const openNav = () => {
-    if (!nav || !toggle) return;
+    if (!nav || !toggle || !navDrawerQuery.matches) return;
     nav.classList.add("is-open");
+    nav.setAttribute("aria-modal", "true");
     toggle.setAttribute("aria-expanded", "true");
     header?.classList.add("has-nav-open");
+    document.body.classList.add("has-nav-open");
+    if (backdrop) {
+      backdrop.hidden = false;
+      backdrop.classList.add("is-visible");
+      backdrop.setAttribute("aria-hidden", "false");
+    }
+    setPageInert(true);
     const focusable = getFocusable();
-    focusable[0]?.focus();
+    (focusable[1] || focusable[0])?.focus();
   };
 
   if (toggle && nav) {
@@ -38,6 +69,12 @@
       const open = !nav.classList.contains("is-open");
       if (open) openNav();
       else closeNav();
+    });
+
+    backdrop?.addEventListener("click", () => closeNav({ restoreFocus: true }));
+
+    header?.querySelector(".brand")?.addEventListener("click", () => {
+      if (nav.classList.contains("is-open")) closeNav();
     });
 
     nav.querySelectorAll("a").forEach((link) => {
@@ -62,7 +99,7 @@
       const last = focusable[focusable.length - 1];
       const active = document.activeElement;
 
-      if (event.shiftKey && (active === first || active === toggle)) {
+      if (event.shiftKey && active === first) {
         event.preventDefault();
         last.focus();
       } else if (!event.shiftKey && active === last) {
@@ -70,6 +107,15 @@
         first.focus();
       }
     });
+
+    const onNavBreakpointChange = (event) => {
+      if (!event.matches) closeNav();
+    };
+    if (typeof navDrawerQuery.addEventListener === "function") {
+      navDrawerQuery.addEventListener("change", onNavBreakpointChange);
+    } else if (typeof navDrawerQuery.addListener === "function") {
+      navDrawerQuery.addListener(onNavBreakpointChange);
+    }
   }
 
   window.addEventListener("scroll", setHeaderState, { passive: true });
@@ -172,6 +218,13 @@
     renderForm(inviteData);
     if (typeof rsvpDialog.showModal === "function") rsvpDialog.showModal();
     else rsvpDialog.setAttribute("open", "");
+    const resetScroll = () => {
+      const panel = rsvpDialog.querySelector(".rsvp-dialog__panel");
+      if (panel) panel.scrollTop = 0;
+      rsvpDialog.scrollTop = 0;
+    };
+    resetScroll();
+    requestAnimationFrame(resetScroll);
   };
 
   const closeRsvpDialog = () => {
@@ -209,6 +262,24 @@
     partyCards.innerHTML = cards.join("");
   };
 
+  const guestInviteLabel = (guest = {}) => {
+    const nickname = (guest.name || "").trim();
+    const legalName = (guest.legal_name || "").trim();
+    if (nickname && legalName && legalName.toLowerCase() !== nickname.toLowerCase()) {
+      return `${nickname} (also known as ${legalName})`;
+    }
+    return nickname || legalName;
+  };
+
+  const guestFormLegend = (guest = {}) => {
+    const nickname = (guest.name || "").trim();
+    const legalName = (guest.legal_name || "").trim();
+    if (nickname && legalName && legalName.toLowerCase() !== nickname.toLowerCase()) {
+      return `${escapeHtml(nickname)} <span class="rsvp-person__aka">also known as ${escapeHtml(legalName)}</span>`;
+    }
+    return escapeHtml(nickname || legalName);
+  };
+
   const renderSummary = (data) => {
     if (!rsvpSummary || !openRsvpButton) return;
     const { rsvp, guests } = data;
@@ -224,7 +295,7 @@
     }
 
     const attendance = guests.map((guest) => {
-      const label = guest.is_plus_one ? "Plus one" : escapeHtml(guest.name);
+      const label = guest.is_plus_one ? "Plus one" : escapeHtml(guestInviteLabel(guest));
       return `<li><span>${label}</span><strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong></li>`;
     }).join("");
 
@@ -267,7 +338,7 @@
         </fieldset>` : "";
       return `
         <fieldset class="rsvp-person">
-          <legend>${escapeHtml(guest.name)}</legend>
+          <legend>${guestFormLegend(guest)}</legend>
           <label><input type="radio" name="guest-${guest.id}" value="true" ${attending === true ? "checked" : ""} required /> Coming</label>
           <label><input type="radio" name="guest-${guest.id}" value="false" ${attending === false ? "checked" : ""} /> Not coming</label>
           ${plusField}
@@ -339,7 +410,7 @@
       const data = await rpc("guest_invite", { p_invite_code: inviteCode });
       if (!data?.party || !invitationSection) return;
       inviteData = data;
-      const named = data.guests.filter((guest) => !guest.is_plus_one).map((guest) => guest.name);
+      const named = data.guests.filter((guest) => !guest.is_plus_one).map((guest) => guestInviteLabel(guest));
       const plusCount = data.guests.filter((guest) => guest.is_plus_one).length;
       const plusText = plusCount === 1 ? " and a plus one" : plusCount > 1 ? ` and ${plusCount} plus ones` : "";
       invitationSection.hidden = false;

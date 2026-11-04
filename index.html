@@ -35,7 +35,10 @@
     <div class="site-header__inner">
       <a class="brand" href="#top" aria-label="Suzie and Keegan home">
         <span class="brand__mark" aria-hidden="true"></span>
-        <span class="brand__text">Suzie &amp; Keegan</span>
+        <span class="brand__text">
+          <span class="brand__text--full">Suzie &amp; Keegan</span>
+          <span class="brand__text--short" aria-hidden="true">S &amp; K</span>
+        </span>
       </a>
 
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
@@ -55,6 +58,7 @@
       </nav>
     </div>
   </header>
+  <button class="nav-backdrop" type="button" data-nav-backdrop tabindex="-1" aria-hidden="true" aria-label="Close menu" hidden></button>
 
   <main id="main">
     <section class="hero" id="top" aria-label="Wedding introduction">
@@ -93,7 +97,7 @@
       </div>
     </section>
 
-    <section class="section section--invitation" id="your-invitation" hidden aria-live="polite">
+    <section class="section section--invitation section--rule" id="your-invitation" hidden aria-live="polite">
       <div class="shell">
         <div class="invitation-card">
           <p class="section__eyebrow section__eyebrow--caps">Your invitation</p>
@@ -144,7 +148,7 @@
       </div>
     </section>
 
-    <section class="section section--day" id="day">
+    <section class="section section--day section--rule" id="day">
       <div class="shell">
         <div class="section__intro reveal">
           <p class="section__eyebrow section__eyebrow--caps">The day</p>
@@ -174,7 +178,7 @@
       </div>
     </section>
 
-    <section class="section section--venue" id="venue">
+    <section class="section section--venue section--rule" id="venue">
       <div class="shell">
         <div class="section__intro reveal">
           <p class="section__eyebrow section__eyebrow--caps">Where</p>
@@ -252,7 +256,7 @@
       </div>
     </section>
 
-    <section class="section section--stay" id="stay">
+    <section class="section section--stay section--rule" id="stay">
       <div class="shell">
         <div class="stay">
           <figure class="stay__media reveal">
@@ -283,7 +287,7 @@
       </div>
     </section>
 
-    <section class="section section--details" id="details">
+    <section class="section section--details section--rule" id="details">
       <div class="shell">
         <div class="section__intro reveal">
           <p class="section__eyebrow section__eyebrow--caps">The finer details</p>
@@ -349,7 +353,7 @@
       </div>
     </section>
 
-    <section class="section section--rsvp" id="rsvp" data-public-rsvp>
+    <section class="section section--rsvp section--rule" id="rsvp" data-public-rsvp>
       <div class="shell">
         <div class="measure">
           <p class="section__eyebrow section__eyebrow--caps reveal">Invited guests only</p>

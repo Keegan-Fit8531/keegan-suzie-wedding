@@ -43,35 +43,59 @@
     return "Guest";
   };
 
+  const guestDisplayName = (guest = {}) => {
+    const nickname = (guest.name || "").trim();
+    const legalName = (guest.legal_name || "").trim();
+    if (nickname && legalName && legalName.toLowerCase() !== nickname.toLowerCase()) {
+      return `${nickname} (${legalName})`;
+    }
+    return nickname || legalName;
+  };
+
   const guestField = (guest = {}) => {
     const id = `guest-type-${guestFieldId++}`;
     const type = guest.guest_type || "guest";
     const plusCount = guest.plus_ones?.length || 0;
     return `
-    <div class="guest-editor__block">
-      <div class="guest-editor__row">
-        <input data-guest-name value="${escapeHtml(guest.name || "")}" placeholder="Guest name" required />
-        <fieldset class="guest-type" aria-label="Guest type">
+    <article class="guest-editor__block">
+      <div class="guest-editor__header">
+        <p class="guest-editor__eyebrow">Guest</p>
+        <button type="button" class="guest-editor__remove" data-remove-guest aria-label="Remove guest">Remove</button>
+      </div>
+      <div class="guest-editor__names">
+        <label class="form-field">
+          <span class="form-field__heading">Nickname / name on invite</span>
+          <input data-guest-name value="${escapeHtml(guest.name || "")}" placeholder="e.g. Grandad" required />
+        </label>
+        <label class="form-field">
+          <span class="form-field__heading">Real name <span>Optional</span></span>
+          <input data-guest-legal-name value="${escapeHtml(guest.legal_name || "")}" placeholder="e.g. Mike Fitzgerald" />
+        </label>
+      </div>
+      <div class="guest-editor__meta">
+        <fieldset class="guest-type">
+          <legend>Type</legend>
           <label><input type="radio" name="${id}" data-guest-type value="guest" ${type === "guest" ? "checked" : ""} /> Guest</label>
           <label><input type="radio" name="${id}" data-guest-type value="infant" ${type === "infant" ? "checked" : ""} /> Infant (0–3)</label>
           <label><input type="radio" name="${id}" data-guest-type value="child" ${type === "child" ? "checked" : ""} /> Child (4–13)</label>
           <label><input type="radio" name="${id}" data-guest-type value="groomsman" ${type === "groomsman" ? "checked" : ""} /> Groomsman</label>
           <label><input type="radio" name="${id}" data-guest-type value="bridesmaid" ${type === "bridesmaid" ? "checked" : ""} /> Bridesmaid</label>
         </fieldset>
-        <button type="button" class="guest-editor__remove" data-remove-guest aria-label="Remove guest">×</button>
+        <div class="plus-one-count">
+          <span class="plus-one-count__label">Plus ones</span>
+          <div class="plus-one-count__controls">
+            <button type="button" data-plus-minus aria-label="Remove a plus one">−</button>
+            <output data-plus-value>${plusCount}</output>
+            <button type="button" data-plus-plus aria-label="Add a plus one">+</button>
+          </div>
+        </div>
       </div>
-      <div class="plus-one-count">
-        <span>Plus ones</span>
-        <button type="button" data-plus-minus aria-label="Remove a plus one">−</button>
-        <output data-plus-value>${plusCount}</output>
-        <button type="button" data-plus-plus aria-label="Add a plus one">+</button>
-      </div>
-    </div>`;
+    </article>`;
   };
 
   const partyTitle = (party) => {
     if (party.label?.trim()) return party.label.trim();
-    const names = party.guests.map((guest) => guest.name).filter(Boolean);
+    const names = party.guests.map((guest) => guestDisplayName(guest)).filter(Boolean);
     return names.join(", ") || "Untitled invitation";
   };
 
@@ -106,7 +130,7 @@
         const response = rsvp?.guest_responses?.[guest.id];
         const text = response === true ? "Coming" : response === false ? "Not coming" : "Pending";
         const type = guest.guest_type && guest.guest_type !== "guest" ? ` <small>${escapeHtml(guestTypeLabel(guest.guest_type))}</small>` : "";
-        const rows = [`<li><span>${escapeHtml(guest.name)}${type}</span><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong></li>`];
+        const rows = [`<li><span>${escapeHtml(guestDisplayName(guest))}${type}</span><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong></li>`];
         (guest.plus_ones || []).forEach((plusOne, index) => {
           const plusResponse = rsvp?.guest_responses?.[plusOne.id];
           const plusText = plusResponse === true ? "Coming" : plusResponse === false ? "Not coming" : "Pending";
@@ -233,6 +257,7 @@
     const data = new FormData(partyForm);
     const guests = [...partyForm.querySelectorAll(".guest-editor__block")].map((block, sort_order) => ({
       name: block.querySelector("[data-guest-name]").value.trim(),
+      legal_name: block.querySelector("[data-guest-legal-name]").value.trim(),
       guest_type: block.querySelector("[data-guest-type]:checked")?.value || "guest",
       sort_order,
       plus_one_count: Number(block.querySelector("[data-plus-value]").textContent) || 0
