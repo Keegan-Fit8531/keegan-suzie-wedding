@@ -36,7 +36,9 @@
   };
 
   const guestTypeLabel = (type) => {
+    if (type === "maid_of_honor") return "Maid of Honor";
     if (type === "bridesmaid") return "Bridesmaid";
+    if (type === "best_man") return "Best Man";
     if (type === "groomsman") return "Groomsman";
     if (type === "infant") return "Infant (0–3)";
     if (type === "child") return "Child (4–13)";
@@ -52,6 +54,14 @@
     return legalName || nickname;
   };
 
+  const roleAvailability = (currentType = "guest") => {
+    const taken = dashboard?.roles_taken || {};
+    return {
+      maid_of_honor: currentType === "maid_of_honor" || !taken.maid_of_honor,
+      best_man: currentType === "best_man" || !taken.best_man
+    };
+  };
+
   const guestField = (guest = {}) => {
     const id = `guest-type-${guestFieldId++}`;
     const type = guest.guest_type || "guest";
@@ -62,6 +72,7 @@
     const nicknameValue = legalName && nickname && legalName.toLowerCase() !== nickname.toLowerCase()
       ? nickname
       : "";
+    const roles = roleAvailability(type);
     return `
     <article class="guest-editor__block">
       <div class="guest-editor__header">
@@ -85,7 +96,9 @@
           <label><input type="radio" name="${id}" data-guest-type value="infant" ${type === "infant" ? "checked" : ""} /> Infant (0–3)</label>
           <label><input type="radio" name="${id}" data-guest-type value="child" ${type === "child" ? "checked" : ""} /> Child (4–13)</label>
           <label><input type="radio" name="${id}" data-guest-type value="groomsman" ${type === "groomsman" ? "checked" : ""} /> Groomsman</label>
+          ${roles.best_man ? `<label><input type="radio" name="${id}" data-guest-type value="best_man" ${type === "best_man" ? "checked" : ""} /> Best Man</label>` : ""}
           <label><input type="radio" name="${id}" data-guest-type value="bridesmaid" ${type === "bridesmaid" ? "checked" : ""} /> Bridesmaid</label>
+          ${roles.maid_of_honor ? `<label><input type="radio" name="${id}" data-guest-type value="maid_of_honor" ${type === "maid_of_honor" ? "checked" : ""} /> Maid of Honor</label>` : ""}
         </fieldset>
         <div class="plus-one-count">
           <span class="plus-one-count__label">Plus ones</span>
@@ -203,14 +216,38 @@
     briefList.querySelectorAll("[data-edit-brief]").forEach((button) => button.addEventListener("click", () => openBrief(button.dataset.editBrief)));
   };
 
+  const syncExclusiveRoles = (changedInput) => {
+    const exclusive = ["maid_of_honor", "best_man"];
+    if (!exclusive.includes(changedInput.value) || !changedInput.checked) return;
+    partyForm.querySelectorAll(`[data-guest-type][value="${changedInput.value}"]`).forEach((input) => {
+      if (input === changedInput || !input.checked) return;
+      const guestRadio = input.closest(".guest-type")?.querySelector('[data-guest-type][value="guest"]');
+      if (guestRadio) guestRadio.checked = true;
+    });
+  };
+
+  let storedRolesTaken = null;
+
   const openParty = (id) => {
     const party = id ? dashboard.parties.find((item) => item.id === id) : null;
     partyForm.reset();
     partyForm.querySelector("[name=id]").value = party?.id || "";
     partyForm.querySelector("[name=label]").value = party?.label || "";
     partyForm.querySelector("[data-party-form-title]").textContent = party ? `Edit ${partyTitle(party)}` : "New invitation";
-    partyForm.querySelector("[data-guest-fields]").innerHTML = (party?.guests?.length ? party.guests : [{}]).map(guestField).join("");
+    storedRolesTaken = dashboard.roles_taken;
+    const partyOwns = (type) => Boolean(party?.guests?.some((guest) => guest.guest_type === type));
+    dashboard.roles_taken = {
+      maid_of_honor: Boolean(storedRolesTaken?.maid_of_honor) && !partyOwns("maid_of_honor"),
+      best_man: Boolean(storedRolesTaken?.best_man) && !partyOwns("best_man")
+    };
+    const guests = party?.guests?.length ? party.guests : [{}];
+    partyForm.querySelector("[data-guest-fields]").innerHTML = guests.map((guest) => guestField(guest)).join("");
     partyDialog.showModal();
+  };
+
+  const restoreRolesTaken = () => {
+    if (storedRolesTaken && dashboard) dashboard.roles_taken = storedRolesTaken;
+    storedRolesTaken = null;
   };
 
   const openBrief = (side) => {
@@ -244,10 +281,22 @@
   document.querySelector("[data-new-party]").addEventListener("click", () => openParty());
   document.querySelector("[data-close-dialog]").addEventListener("click", () => partyDialog.close());
   document.querySelector("[data-cancel-dialog]").addEventListener("click", () => partyDialog.close());
+  partyDialog.addEventListener("close", restoreRolesTaken);
   document.querySelector("[data-close-brief]").addEventListener("click", () => briefDialog.close());
   document.querySelector("[data-cancel-brief]").addEventListener("click", () => briefDialog.close());
   partyForm.querySelector("[data-add-guest]").addEventListener("click", () => {
-    partyForm.querySelector("[data-guest-fields]").insertAdjacentHTML("beforeend", guestField());
+    const selected = [...partyForm.querySelectorAll("[data-guest-type]:checked")].map((input) => input.value);
+    const previous = dashboard.roles_taken;
+    dashboard.roles_taken = {
+      ...(previous || {}),
+      maid_of_honor: Boolean(previous?.maid_of_honor) || selected.includes("maid_of_honor"),
+      best_man: Boolean(previous?.best_man) || selected.includes("best_man")
+    };
+    try {
+      partyForm.querySelector("[data-guest-fields]").insertAdjacentHTML("beforeend", guestField());
+    } finally {
+      dashboard.roles_taken = previous;
+    }
   });
   partyForm.querySelector("[data-guest-fields]").addEventListener("click", (event) => {
     const output = event.target.closest(".plus-one-count")?.querySelector("[data-plus-value]");
@@ -256,6 +305,9 @@
     if (event.target.matches("[data-remove-guest]") && partyForm.querySelectorAll(".guest-editor__block").length > 1) {
       event.target.closest(".guest-editor__block").remove();
     }
+  });
+  partyForm.querySelector("[data-guest-fields]").addEventListener("change", (event) => {
+    if (event.target.matches("[data-guest-type]")) syncExclusiveRoles(event.target);
   });
 
   partyForm.addEventListener("submit", async (event) => {
@@ -284,6 +336,7 @@
         p_pin: pin,
         p_payload: { id: data.get("id"), label: data.get("label"), guests }
       });
+      storedRolesTaken = null;
       partyDialog.close();
       render();
     } catch (error) {

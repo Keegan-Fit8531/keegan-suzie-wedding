@@ -184,6 +184,7 @@
   const rsvpDialog = document.querySelector("[data-rsvp-dialog]");
   const rsvpSummary = document.querySelector("[data-rsvp-summary]");
   const openRsvpButton = document.querySelector("[data-open-rsvp]");
+  const inviteCalendar = document.querySelector("[data-invite-calendar]");
   const publicRsvp = document.querySelector("[data-public-rsvp]");
   const welcomeSection = document.querySelector("#welcome");
   const listNames = (names = []) => new Intl.ListFormat("en-NZ", { style: "long", type: "conjunction" }).format(names);
@@ -233,12 +234,37 @@
     else rsvpDialog.removeAttribute("open");
   };
 
-  const partyCard = (singular, plural, names, brief) => {
-    const title = names.length === 1 ? names[0] : listNames(names);
+  const guestRoleLabel = (type) => {
+    if (type === "maid_of_honor") return "Maid of Honor";
+    if (type === "bridesmaid") return "Bridesmaid";
+    if (type === "best_man") return "Best Man";
+    if (type === "groomsman") return "Groomsman";
+    if (type === "infant") return "Infant";
+    if (type === "child") return "Child";
+    return "";
+  };
+
+  const partySideLabel = (members = [], side) => {
+    if (!members.length) return side === "bride" ? "Bridesmaids" : "Groomsmen";
+    if (members.length === 1) {
+      return guestRoleLabel(members[0].guest_type) || (side === "bride" ? "Bridesmaid" : "Groomsman");
+    }
+    return side === "bride" ? "Bridesmaids" : "Groomsmen";
+  };
+
+  const partyCard = (members, brief, side) => {
+    const eyebrow = partySideLabel(members, side);
+    const single = members.length === 1;
+    const heading = single
+      ? `<h2 class="section__title">${escapeHtml(members[0].name)}</h2>`
+      : `<ul class="wedding-party__roster">${members.map((member) => {
+          const role = guestRoleLabel(member.guest_type);
+          return `<li><span>${escapeHtml(member.name)}</span>${role ? `<small>${escapeHtml(role)}</small>` : ""}</li>`;
+        }).join("")}</ul>`;
     return `
       <div class="invitation-card invitation-card--party">
-        <p class="section__eyebrow section__eyebrow--caps">${names.length === 1 ? singular : plural}</p>
-        <h2 class="section__title">${escapeHtml(title)}</h2>
+        <p class="section__eyebrow section__eyebrow--caps">${escapeHtml(eyebrow)}</p>
+        ${heading}
         <p class="section__body">${escapeHtml(brief?.body || "Day-of details will be added here.")}</p>
       </div>`;
   };
@@ -246,11 +272,11 @@
   const renderWeddingParty = (weddingParty) => {
     if (!partySection || !partyCards || !weddingParty) return;
     const cards = [];
-    const bridesmaids = weddingParty.bridesmaids?.names || [];
-    const groomsmen = weddingParty.groomsmen?.names || [];
+    const bridesmaids = weddingParty.bridesmaids?.members || [];
+    const groomsmen = weddingParty.groomsmen?.members || [];
 
-    if (bridesmaids.length) cards.push(partyCard("Bridesmaid", "Bridesmaids", bridesmaids, weddingParty.bridesmaids.brief));
-    if (groomsmen.length) cards.push(partyCard("Groomsman", "Groomsmen", groomsmen, weddingParty.groomsmen.brief));
+    if (bridesmaids.length) cards.push(partyCard(bridesmaids, weddingParty.bridesmaids.brief, "bride"));
+    if (groomsmen.length) cards.push(partyCard(groomsmen, weddingParty.groomsmen.brief, "groom"));
 
     if (!cards.length) {
       partySection.hidden = true;
@@ -280,7 +306,55 @@
     return escapeHtml(legalName || nickname);
   };
 
-  const guestFormLegend = (guest = {}) => escapeHtml(guestInviteLabel(guest));
+  const guestRoleMarkup = (guest = {}) => {
+    const role = guestRoleLabel(guest.guest_type);
+    return role ? `<span class="invitation-card__role">${escapeHtml(role)}</span>` : "";
+  };
+
+  const guestFormLegend = (guest = {}) => {
+    const role = guestRoleLabel(guest.guest_type);
+    const name = escapeHtml(guestInviteLabel(guest));
+    return role ? `${name} <span class="rsvp-person__aka">${escapeHtml(role)}</span>` : name;
+  };
+
+  const renderInvitationPeople = (data) => {
+    const namesTarget = invitationSection?.querySelector("[data-invite-names]");
+    const heading = invitationSection?.querySelector("[data-invite-heading]");
+    if (!namesTarget) return;
+
+    if (data.rsvp) {
+      namesTarget.hidden = true;
+      namesTarget.innerHTML = "";
+      if (heading) heading.textContent = "Thanks for your reply";
+      return;
+    }
+
+    const namedGuests = data.guests.filter((guest) => !guest.is_plus_one);
+    const plusCount = data.guests.filter((guest) => guest.is_plus_one).length;
+    const plusLabel = plusCount === 1
+      ? "Plus one"
+      : plusCount > 1
+        ? `${plusCount} plus ones`
+        : "";
+    const label = data.party?.label?.trim();
+    if (heading) heading.textContent = label ? `You’re invited, ${label}` : "You’re invited";
+    namesTarget.hidden = false;
+    namesTarget.innerHTML = `
+      <p class="invitation-card__for">This invitation is for</p>
+      <ul class="invitation-card__guests">
+        ${namedGuests.map((guest) => `
+          <li>
+            <span class="invitation-card__guest">
+              ${guestInviteMarkup(guest)}
+              ${guestRoleMarkup(guest)}
+            </span>
+          </li>
+        `).join("")}
+        ${plusLabel ? `<li class="invitation-card__plus">${escapeHtml(plusLabel)}</li>` : ""}
+      </ul>
+      <p class="invitation-card__limit">Only the people listed above are invited.</p>
+    `;
+  };
 
   const renderSummary = (data) => {
     if (!rsvpSummary || !openRsvpButton) return;
@@ -288,17 +362,34 @@
     const deadline = invitationSection?.querySelector(".invitation-card__deadline");
     if (deadline) deadline.hidden = Boolean(rsvp);
     const heroRsvp = document.querySelector("[data-hero-rsvp]");
+    const anyoneComing = Boolean(
+      rsvp && guests.some((guest) => rsvp.guest_responses?.[guest.id])
+    );
+
+    renderInvitationPeople(data);
+
     if (!rsvp) {
       rsvpSummary.innerHTML = "";
       openRsvpButton.textContent = "Reply to your invitation";
+      openRsvpButton.className = "btn btn--primary";
       openRsvpButton.hidden = !data.rsvp_open;
+      if (inviteCalendar) inviteCalendar.hidden = true;
       if (heroRsvp) heroRsvp.textContent = "Kindly RSVP";
       return;
     }
 
     const attendance = guests.map((guest) => {
-      const label = guest.is_plus_one ? "Plus one" : escapeHtml(guestInviteLabel(guest));
-      return `<li><span>${label}</span><strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong></li>`;
+      if (guest.is_plus_one) {
+        return `<li><span>Plus one</span><strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong></li>`;
+      }
+      return `
+        <li>
+          <span class="invitation-card__guest">
+            ${guestInviteMarkup(guest)}
+            ${guestRoleMarkup(guest)}
+          </span>
+          <strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong>
+        </li>`;
     }).join("");
 
     rsvpSummary.innerHTML = `
@@ -314,7 +405,9 @@
         ${data.rsvp_open ? "" : `<p class="rsvp-closed">RSVP is now closed. If you need to change your reply, please contact Keegan.</p>`}
       </div>`;
     openRsvpButton.textContent = "Edit RSVP";
+    openRsvpButton.className = anyoneComing ? "btn btn--secondary" : "btn btn--primary";
     openRsvpButton.hidden = !data.rsvp_open;
+    if (inviteCalendar) inviteCalendar.hidden = !anyoneComing;
     if (heroRsvp) heroRsvp.textContent = "Edit RSVP";
   };
 
@@ -412,34 +505,12 @@
       const data = await rpc("guest_invite", { p_invite_code: inviteCode });
       if (!data?.party || !invitationSection) return;
       inviteData = data;
-      const namedGuests = data.guests.filter((guest) => !guest.is_plus_one);
-      const plusCount = data.guests.filter((guest) => guest.is_plus_one).length;
-      const plusLabel = plusCount === 1
-        ? "Plus one"
-        : plusCount > 1
-          ? `${plusCount} plus ones`
-          : "";
       invitationSection.hidden = false;
       if (publicRsvp) publicRsvp.hidden = true;
       if (welcomeSection) welcomeSection.hidden = true;
-      const label = data.party.label?.trim();
-      invitationSection.querySelector("[data-invite-heading]").textContent = label ? `You’re invited, ${label}` : "You’re invited";
-      const namesTarget = invitationSection.querySelector("[data-invite-names]");
-      if (namesTarget) {
-        namesTarget.innerHTML = `
-          <p class="invitation-card__for">This invitation is for</p>
-          <ul class="invitation-card__guests">
-            ${namedGuests.map((guest) => `<li>${guestInviteMarkup(guest)}</li>`).join("")}
-            ${plusLabel ? `<li class="invitation-card__plus">${escapeHtml(plusLabel)}</li>` : ""}
-          </ul>
-          <p class="invitation-card__limit">Only the people listed above are invited.</p>
-        `;
-      }
       document.querySelectorAll('a[href="#rsvp"], a[data-hero-rsvp], a[data-stay-rsvp]').forEach((link) => {
         link.setAttribute("href", "#your-invitation");
       });
-      const heroRsvp = document.querySelector("[data-hero-rsvp]");
-      if (heroRsvp) heroRsvp.textContent = "Kindly RSVP";
       const stayRsvp = document.querySelector("[data-stay-rsvp]");
       if (stayRsvp) stayRsvp.textContent = "Request a cabin in the RSVP";
       renderWeddingParty(data.wedding_party);
