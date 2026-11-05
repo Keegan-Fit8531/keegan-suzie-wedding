@@ -323,6 +323,26 @@
     return role ? `<span class="invitation-card__role">${escapeHtml(role)}</span>` : "";
   };
 
+  const plusOnesLabel = (count) => {
+    if (count === 1) return "Plus one";
+    if (count > 1) return `Plus ${count}`;
+    return "";
+  };
+
+  const guestInviteRow = (guest = {}, guests = []) => {
+    const plusCount = guests.filter((plusOne) => plusOne.plus_one_of === guest.id).length;
+    const plusLabel = plusOnesLabel(plusCount);
+    const meta = [
+      guestRoleMarkup(guest),
+      plusLabel ? `<span class="invitation-card__plus">${escapeHtml(plusLabel)}</span>` : ""
+    ].filter(Boolean).join("");
+    return `
+      <span class="invitation-card__guest">
+        <span class="invitation-card__guest-name">${guestInviteMarkup(guest)}</span>
+        ${meta ? `<span class="invitation-card__meta">${meta}</span>` : ""}
+      </span>`;
+  };
+
   const guestFormLegend = (guest = {}) => {
     const role = guestRoleLabel(guest.guest_type);
     const name = escapeHtml(guestInviteLabel(guest));
@@ -342,29 +362,13 @@
     }
 
     const namedGuests = data.guests.filter((guest) => !guest.is_plus_one);
-    const plusCount = data.guests.filter((guest) => guest.is_plus_one).length;
-    const plusLabel = plusCount === 1
-      ? "Plus one"
-      : plusCount > 1
-        ? `${plusCount} plus ones`
-        : "";
     const label = data.party?.label?.trim();
     if (heading) heading.textContent = label ? `You’re invited, ${label}` : "You’re invited";
     namesTarget.hidden = false;
     namesTarget.innerHTML = `
-      <p class="invitation-card__for">This invitation is for</p>
       <ul class="invitation-card__guests">
-        ${namedGuests.map((guest) => `
-          <li>
-            <span class="invitation-card__guest">
-              ${guestInviteMarkup(guest)}
-              ${guestRoleMarkup(guest)}
-            </span>
-          </li>
-        `).join("")}
-        ${plusLabel ? `<li class="invitation-card__plus">${escapeHtml(plusLabel)}</li>` : ""}
+        ${namedGuests.map((guest) => `<li>${guestInviteRow(guest, data.guests)}</li>`).join("")}
       </ul>
-      <p class="invitation-card__limit">Only the people listed above are invited.</p>
     `;
   };
 
@@ -382,7 +386,7 @@
 
     if (!rsvp) {
       rsvpSummary.innerHTML = "";
-      openRsvpButton.textContent = "Reply to your invitation";
+      openRsvpButton.textContent = "Reply";
       openRsvpButton.className = "btn btn--primary";
       openRsvpButton.hidden = !data.rsvp_open;
       if (inviteCalendar) inviteCalendar.hidden = true;
@@ -391,15 +395,21 @@
       return;
     }
 
-    const attendance = guests.map((guest) => {
-      if (guest.is_plus_one) {
-        return `<li><span>Plus one</span><strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong></li>`;
-      }
+    const namedGuests = guests.filter((guest) => !guest.is_plus_one);
+    const attendance = namedGuests.map((guest) => {
+      const plusOnes = guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
+      const plusComing = plusOnes.filter((plusOne) => rsvp.guest_responses?.[plusOne.id]).length;
+      const plusNote = !plusOnes.length
+        ? ""
+        : plusOnes.length === 1
+          ? `<span class="invitation-card__plus">${rsvp.guest_responses?.[plusOnes[0].id] ? "Plus one coming" : "Plus one not coming"}</span>`
+          : `<span class="invitation-card__plus">${plusComing} of ${plusOnes.length} plus ones coming</span>`;
+      const meta = [guestRoleMarkup(guest), plusNote].filter(Boolean).join("");
       return `
         <li>
           <span class="invitation-card__guest">
-            ${guestInviteMarkup(guest)}
-            ${guestRoleMarkup(guest)}
+            <span class="invitation-card__guest-name">${guestInviteMarkup(guest)}</span>
+            ${meta ? `<span class="invitation-card__meta">${meta}</span>` : ""}
           </span>
           <strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong>
         </li>`;
