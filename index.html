@@ -27,6 +27,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
+  <script>
+    (function () {
+      if (!/[?&]invite=/.test(location.search)) return;
+      document.documentElement.classList.add("has-invite");
+    })();
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -97,9 +103,18 @@
       </div>
     </section>
 
-    <section class="section section--invitation section--rule" id="your-invitation" hidden aria-live="polite">
+    <section class="section section--invitation" id="your-invitation" hidden aria-live="polite">
+      <div class="section-divider" aria-hidden="true"><span class="section-divider__mark">&amp;</span></div>
       <div class="shell">
-        <div class="invitation-card">
+        <div class="invitation-card invitation-card--loading" data-invite-loading hidden>
+          <p class="invitation-card__loading-label">Loading your invitation</p>
+          <div class="invitation-card__skeleton" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+        <div class="invitation-card" data-invite-card hidden>
           <h2 class="invitation-card__title" data-invite-heading>You’re invited</h2>
           <div class="invitation-card__people" data-invite-names></div>
           <div class="invitation-card__rsvp" data-rsvp-summary></div>
@@ -124,6 +139,7 @@
     </section>
 
     <section class="section section--wedding-party" id="wedding-party" hidden>
+      <div class="section-divider" aria-hidden="true"><span class="section-divider__mark">&amp;</span></div>
       <div class="shell" data-wedding-party-cards></div>
     </section>
 
@@ -135,6 +151,7 @@
     </dialog>
 
     <section class="section section--welcome" id="welcome">
+      <div class="section-divider" aria-hidden="true"><span class="section-divider__mark">&amp;</span></div>
       <div class="shell">
         <div class="measure">
           <p class="section__eyebrow section__eyebrow--caps reveal">A note to our guests</p>
@@ -151,7 +168,8 @@
       </div>
     </section>
 
-    <section class="section section--day section--rule" id="day">
+    <section class="section section--day" id="day">
+      <div class="section-divider" aria-hidden="true"><span class="section-divider__mark">&amp;</span></div>
       <div class="shell">
         <div class="section__intro reveal">
           <p class="section__eyebrow section__eyebrow--caps">The day</p>
@@ -181,7 +199,8 @@
       </div>
     </section>
 
-    <section class="section section--venue section--rule" id="venue">
+    <section class="section section--venue" id="venue">
+      <div class="section-divider" aria-hidden="true"><span class="section-divider__mark">&amp;</span></div>
       <div class="shell">
         <div class="section__intro reveal">
           <p class="section__eyebrow section__eyebrow--caps">Where</p>
@@ -259,7 +278,8 @@
       </div>
     </section>
 
-    <section class="section section--stay section--rule" id="stay">
+    <section class="section section--stay" id="stay">
+      <div class="section-divider" aria-hidden="true"><span class="section-divider__mark">&amp;</span></div>
       <div class="shell">
         <div class="stay">
           <figure class="stay__media reveal">
@@ -290,7 +310,8 @@
       </div>
     </section>
 
-    <section class="section section--details section--rule" id="details">
+    <section class="section section--details" id="details">
+      <div class="section-divider" aria-hidden="true"><span class="section-divider__mark">&amp;</span></div>
       <div class="shell">
         <div class="section__intro reveal">
           <p class="section__eyebrow section__eyebrow--caps">The finer details</p>
@@ -356,7 +377,8 @@
       </div>
     </section>
 
-    <section class="section section--rsvp section--rule" id="rsvp" data-public-rsvp>
+    <section class="section section--rsvp" id="rsvp" data-public-rsvp>
+      <div class="section-divider" aria-hidden="true"><span class="section-divider__mark">&amp;</span></div>
       <div class="shell">
         <div class="measure">
           <p class="section__eyebrow section__eyebrow--caps reveal">Invited guests only</p>

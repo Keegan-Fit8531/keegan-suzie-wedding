@@ -585,8 +585,8 @@ button {
   display: flex;
   align-items: center;
   gap: clamp(0.85rem, 2vw, 1.35rem);
-  width: min(42rem, calc(100% - (var(--page-gutter) * 2)));
-  margin: 0 auto max(2.75rem, var(--space-4));
+  width: min(22rem, calc(100% - (var(--page-gutter) * 2)));
+  margin: 0 auto max(2.5rem, var(--space-4));
   color: var(--divider-mark);
   pointer-events: none;
 }
@@ -608,7 +608,7 @@ button {
 .section-divider__mark {
   flex: 0 0 auto;
   font-family: var(--font-script);
-  font-size: clamp(1.7rem, 3vw, 2.15rem);
+  font-size: clamp(1.85rem, 3.2vw, 2.35rem);
   line-height: 0.8;
   transform: translateY(0.08em);
 }
@@ -677,12 +677,18 @@ button {
 
 .section--day {
   background:
-    radial-gradient(980px 420px at 100% 0%, rgba(183, 192, 170, 0.2), transparent 58%),
-    var(--cream);
+    radial-gradient(980px 420px at 100% 0%, rgba(183, 192, 170, 0.16), transparent 58%),
+    linear-gradient(180deg, #f1ebe2 0%, var(--ivory) 68%);
 }
 
 .section--venue {
   background: var(--ivory);
+}
+
+.section--invitation + .section--day,
+.section--wedding-party + .section--day,
+.section--welcome + .section--day {
+  padding-top: calc(var(--space-6) - 0.5rem);
 }
 
 /* Timeline
@@ -1205,7 +1211,103 @@ button {
 }
 
 .section--invitation {
+  background:
+    radial-gradient(900px 360px at 0% 100%, rgba(138, 101, 72, 0.08), transparent 55%),
+    var(--cream);
+}
+
+.section--wedding-party {
   background: var(--cream);
+}
+
+html.has-invite #welcome,
+html.has-invite #rsvp {
+  display: none !important;
+}
+
+html.has-invite #your-invitation,
+html.has-invite #your-invitation[hidden] {
+  display: block !important;
+}
+
+html.has-invite #your-invitation [data-invite-loading],
+html.has-invite #your-invitation [data-invite-loading][hidden] {
+  display: grid !important;
+}
+
+html.has-invite #your-invitation [data-invite-card],
+html.has-invite #your-invitation [data-invite-card][hidden] {
+  display: none !important;
+}
+
+html.has-invite.invite-ready #your-invitation [data-invite-loading],
+html.has-invite.invite-ready #your-invitation [data-invite-loading][hidden] {
+  display: none !important;
+}
+
+html.has-invite.invite-ready #your-invitation [data-invite-card],
+html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
+  display: block !important;
+}
+
+.section--invitation.is-loading .invitation-card--loading,
+.section--invitation.is-ready [data-invite-card] {
+  animation: inviteReveal 0.55s var(--ease) both;
+}
+
+.invitation-card--loading {
+  display: grid;
+  gap: 1.1rem;
+  align-content: start;
+}
+
+.invitation-card__loading-label {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--copper);
+}
+
+.invitation-card__skeleton {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.invitation-card__skeleton span {
+  display: block;
+  height: 0.95rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(47, 59, 44, 0.08),
+    rgba(47, 59, 44, 0.14),
+    rgba(47, 59, 44, 0.08)
+  );
+  background-size: 200% 100%;
+  animation: inviteShimmer 1.2s ease-in-out infinite;
+}
+
+.invitation-card__skeleton span:nth-child(1) { width: 42%; height: 1.5rem; }
+.invitation-card__skeleton span:nth-child(2) { width: 68%; }
+.invitation-card__skeleton span:nth-child(3) { width: 54%; }
+
+@keyframes inviteReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes inviteShimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
 }
 
 .section--wedding-party {
@@ -1918,6 +2020,15 @@ button {
   .site-nav__rsvp:hover,
   .site-nav__rsvp:focus-visible {
     transform: none;
+  }
+
+  .section--invitation.is-loading .invitation-card--loading,
+  .section--invitation.is-ready [data-invite-card] {
+    animation: none;
+  }
+
+  .invitation-card__skeleton span {
+    animation: none;
   }
 }
 

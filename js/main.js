@@ -267,11 +267,25 @@
       </div>`;
   };
 
-  const renderWeddingParty = (weddingParty) => {
-    if (!partySection || !partyCards || !weddingParty) return;
+  const isDeclined = (memberId, responses = {}) => {
+    const value = responses?.[memberId] ?? responses?.[String(memberId)];
+    return value === false || value === "false";
+  };
+
+  const renderWeddingParty = (data) => {
+    if (!partySection || !partyCards) return;
+    const weddingParty = data?.wedding_party;
+    if (!weddingParty) {
+      partySection.hidden = true;
+      partyCards.innerHTML = "";
+      return;
+    }
+
+    const responses = data?.rsvp?.guest_responses || {};
+    const keepMember = (member) => !isDeclined(member.id, responses);
+    const bridesmaids = (weddingParty.bridesmaids?.members || []).filter(keepMember);
+    const groomsmen = (weddingParty.groomsmen?.members || []).filter(keepMember);
     const cards = [];
-    const bridesmaids = weddingParty.bridesmaids?.members || [];
-    const groomsmen = weddingParty.groomsmen?.members || [];
 
     if (bridesmaids.length) cards.push(partyCard(bridesmaids, weddingParty.bridesmaids.brief, "bride"));
     if (groomsmen.length) cards.push(partyCard(groomsmen, weddingParty.groomsmen.brief, "groom"));
@@ -373,6 +387,7 @@
       openRsvpButton.hidden = !data.rsvp_open;
       if (inviteCalendar) inviteCalendar.hidden = true;
       if (heroRsvp) heroRsvp.textContent = "Kindly RSVP";
+      renderWeddingParty(data);
       return;
     }
 
@@ -406,6 +421,7 @@
     openRsvpButton.hidden = !data.rsvp_open;
     if (inviteCalendar) inviteCalendar.hidden = !anyoneComing;
     if (heroRsvp) heroRsvp.textContent = "Edit RSVP";
+    renderWeddingParty(data);
   };
 
   const renderForm = (data) => {
@@ -503,29 +519,76 @@
     });
   };
 
+  const inviteLoading = document.querySelector("[data-invite-loading]");
+  const inviteCard = document.querySelector("[data-invite-card]");
+
+  const showInviteLoading = () => {
+    if (!invitationSection) return;
+    document.documentElement.classList.add("has-invite");
+    document.documentElement.classList.remove("invite-ready");
+    invitationSection.hidden = false;
+    invitationSection.classList.add("is-loading");
+    invitationSection.classList.remove("is-ready");
+    if (inviteLoading) inviteLoading.hidden = false;
+    if (inviteCard) inviteCard.hidden = true;
+    if (publicRsvp) publicRsvp.hidden = true;
+    if (welcomeSection) welcomeSection.hidden = true;
+  };
+
+  const showInviteReady = () => {
+    if (!invitationSection) return;
+    document.documentElement.classList.add("has-invite", "invite-ready");
+    invitationSection.classList.remove("is-loading");
+    invitationSection.classList.add("is-ready");
+    if (inviteLoading) inviteLoading.hidden = true;
+    if (inviteCard) inviteCard.hidden = false;
+  };
+
+  const clearInviteLoading = () => {
+    document.documentElement.classList.remove("has-invite", "invite-ready");
+    if (invitationSection) {
+      invitationSection.hidden = true;
+      invitationSection.classList.remove("is-loading", "is-ready");
+    }
+    if (inviteLoading) inviteLoading.hidden = true;
+    if (inviteCard) inviteCard.hidden = true;
+    if (welcomeSection) welcomeSection.hidden = false;
+  };
+
   const loadInvitation = async () => {
     if (!inviteCode) return;
+    showInviteLoading();
     try {
       const data = await rpc("guest_invite", { p_invite_code: inviteCode });
-      if (!data?.party || !invitationSection) return;
+      if (!data?.party || !invitationSection) {
+        clearInviteLoading();
+        return;
+      }
       inviteData = data;
-      invitationSection.hidden = false;
-      if (publicRsvp) publicRsvp.hidden = true;
-      if (welcomeSection) welcomeSection.hidden = true;
       document.querySelectorAll('a[href="#rsvp"], a[data-hero-rsvp], a[data-stay-rsvp]').forEach((link) => {
         link.setAttribute("href", "#your-invitation");
       });
       const stayRsvp = document.querySelector("[data-stay-rsvp]");
       if (stayRsvp) stayRsvp.textContent = "Request a cabin in the RSVP";
-      renderWeddingParty(data.wedding_party);
       renderSummary(data);
+      showInviteReady();
     } catch (error) {
       if (invitationSection) {
-        invitationSection.hidden = false;
+        showInviteReady();
+        const heading = invitationSection.querySelector("[data-invite-heading]");
+        if (heading) heading.textContent = "Invitation unavailable";
         const namesTarget = invitationSection.querySelector("[data-invite-names]");
         if (namesTarget) {
+          namesTarget.hidden = false;
           namesTarget.innerHTML = `<p class="invitation-card__limit">We could not load this invitation. Please contact Keegan for help.</p>`;
         }
+        if (rsvpSummary) rsvpSummary.innerHTML = "";
+        if (openRsvpButton) openRsvpButton.hidden = true;
+        if (inviteCalendar) inviteCalendar.hidden = true;
+        const deadline = invitationSection.querySelector(".invitation-card__deadline");
+        if (deadline) deadline.hidden = true;
+      } else {
+        clearInviteLoading();
       }
     }
   };
