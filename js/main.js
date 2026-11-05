@@ -532,22 +532,48 @@
   const inviteLoading = document.querySelector("[data-invite-loading]");
   const inviteCard = document.querySelector("[data-invite-card]");
 
+  const publicNav = document.querySelector("[data-public-nav]");
+  const inviteNav = document.querySelector("[data-invite-nav]");
+  const heroCalendar = document.querySelector("[data-hero-calendar]");
+  const publicCtas = document.querySelectorAll("[data-public-cta]");
+  const heroRsvpLink = document.querySelector("[data-hero-rsvp]");
+
+  const applyInviteChrome = () => {
+    if (publicNav) publicNav.hidden = true;
+    if (inviteNav) inviteNav.hidden = false;
+    publicCtas.forEach((cta) => { cta.hidden = true; });
+    if (heroRsvpLink) heroRsvpLink.hidden = false;
+    if (heroCalendar) heroCalendar.className = "btn btn--ghost";
+    if (publicRsvp) publicRsvp.hidden = true;
+    if (welcomeSection) welcomeSection.hidden = true;
+  };
+
+  const clearInviteChrome = () => {
+    if (publicNav) publicNav.hidden = false;
+    if (inviteNav) inviteNav.hidden = true;
+    publicCtas.forEach((cta) => { cta.hidden = false; });
+    if (heroRsvpLink) heroRsvpLink.hidden = true;
+    if (heroCalendar) heroCalendar.className = "btn btn--primary";
+    if (publicRsvp) publicRsvp.hidden = false;
+    if (welcomeSection) welcomeSection.hidden = false;
+  };
+
   const showInviteLoading = () => {
     if (!invitationSection) return;
     document.documentElement.classList.add("has-invite");
     document.documentElement.classList.remove("invite-ready");
+    applyInviteChrome();
     invitationSection.hidden = false;
     invitationSection.classList.add("is-loading");
     invitationSection.classList.remove("is-ready");
     if (inviteLoading) inviteLoading.hidden = false;
     if (inviteCard) inviteCard.hidden = true;
-    if (publicRsvp) publicRsvp.hidden = true;
-    if (welcomeSection) welcomeSection.hidden = true;
   };
 
   const showInviteReady = () => {
     if (!invitationSection) return;
     document.documentElement.classList.add("has-invite", "invite-ready");
+    applyInviteChrome();
     invitationSection.classList.remove("is-loading");
     invitationSection.classList.add("is-ready");
     if (inviteLoading) inviteLoading.hidden = true;
@@ -556,13 +582,13 @@
 
   const clearInviteLoading = () => {
     document.documentElement.classList.remove("has-invite", "invite-ready");
+    clearInviteChrome();
     if (invitationSection) {
       invitationSection.hidden = true;
       invitationSection.classList.remove("is-loading", "is-ready");
     }
     if (inviteLoading) inviteLoading.hidden = true;
     if (inviteCard) inviteCard.hidden = true;
-    if (welcomeSection) welcomeSection.hidden = false;
   };
 
   const loadInvitation = async () => {
@@ -575,11 +601,14 @@
         return;
       }
       inviteData = data;
-      document.querySelectorAll('a[href="#rsvp"], a[data-hero-rsvp], a[data-stay-rsvp]').forEach((link) => {
+      document.querySelectorAll('a[data-hero-rsvp], a[data-stay-rsvp]').forEach((link) => {
         link.setAttribute("href", "#your-invitation");
       });
       const stayRsvp = document.querySelector("[data-stay-rsvp]");
-      if (stayRsvp) stayRsvp.textContent = "Request a cabin in the RSVP";
+      if (stayRsvp) {
+        stayRsvp.textContent = "Request a cabin in the RSVP";
+        stayRsvp.className = "btn btn--primary";
+      }
       renderSummary(data);
       showInviteReady();
     } catch (error) {
