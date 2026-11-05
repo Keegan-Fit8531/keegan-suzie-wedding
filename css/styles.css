@@ -166,15 +166,18 @@ button {
   width: 2.85rem;
   height: 2.85rem;
   flex-shrink: 0;
-  background-color: currentColor;
-  color: var(--ivory);
-  -webkit-mask: url("../images/brand/monogram-sk.png") center / contain no-repeat;
-  mask: url("../images/brand/monogram-sk.png") center / contain no-repeat;
-  transition: color 0.85s var(--ease);
+  object-fit: contain;
+  filter: invert(1);
+  transition: filter 0.85s var(--ease);
 }
 
 .site-header.is-scrolled .brand__mark,
-.site-header.has-nav-open .brand__mark {
+.site-header.has-nav-open .brand__mark,
+.host-header .brand__mark {
+  filter: none;
+}
+
+.host-header .brand {
   color: var(--forest);
 }
 
@@ -421,14 +424,14 @@ button {
 }
 
 .hero__eyebrow {
-  margin: 0 0 1rem;
+  margin: 0 0 var(--space-2);
   font-family: var(--font-script);
   font-size: clamp(1.6rem, 3vw, 2.1rem);
   color: rgba(255, 252, 247, 0.95);
 }
 
 .hero__title {
-  margin: 0;
+  margin: 0 0 var(--space-3);
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -459,18 +462,18 @@ button {
 }
 
 .hero__date {
-  margin: 1.4rem 0 0.7rem;
+  margin: 0 0 var(--space-4);
+  margin-right: -0.18em;
   font-family: var(--font-ui);
-  font-size: 0.86rem;
-  font-weight: 400;
-  letter-spacing: 0.22em;
-  margin-right: -0.22em;
+  font-size: clamp(0.92rem, 1.6vw, 1.05rem);
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: rgba(255, 252, 247, 0.94);
 }
 
 .hero__lede {
-  margin: 0 auto 2rem;
+  margin: 0 auto var(--space-4);
   max-width: 28ch;
   font-size: clamp(1.15rem, 2.2vw, 1.4rem);
   font-style: italic;
@@ -481,7 +484,7 @@ button {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 1.25rem 1.5rem;
+  gap: var(--space-2);
 }
 
 /* Buttons
@@ -548,15 +551,15 @@ button {
 }
 
 .btn--ghost {
-  background: rgba(26, 34, 24, 0.35);
+  background: rgba(26, 34, 24, 0.55);
   color: var(--white);
-  border: 1px solid rgba(255, 252, 247, 0.75);
+  border: 1px solid rgba(255, 252, 247, 0.88);
   backdrop-filter: blur(8px);
 }
 
 .btn--ghost:hover,
 .btn--ghost:focus-visible {
-  background: rgba(26, 34, 24, 0.5);
+  background: rgba(26, 34, 24, 0.7);
   border-color: var(--ivory);
 }
 
@@ -587,10 +590,10 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: var(--space-2);
   width: min(16rem, 55vw);
   height: 1.75rem;
-  margin: 0 auto 2.5rem;
+  margin: 0 auto var(--space-4);
   color: var(--divider-mark);
   pointer-events: none;
 }
@@ -619,7 +622,7 @@ button {
 
 .section__eyebrow,
 .section__eyebrow--caps {
-  margin: 0 0 0.75rem;
+  margin: 0 0 var(--space-2);
   font-family: var(--font-ui);
   font-size: 0.78rem;
   font-weight: 500;
@@ -630,7 +633,7 @@ button {
 }
 
 .section__title {
-  margin: 0 0 1rem;
+  margin: 0 0 var(--space-2);
   font-family: var(--font-display);
   font-weight: 500;
   font-size: clamp(2.2rem, 5vw, 3.4rem);
@@ -645,13 +648,17 @@ button {
   color: rgba(42, 50, 39, 0.86);
 }
 
+.section__body + .section__body {
+  margin-top: var(--space-3);
+}
+
 .section__body strong {
   font-weight: 600;
   color: var(--forest);
 }
 
 .section__aside {
-  margin: 1.25rem 0 0;
+  margin: var(--space-3) 0 0;
   font-size: 1rem;
   font-weight: 400;
   color: rgba(42, 50, 39, 0.68);
@@ -659,8 +666,17 @@ button {
 
 .section__intro {
   max-width: 38rem;
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
   text-align: left;
+}
+
+.section__body + .btn,
+.section__aside + .btn,
+.section__body + .contact-actions,
+.section__aside + .contact-actions,
+.section__body + .invitation-card__actions,
+.section__aside + .invitation-card__actions {
+  margin-top: var(--space-4);
 }
 
 .section--welcome {
@@ -696,7 +712,7 @@ button {
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: var(--space-3);
 }
 
 .timeline__item {
@@ -707,7 +723,7 @@ button {
 }
 
 .timeline__time {
-  margin: 0 0 0.55rem;
+  margin: 0 0 var(--space-1);
   font-family: var(--font-ui);
   font-size: 0.75rem;
   letter-spacing: 0.16em;
@@ -716,7 +732,7 @@ button {
 }
 
 .timeline__title {
-  margin: 0 0 0.55rem;
+  margin: 0 0 var(--space-1);
   font-size: 1.7rem;
   font-weight: 500;
   color: var(--forest);
@@ -728,7 +744,7 @@ button {
 }
 
 .timeline__note {
-  margin: 1.75rem 0 0;
+  margin: var(--space-4) 0 0;
 }
 
 .text-link {
@@ -778,7 +794,7 @@ button {
 }
 
 .section--venue .text-link {
-  margin-top: 1rem;
+  margin-top: var(--space-2);
 }
 
 .gallery-slider {
@@ -789,7 +805,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-2);
   margin-bottom: 1rem;
 }
 
@@ -937,7 +953,7 @@ button {
 .details-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  gap: var(--space-4);
 }
 
 .details-grid--two {
@@ -954,7 +970,7 @@ button {
 .stay {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
-  gap: 2.5rem;
+  gap: var(--space-4);
   align-items: start;
   text-align: left;
 }
@@ -983,15 +999,15 @@ button {
 }
 
 .stay__copy .section__title {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-2);
 }
 
 .stay__list {
   list-style: none;
-  margin: 1.5rem 0 2rem;
+  margin: var(--space-3) 0 var(--space-4);
   padding: 0;
   display: grid;
-  gap: 0.85rem;
+  gap: var(--space-2);
   text-align: left;
 }
 
@@ -1027,7 +1043,7 @@ button {
 }
 
 .detail__title {
-  margin: 0 0 0.85rem;
+  margin: 0 0 var(--space-2);
   font-family: var(--font-ui);
   font-size: 0.78rem;
   font-weight: 500;
@@ -1037,7 +1053,7 @@ button {
 }
 
 .detail__lead {
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--space-1);
   font-size: 1.7rem;
   color: var(--ivory);
 }
@@ -1048,12 +1064,17 @@ button {
   font-size: 1.1rem;
 }
 
+.detail__lead + .detail__copy,
+.detail__copy + .palette {
+  margin-top: var(--space-2);
+}
+
 .palette {
   list-style: none;
-  margin: 1.35rem 0 0;
+  margin: var(--space-3) 0 0;
   padding: 0;
   display: grid;
-  gap: 0.55rem;
+  gap: var(--space-1);
 }
 
 .palette__item {
@@ -1102,21 +1123,32 @@ button {
 }
 
 .section--rsvp .section__body {
-  margin-bottom: 1.5rem;
   color: rgba(42, 50, 39, 0.86);
 }
 
 .rsvp-checklist {
   list-style: none;
-  margin: 0 0 2rem;
+  margin: 0 0 var(--space-4);
   padding: 0;
   display: grid;
-  gap: 0.55rem;
+  gap: var(--space-1);
   text-align: left;
 }
 
 .section--rsvp .hero__actions {
   justify-content: flex-start;
+}
+
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.contact-actions .btn {
+  min-height: 3.1rem;
 }
 
 .rsvp-checklist li {
@@ -1333,7 +1365,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 .invitation-card__title {
-  margin: 0 0 1.35rem;
+  margin: 0 0 var(--space-3);
   font-family: var(--font-display);
   font-weight: 500;
   font-size: clamp(1.85rem, 3.5vw, 2.4rem);
@@ -1365,7 +1397,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.85rem;
+  gap: var(--space-2);
 }
 
 .invitation-card__guests li {
@@ -1428,24 +1460,24 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 .invitation-card__limit {
-  margin: 0.95rem 0 0;
+  margin: var(--space-2) 0 0;
   font-size: 0.95rem;
   line-height: 1.45;
   color: rgba(42, 50, 39, 0.78);
 }
 
 .invitation-card__rsvp {
-  margin-top: 1.5rem;
+  margin-top: var(--space-3);
 }
 
 .invitation-card__footer {
-  margin-top: 1.75rem;
-  padding-top: 1.35rem;
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
   border-top: 1px solid rgba(47, 59, 44, 0.1);
 }
 
 .invitation-card__deadline {
-  margin: 0 0 1.1rem;
+  margin: 0 0 var(--space-3);
   font-family: var(--font-ui);
   font-size: 1.05rem;
   color: var(--forest);
@@ -1459,7 +1491,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1rem 1.5rem;
+  gap: var(--space-2);
   margin-top: 0;
 }
 
@@ -1468,17 +1500,17 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 .wedding-party__for {
-  margin: 0.35rem 0 1rem;
+  margin: 0 0 var(--space-2);
   color: var(--sage-deep);
   font-weight: 500;
 }
 
 .wedding-party__roster {
   list-style: none;
-  margin: 0 0 1rem;
+  margin: 0 0 var(--space-2);
   padding: 0;
   display: grid;
-  gap: 0.45rem;
+  gap: var(--space-1);
 }
 
 .wedding-party__roster li {
@@ -1502,12 +1534,12 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 .invitation-card--party .section__title {
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--space-2);
 }
 
 .section--wedding-party .shell {
   display: grid;
-  gap: 1.25rem;
+  gap: var(--space-3);
 }
 
 .rsvp-form,
@@ -1576,8 +1608,8 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 .rsvp-people,
 .rsvp-choice {
   display: grid;
-  gap: 0.75rem;
-  margin: 1.5rem 0;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
 }
 
 .rsvp-person,
@@ -1643,8 +1675,8 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 
 .form-field {
   display: grid;
-  gap: 0.42rem;
-  margin-top: 1.2rem;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
   color: var(--forest);
   font-weight: 500;
 }
@@ -1679,7 +1711,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 .rsvp-form .btn {
-  margin-top: 1.5rem;
+  margin-top: var(--space-4);
 }
 
 .form-status {
@@ -1690,7 +1722,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 
 .rsvp-summary {
   padding: 0;
-  margin: 0 0 1.5rem;
+  margin: 0 0 var(--space-3);
   list-style: none;
   border-top: 1px solid var(--wire);
 }
@@ -1718,7 +1750,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 
 .rsvp-summary__details {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-2);
 }
 
 .rsvp-summary__details div {
@@ -1740,7 +1772,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 .rsvp-confirmation .btn {
-  margin-top: 1.5rem;
+  margin-top: var(--space-4);
 }
 
 .rsvp-closed {
@@ -2163,19 +2195,21 @@ body.has-nav-open {
     padding: 4.5rem 0;
   }
 
-  .invitation-card__actions {
+  .invitation-card__actions,
+  .contact-actions {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .invitation-card__actions .btn {
+  .invitation-card__actions .btn,
+  .contact-actions .btn {
     width: 100%;
   }
 }
 
 @media (max-height: 520px) {
   .hero__eyebrow {
-    margin-bottom: 0.55rem;
+    margin-bottom: var(--space-1);
     font-size: clamp(1.25rem, 3vw, 1.7rem);
   }
 
@@ -2183,16 +2217,15 @@ body.has-nav-open {
     font-size: clamp(2.4rem, 8vw, 3.6rem);
   }
 
-  .hero__date {
-    margin-top: 0.85rem;
+  .hero__title {
+    margin-bottom: var(--space-2);
   }
 
-  .hero__lede {
-    margin-bottom: 1.25rem;
-    font-size: clamp(1rem, 2.2vw, 1.2rem);
+  .hero__date {
+    margin-bottom: var(--space-3);
   }
 
   .hero__actions {
-    gap: 0.85rem 1rem;
+    gap: var(--space-2);
   }
 }

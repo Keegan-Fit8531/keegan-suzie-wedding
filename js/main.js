@@ -267,9 +267,40 @@
       </div>`;
   };
 
-  const isDeclined = (memberId, responses = {}) => {
-    const value = responses?.[memberId] ?? responses?.[String(memberId)];
-    return value === false || value === "false";
+  const responseValue = (responses = {}, guestId) => {
+    const value = responses?.[guestId] ?? responses?.[String(guestId)];
+    if (value === true || value === "true") return true;
+    if (value === false || value === "false") return false;
+    return null;
+  };
+
+  const isDeclined = (memberId, responses = {}) => responseValue(responses, memberId) === false;
+
+  const attendanceLabel = (responses = {}, guestId) => {
+    const value = responseValue(responses, guestId);
+    if (value === true) return "Coming";
+    if (value === false) return "Not coming";
+    return "Pending";
+  };
+
+  const plusAttendanceNote = (plusOnes = [], responses = {}) => {
+    if (!plusOnes.length) return "";
+    if (plusOnes.length === 1) {
+      const value = responseValue(responses, plusOnes[0].id);
+      if (value === true) return `<span class="invitation-card__plus">Plus one coming</span>`;
+      if (value === false) return `<span class="invitation-card__plus">Plus one not coming</span>`;
+      return `<span class="invitation-card__plus">Plus one pending</span>`;
+    }
+    const known = plusOnes.filter((plusOne) => responseValue(responses, plusOne.id) !== null);
+    if (!known.length) {
+      return `<span class="invitation-card__plus">${plusOnes.length} plus ones pending</span>`;
+    }
+    const coming = plusOnes.filter((plusOne) => responseValue(responses, plusOne.id) === true).length;
+    const pending = plusOnes.length - known.length;
+    if (pending) {
+      return `<span class="invitation-card__plus">${coming} coming · ${pending} pending</span>`;
+    }
+    return `<span class="invitation-card__plus">${coming} of ${plusOnes.length} plus ones coming</span>`;
   };
 
   const renderWeddingParty = (data) => {
@@ -379,7 +410,7 @@
     if (deadline) deadline.hidden = Boolean(rsvp);
     const heroRsvp = document.querySelector("[data-hero-rsvp]");
     const anyoneComing = Boolean(
-      rsvp && guests.some((guest) => rsvp.guest_responses?.[guest.id])
+      rsvp && guests.some((guest) => responseValue(rsvp.guest_responses, guest.id) === true)
     );
 
     renderInvitationPeople(data);
@@ -398,20 +429,16 @@
     const namedGuests = guests.filter((guest) => !guest.is_plus_one);
     const attendance = namedGuests.map((guest) => {
       const plusOnes = guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
-      const plusComing = plusOnes.filter((plusOne) => rsvp.guest_responses?.[plusOne.id]).length;
-      const plusNote = !plusOnes.length
-        ? ""
-        : plusOnes.length === 1
-          ? `<span class="invitation-card__plus">${rsvp.guest_responses?.[plusOnes[0].id] ? "Plus one coming" : "Plus one not coming"}</span>`
-          : `<span class="invitation-card__plus">${plusComing} of ${plusOnes.length} plus ones coming</span>`;
+      const plusNote = plusAttendanceNote(plusOnes, rsvp.guest_responses);
       const meta = [guestRoleMarkup(guest), plusNote].filter(Boolean).join("");
+      const status = attendanceLabel(rsvp.guest_responses, guest.id);
       return `
         <li>
           <span class="invitation-card__guest">
             <span class="invitation-card__guest-name">${guestInviteMarkup(guest)}</span>
             ${meta ? `<span class="invitation-card__meta">${meta}</span>` : ""}
           </span>
-          <strong>${rsvp.guest_responses?.[guest.id] ? "Coming" : "Not coming"}</strong>
+          <strong>${status}</strong>
         </li>`;
     }).join("");
 
@@ -553,7 +580,7 @@
     if (inviteNav) inviteNav.hidden = true;
     publicCtas.forEach((cta) => { cta.hidden = false; });
     if (heroRsvpLink) heroRsvpLink.hidden = true;
-    if (heroCalendar) heroCalendar.className = "btn btn--primary";
+    if (heroCalendar) heroCalendar.className = "btn btn--ghost";
     if (publicRsvp) publicRsvp.hidden = false;
     if (welcomeSection) welcomeSection.hidden = false;
   };
