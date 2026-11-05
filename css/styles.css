@@ -1195,13 +1195,15 @@ button {
   display: none !important;
 }
 
-.section--invitation {
+.section.section--invitation {
   --band: var(--cream);
+  padding-bottom: 0;
 }
 
-.section--wedding-party {
+.section.section--wedding-party {
   --band: var(--cream);
-  padding-top: 0;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-4);
 }
 
 html.has-invite #welcome,
