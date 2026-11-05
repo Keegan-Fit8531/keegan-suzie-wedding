@@ -75,6 +75,7 @@
     const roles = roleAvailability(type);
     return `
     <article class="guest-editor__block">
+      <input type="hidden" data-guest-id value="${escapeHtml(guest.id || "")}" />
       <div class="guest-editor__header">
         <p class="guest-editor__eyebrow">Guest</p>
         <button type="button" class="guest-editor__remove" data-remove-guest aria-label="Remove guest">Remove</button>
@@ -318,6 +319,7 @@
       const nickname = block.querySelector("[data-guest-name]").value.trim();
       const hasDistinctNickname = Boolean(nickname && nickname.toLowerCase() !== realName.toLowerCase());
       return {
+        id: block.querySelector("[data-guest-id]")?.value || "",
         name: hasDistinctNickname ? nickname : realName,
         legal_name: hasDistinctNickname ? realName : "",
         guest_type: block.querySelector("[data-guest-type]:checked")?.value || "guest",

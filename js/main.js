@@ -239,8 +239,6 @@
     if (type === "bridesmaid") return "Bridesmaid";
     if (type === "best_man") return "Best Man";
     if (type === "groomsman") return "Groomsman";
-    if (type === "infant") return "Infant";
-    if (type === "child") return "Child";
     return "";
   };
 
@@ -394,7 +392,6 @@
 
     rsvpSummary.innerHTML = `
       <div class="rsvp-confirmation rsvp-confirmation--inline">
-        <p class="section__eyebrow section__eyebrow--caps">Your reply</p>
         <ul class="rsvp-summary">${attendance}</ul>
         <dl class="rsvp-summary__details">
           <div><dt>Staying overnight</dt><dd>${rsvp.cabin_requested ? "Yes, cabin requested" : "No, day guests only"}</dd></div>
@@ -419,16 +416,23 @@
       return;
     }
     const saved = data.rsvp || {};
+    const savedResponse = (guestId) => {
+      const value = saved.guest_responses?.[guestId] ?? saved.guest_responses?.[String(guestId)];
+      if (value === true || value === "true") return true;
+      if (value === false || value === "false") return false;
+      return null;
+    };
     const namedGuests = data.guests.filter((guest) => !guest.is_plus_one);
     const guests = namedGuests.map((guest) => {
-      const attending = saved.guest_responses?.[guest.id];
+      const attending = savedResponse(guest.id);
       const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
-      const plusComing = plusOnes.filter((plusOne) => saved.guest_responses?.[plusOne.id]).length;
+      const plusComing = plusOnes.filter((plusOne) => savedResponse(plusOne.id) === true).length;
+      const plusKnown = plusOnes.some((plusOne) => savedResponse(plusOne.id) !== null);
       const plusField = plusOnes.length ? `
         <fieldset class="rsvp-plus">
           <legend>Plus ones coming</legend>
           ${Array.from({ length: plusOnes.length + 1 }, (_, count) => `
-            <label><input type="radio" name="plus-${guest.id}" value="${count}" ${plusComing === count ? "checked" : ""} required /> ${count}</label>
+            <label><input type="radio" name="plus-${guest.id}" value="${count}" ${plusKnown && plusComing === count ? "checked" : ""} required /> ${count}</label>
           `).join("")}
         </fieldset>` : "";
       return `

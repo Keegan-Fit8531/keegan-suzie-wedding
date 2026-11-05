@@ -1288,10 +1288,10 @@ button {
 }
 
 .invitation-card__guest {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 0.55rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
 }
 
 .invitation-card__nick {
@@ -1306,11 +1306,11 @@ button {
 
 .invitation-card__role {
   font-family: var(--font-ui);
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--copper);
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: rgba(42, 50, 39, 0.58);
 }
 
 .invitation-card__guests .invitation-card__plus {
@@ -1409,17 +1409,16 @@ button {
 }
 
 .rsvp-confirmation--inline {
-  margin: 1.35rem 0 0;
-  padding: 1.1rem 0 0;
+  margin: 0.35rem 0 0;
+  padding: 0;
   border: 0;
-  border-top: 1px solid var(--wire);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
 }
 
 .rsvp-confirmation--inline .rsvp-summary {
-  margin-top: 0.85rem;
+  margin-top: 0;
 }
 
 .rsvp-dialog {
@@ -1584,7 +1583,7 @@ button {
 
 .rsvp-summary {
   padding: 0;
-  margin: 1.5rem 0;
+  margin: 0 0 1.5rem;
   list-style: none;
   border-top: 1px solid var(--wire);
 }
@@ -1592,7 +1591,7 @@ button {
 .rsvp-summary li {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: flex-start;
   gap: 1rem;
   padding: 0.85rem 0;
   border-bottom: 1px solid var(--wire);
@@ -1603,6 +1602,11 @@ button {
   font-size: 1.35rem;
   font-weight: 500;
   color: var(--forest);
+}
+
+.rsvp-summary strong {
+  flex-shrink: 0;
+  padding-top: 0.15rem;
 }
 
 .rsvp-summary__details {
