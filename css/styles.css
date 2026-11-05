@@ -576,17 +576,21 @@ button {
    ========================================================================== */
 
 .section {
-  --divider-ink: rgba(79, 92, 68, 0.28);
+  --divider-ink: rgba(79, 92, 68, 0.3);
   --divider-mark: var(--copper);
+  --band: transparent;
   padding: var(--space-6) 0;
+  background: var(--band);
 }
 
 .section-divider {
   display: flex;
   align-items: center;
-  gap: clamp(0.85rem, 2vw, 1.35rem);
-  width: min(22rem, calc(100% - (var(--page-gutter) * 2)));
-  margin: 0 auto max(2.5rem, var(--space-4));
+  justify-content: center;
+  gap: 1rem;
+  width: min(16rem, 55vw);
+  height: 1.75rem;
+  margin: 0 auto 2.5rem;
   color: var(--divider-mark);
   pointer-events: none;
 }
@@ -599,8 +603,8 @@ button {
   background: linear-gradient(
     90deg,
     transparent,
-    var(--divider-ink) 18%,
-    var(--divider-ink) 82%,
+    var(--divider-ink) 20%,
+    var(--divider-ink) 80%,
     transparent
   );
 }
@@ -608,9 +612,9 @@ button {
 .section-divider__mark {
   flex: 0 0 auto;
   font-family: var(--font-script);
-  font-size: clamp(1.85rem, 3.2vw, 2.35rem);
-  line-height: 0.8;
-  transform: translateY(0.08em);
+  font-size: 1.85rem;
+  line-height: 1;
+  transform: translateY(0.06em);
 }
 
 .section__eyebrow,
@@ -660,8 +664,8 @@ button {
 }
 
 .section--welcome {
+  --band: var(--cream);
   text-align: left;
-  padding-block: var(--space-5);
 }
 
 .section--welcome .section__title {
@@ -676,19 +680,11 @@ button {
 }
 
 .section--day {
-  background:
-    radial-gradient(980px 420px at 100% 0%, rgba(183, 192, 170, 0.16), transparent 58%),
-    linear-gradient(180deg, #f1ebe2 0%, var(--ivory) 68%);
+  --band: var(--ivory);
 }
 
 .section--venue {
-  background: var(--ivory);
-}
-
-.section--invitation + .section--day,
-.section--wedding-party + .section--day,
-.section--welcome + .section--day {
-  padding-top: calc(var(--space-6) - 0.5rem);
+  --band: var(--cream);
 }
 
 /* Timeline
@@ -924,10 +920,9 @@ button {
    ========================================================================== */
 
 .section--details {
+  --band: linear-gradient(180deg, rgba(47, 59, 44, 0.98), rgba(47, 59, 44, 0.92));
   --divider-ink: rgba(183, 192, 170, 0.38);
   --divider-mark: var(--mist);
-  background:
-    linear-gradient(180deg, rgba(47, 59, 44, 0.98), rgba(47, 59, 44, 0.92));
   color: var(--cream);
 }
 
@@ -953,9 +948,7 @@ button {
    ========================================================================== */
 
 .section--stay {
-  background:
-    radial-gradient(900px 420px at 10% 20%, rgba(183, 192, 170, 0.28), transparent 65%),
-    linear-gradient(180deg, rgba(235, 228, 215, 0.9), var(--ivory) 70%);
+  --band: var(--ivory);
 }
 
 .stay {
@@ -1093,11 +1086,8 @@ button {
    ========================================================================== */
 
 .section--rsvp {
+  --band: var(--cream);
   text-align: left;
-  padding-block: calc(var(--space-6) + 0.5rem);
-  background:
-    radial-gradient(700px 320px at 0% 0%, rgba(183, 192, 170, 0.25), transparent 70%),
-    linear-gradient(180deg, var(--ivory), var(--cream));
   color: var(--ink);
 }
 
@@ -1205,19 +1195,13 @@ button {
   display: none !important;
 }
 
-.section--invitation,
-.section--wedding-party {
-  padding: var(--space-5) 0;
-}
-
 .section--invitation {
-  background:
-    radial-gradient(900px 360px at 0% 100%, rgba(138, 101, 72, 0.08), transparent 55%),
-    var(--cream);
+  --band: var(--cream);
 }
 
 .section--wedding-party {
-  background: var(--cream);
+  --band: var(--cream);
+  padding-top: 0;
 }
 
 html.has-invite #welcome,
@@ -1308,11 +1292,6 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 @keyframes inviteShimmer {
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
-}
-
-.section--wedding-party {
-  padding-top: 0;
-  background: var(--cream);
 }
 
 .invitation-card,
@@ -2156,10 +2135,6 @@ body.has-nav-open {
 
   .section {
     padding: 4.5rem 0;
-  }
-
-  .section--welcome {
-    padding-block: 3.5rem;
   }
 
   .invitation-card__actions {
