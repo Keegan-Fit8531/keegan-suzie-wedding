@@ -563,11 +563,13 @@
       const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
       const plusComing = plusOnes.filter((plusOne) => savedResponse(plusOne.id) === true).length;
       const plusKnown = plusOnes.some((plusOne) => savedResponse(plusOne.id) !== null);
+      const plusDisabled = attending !== true;
+      const plusHidden = attending === false;
       const plusField = plusOnes.length ? `
-        <fieldset class="rsvp-plus" data-plus-field="${guest.id}" ${attending === true ? "" : "hidden"}>
+        <fieldset class="rsvp-plus${plusDisabled && !plusHidden ? " is-disabled" : ""}" data-plus-field="${guest.id}" ${plusHidden ? "hidden" : ""}>
           <legend>Plus ones coming</legend>
           ${Array.from({ length: plusOnes.length + 1 }, (_, count) => `
-            <label><input type="radio" name="plus-${guest.id}" value="${count}" ${plusKnown && plusComing === count ? "checked" : ""} ${attending === true ? "required" : ""} /> ${count}</label>
+            <label><input type="radio" name="plus-${guest.id}" value="${count}" ${plusKnown && plusComing === count ? "checked" : ""} ${attending === true ? "required" : ""} ${plusDisabled ? "disabled" : ""} /> ${count}</label>
           `).join("")}
         </fieldset>` : "";
       return `
@@ -682,11 +684,14 @@
         const attendance = form.querySelector(`input[name="guest-${guest.id}"]:checked`)?.value;
         const plusField = form.querySelector(`[data-plus-field="${guest.id}"]`);
         if (!plusField) return;
-        const show = attendance === "true";
-        plusField.hidden = !show;
+        const isComing = attendance === "true";
+        const isNotComing = attendance === "false";
+        plusField.hidden = isNotComing;
+        plusField.classList.toggle("is-disabled", !isComing && !isNotComing);
         plusField.querySelectorAll("input").forEach((input) => {
-          input.required = show;
-          if (!show) input.checked = false;
+          input.disabled = !isComing;
+          input.required = isComing;
+          if (!isComing) input.checked = false;
         });
       });
     };

@@ -1807,6 +1807,18 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   margin: 0.55rem 1rem 0 0;
 }
 
+.rsvp-plus.is-disabled {
+  opacity: 0.55;
+}
+
+.rsvp-plus.is-disabled legend {
+  color: rgba(47, 59, 44, 0.72);
+}
+
+.rsvp-plus.is-disabled label {
+  cursor: not-allowed;
+}
+
 .rsvp-choice p {
   margin: 0.2rem 0 0.7rem;
   color: rgba(42, 50, 39, 0.72);
