@@ -1615,31 +1615,14 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   border-radius: 1rem;
   background: transparent;
   color: var(--ink);
-  opacity: 0;
-  transform: translateY(2.25rem) scale(0.94);
-  transition:
-    opacity 0.38s var(--ease),
-    transform 0.42s var(--ease);
-}
-
-.rsvp-dialog[open],
-.rsvp-dialog.is-open {
-  opacity: 1;
-  transform: none;
-}
-
-.rsvp-dialog.is-closing {
-  opacity: 0;
-  transform: translateY(1.25rem) scale(0.96);
 }
 
 .rsvp-dialog::backdrop {
-  background: rgba(20, 28, 18, 0.55);
+  background: rgba(20, 28, 18, 0.58);
   opacity: 0;
-  transition: opacity 0.38s var(--ease);
+  transition: opacity 0.35s var(--ease);
 }
 
-.rsvp-dialog[open]::backdrop,
 .rsvp-dialog.is-open::backdrop {
   opacity: 1;
 }
@@ -1659,6 +1642,21 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   border-radius: 1rem;
   background: var(--ivory);
   box-shadow: 0 20px 70px rgba(20, 28, 18, 0.35);
+  opacity: 0;
+  transform: translateY(1.75rem) scale(0.96);
+  transition:
+    opacity 0.35s var(--ease),
+    transform 0.4s var(--ease);
+}
+
+.rsvp-dialog.is-open .rsvp-dialog__panel {
+  opacity: 1;
+  transform: none;
+}
+
+.rsvp-dialog.is-closing .rsvp-dialog__panel {
+  opacity: 0;
+  transform: translateY(1rem) scale(0.97);
 }
 
 .rsvp-dialog .rsvp-form {
@@ -1672,10 +1670,18 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rsvp-dialog,
-  .rsvp-dialog::backdrop {
+  .rsvp-dialog::backdrop,
+  .rsvp-dialog__panel {
     transition: none;
+  }
+
+  .rsvp-dialog__panel {
+    opacity: 1;
     transform: none;
+  }
+
+  .rsvp-dialog.is-open::backdrop {
+    opacity: 1;
   }
 }
 

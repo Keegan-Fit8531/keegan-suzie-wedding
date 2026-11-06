@@ -194,17 +194,16 @@
   const openAnimatedDialog = (dialog) => {
     if (!dialog) return;
     dialog.classList.remove("is-open", "is-closing");
+    delete dialog.dataset.closing;
     if (typeof dialog.showModal === "function") dialog.showModal();
     else dialog.setAttribute("open", "");
     const panel = dialog.querySelector(".rsvp-dialog__panel");
     if (panel) panel.scrollTop = 0;
     dialog.scrollTop = 0;
-    // Force a closed-frame paint so the open transition is visible.
-    void dialog.offsetHeight;
+    // Paint the closed state first, then open so every dialog shares the same motion.
+    void dialog.offsetWidth;
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        dialog.classList.add("is-open");
-      });
+      dialog.classList.add("is-open");
     });
   };
 
@@ -228,7 +227,7 @@
     dialog.dataset.closing = "1";
     dialog.classList.add("is-closing");
     dialog.classList.remove("is-open");
-    window.setTimeout(finishClose, 420);
+    window.setTimeout(finishClose, 400);
   };
 
   const escapeHtml = (value = "") =>
