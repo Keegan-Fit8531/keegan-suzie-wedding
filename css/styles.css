@@ -590,6 +590,22 @@ button {
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-2);
+  min-height: 3.1rem;
+}
+
+/* Invite pages: hold hero CTAs until RSVP label is known (avoids Reply → Finish/Edit flash). */
+html.has-invite:not(.invite-ready) .hero__actions {
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.has-invite.invite-ready .hero__actions {
+  opacity: 1;
+  transition: opacity 0.35s var(--ease);
+}
+
+html.has-invite a[data-hero-rsvp] {
+  min-width: 11.5rem;
 }
 
 /* Buttons

@@ -182,7 +182,14 @@
 
   const SUPABASE_URL = "https://fwtkgtokyurntzzsqgwc.supabase.co";
   const SUPABASE_KEY = "sb_publishable_HZ9IEPcCW_2MjD-i5dVILA_1r-_w5FX";
-  const inviteCode = new URLSearchParams(window.location.search).get("invite");
+  const readInviteCode = () => {
+    const fromSearch = new URLSearchParams(window.location.search).get("invite");
+    if (fromSearch) return fromSearch.trim() || null;
+    const hash = String(window.location.hash || "").replace(/^#/, "");
+    if (!hash) return null;
+    return new URLSearchParams(hash).get("invite")?.trim() || null;
+  };
+  const inviteCode = readInviteCode();
   const invitationSection = document.querySelector("#your-invitation");
   const partySection = document.querySelector("#wedding-party");
   const partyCards = document.querySelector("[data-wedding-party-cards]");
@@ -1040,10 +1047,12 @@
         stayRsvp.className = "btn btn--primary";
       }
       renderSummary(data);
-      showInviteReady();
+      // Paint correct hero button labels before revealing the action row.
+      requestAnimationFrame(() => showInviteReady());
     } catch (error) {
       if (invitationSection) {
-        showInviteReady();
+        if (heroRsvpLink) heroRsvpLink.textContent = "RSVP";
+        requestAnimationFrame(() => showInviteReady());
         const heading = invitationSection.querySelector("[data-invite-heading]");
         if (heading) heading.textContent = "Invitation unavailable";
         const namesTarget = invitationSection.querySelector("[data-invite-names]");
@@ -1054,6 +1063,7 @@
         if (rsvpSummary) rsvpSummary.innerHTML = "";
         if (openRsvpButton) openRsvpButton.hidden = true;
         if (inviteCalendar) inviteCalendar.hidden = true;
+        if (heroRsvpLink) heroRsvpLink.hidden = true;
         const deadline = invitationSection.querySelector(".invitation-card__deadline");
         if (deadline) deadline.hidden = true;
       } else {

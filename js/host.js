@@ -32,8 +32,10 @@
   };
 
   const inviteUrl = (code) => {
+    // Hash links preview more reliably in Messages/WhatsApp: crawlers fetch the
+    // clean homepage (with OG tags) while the browser still keeps the invite code.
     const path = window.location.pathname.replace(/host\.html$/, "").replace(/\/?$/, "/");
-    return `${window.location.origin}${path}?invite=${encodeURIComponent(code)}`;
+    return `${window.location.origin}${path}#invite=${encodeURIComponent(code)}`;
   };
 
   const guestTypeLabel = (type) => {
