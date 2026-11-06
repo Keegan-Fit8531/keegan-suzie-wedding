@@ -494,6 +494,12 @@ button {
   position: absolute;
   inset: 0;
   background:
+    radial-gradient(
+      ellipse 72% 68% at 50% 42%,
+      rgba(14, 20, 12, 0) 35%,
+      rgba(14, 20, 12, 0.28) 70%,
+      rgba(8, 12, 8, 0.72) 100%
+    ),
     linear-gradient(
       180deg,
       rgba(20, 28, 18, 0.55) 0%,
