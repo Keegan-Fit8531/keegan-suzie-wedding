@@ -1050,7 +1050,7 @@
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error || "Could not send your message. Please try again.");
-      if (status) status.textContent = body.message || "Message sent. Thanks.";
+      if (status) status.textContent = body.message || "Message received. Thanks.";
       contactForm.reset();
       window.setTimeout(() => closeContactDialog(), reduceMotion ? 500 : 800);
     } catch (error) {
