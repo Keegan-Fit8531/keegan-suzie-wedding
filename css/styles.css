@@ -1229,13 +1229,18 @@ button {
 
 .section.section--invitation {
   --band: var(--cream);
-  padding-bottom: 0;
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-4);
 }
 
 .section.section--wedding-party {
   --band: var(--cream);
   padding-top: var(--space-3);
   padding-bottom: var(--space-4);
+}
+
+html.has-invite .section--day {
+  padding-top: var(--space-5);
 }
 
 html.has-invite #welcome,
@@ -1365,7 +1370,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 .invitation-card__title {
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--space-2);
   font-family: var(--font-display);
   font-weight: 500;
   font-size: clamp(1.85rem, 3.5vw, 2.4rem);
@@ -1470,14 +1475,19 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   margin-top: var(--space-3);
 }
 
+.invitation-card__rsvp:empty {
+  display: none;
+  margin: 0;
+}
+
 .invitation-card__footer {
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
   padding-top: var(--space-3);
   border-top: 1px solid rgba(47, 59, 44, 0.1);
 }
 
 .invitation-card__deadline {
-  margin: 0 0 var(--space-3);
+  margin: 0;
   font-family: var(--font-ui);
   font-size: 1.05rem;
   color: var(--forest);
@@ -1488,10 +1498,10 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 .invitation-card__cabin-note {
-  margin: -0.35rem 0 var(--space-3);
+  margin: 0.55rem 0 0;
   color: rgba(42, 50, 39, 0.68);
-  font-size: 0.92rem;
-  line-height: 1.45;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .invitation-card__actions {
@@ -1499,7 +1509,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  margin-top: 0;
+  margin-top: var(--space-3);
 }
 
 .invitation-card__actions .btn {
@@ -1736,15 +1746,43 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 .rsvp-cabin-people__note,
-.rsvp-cabin-people__capacity {
+.rsvp-cabin-people__capacity,
+.rsvp-cabin-people__hint {
   display: block;
   margin-top: 0.2rem;
   color: rgba(42, 50, 39, 0.68);
   font-size: 0.88rem;
 }
 
-.rsvp-cabin-people__capacity {
+.rsvp-cabin-people__capacity,
+.rsvp-cabin-people__hint {
   margin-top: 0.85rem;
+}
+
+.rsvp-contacts {
+  margin-top: var(--space-3);
+}
+
+.rsvp-contacts__secondary {
+  margin-top: var(--space-2);
+}
+
+.rsvp-contacts__secondary .text-link,
+.rsvp-contacts__add {
+  margin-top: 0.55rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--sage-deep);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.92rem;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.rsvp-contacts__add {
+  display: inline-flex;
 }
 
 .info-tip {
@@ -1818,9 +1856,6 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   margin-top: -0.3rem;
 }
 
-.stay__list .info-tip {
-  margin-left: 0.25rem;
-}
 
 .form-field {
   display: grid;
