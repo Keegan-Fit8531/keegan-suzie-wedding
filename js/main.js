@@ -1037,7 +1037,7 @@
       return;
     }
     if (submit) submit.disabled = true;
-    if (status) status.textContent = "Sending your message…";
+    if (status) status.textContent = "Sending…";
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/send-contact-message`, {
         method: "POST",
@@ -1050,9 +1050,9 @@
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error || "Could not send your message. Please try again.");
-      if (status) status.textContent = body.warning || "Message sent. Thanks.";
+      if (status) status.textContent = body.message || "Message sent. Thanks.";
       contactForm.reset();
-      window.setTimeout(() => closeContactDialog(), reduceMotion ? 600 : 900);
+      window.setTimeout(() => closeContactDialog(), reduceMotion ? 500 : 800);
     } catch (error) {
       if (status) status.textContent = error.message;
       if (submit) submit.disabled = false;
