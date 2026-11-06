@@ -1712,12 +1712,22 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   margin-top: 1rem;
 }
 
+.rsvp-form input[type="radio"],
+.rsvp-form input[type="checkbox"] {
+  accent-color: var(--forest);
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
 .rsvp-cabin-people {
   margin: 0.85rem 0 0;
   padding: 0.9rem 1rem;
-  border: 1px dashed var(--wire);
+  border: 1px solid var(--wire);
   border-radius: 0.55rem;
   min-inline-size: 0;
+  background: rgba(255, 255, 255, 0.35);
 }
 
 .rsvp-cabin-people legend {
@@ -1735,6 +1745,14 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   align-items: flex-start;
   gap: 0.65rem;
   margin-top: 0.7rem;
+}
+
+.rsvp-cabin-people__item.is-disabled {
+  opacity: 0.62;
+}
+
+.rsvp-cabin-people__item.is-disabled .rsvp-cabin-people__name {
+  color: rgba(42, 50, 39, 0.72);
 }
 
 .rsvp-cabin-people__name {

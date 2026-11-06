@@ -546,20 +546,25 @@
 
     const cabinPeople = namedGuests.map((guest) => {
       const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
-      const attending = savedResponse(guest.id) === true;
+      const attending = savedResponse(guest.id);
+      const isComing = attending === true;
       const plusComing = plusOnes.filter((plusOne) => savedResponse(plusOne.id) === true).length;
       const cabinChecked = saved.cabin_requested
         ? savedCabinIds.has(String(guest.id))
-        : attending;
-      const plusNote = plusOnes.length
-        ? `<span class="rsvp-cabin-people__note" data-cabin-plus-note="${guest.id}">${plusComing ? `Includes ${plusComing} plus one${plusComing === 1 ? "" : "s"} in the same room` : "Plus ones marked coming will share this room"}</span>`
-        : "";
+        : isComing;
+      const statusNote = isComing
+        ? (plusOnes.length
+          ? `<span class="rsvp-cabin-people__note" data-cabin-plus-note="${guest.id}">${plusComing ? `Includes ${plusComing} plus one${plusComing === 1 ? "" : "s"}` : "Plus ones marked coming will share this room"}</span>`
+          : `<span class="rsvp-cabin-people__note" data-cabin-plus-note="${guest.id}" hidden></span>`)
+        : attending === false
+          ? `<span class="rsvp-cabin-people__note" data-cabin-status-note>Not coming</span>`
+          : `<span class="rsvp-cabin-people__note" data-cabin-status-note>Still deciding</span>`;
       return `
-        <label class="rsvp-cabin-people__item" data-cabin-person="${guest.id}" ${attending ? "" : "hidden"}>
-          <input type="checkbox" name="cabin_guest" value="${guest.id}" ${attending && cabinChecked ? "checked" : ""} />
+        <label class="rsvp-cabin-people__item${isComing ? "" : " is-disabled"}" data-cabin-person="${guest.id}">
+          <input type="checkbox" name="cabin_guest" value="${guest.id}" ${isComing && cabinChecked ? "checked" : ""} ${isComing ? "" : "disabled"} />
           <span>
             <span class="rsvp-cabin-people__name">${guestInviteMarkup(guest)}</span>
-            ${plusNote}
+            ${statusNote}
           </span>
         </label>`;
     }).join("");
@@ -587,14 +592,13 @@
               </span>
             </span>
           </legend>
-          <p>One cabin room for this invitation. People on the same invitation share that room.</p>
+          <p>One cabin room per invitation. People on the same invitation share that room.</p>
           <label><input type="radio" name="cabin_requested" value="true" data-cabin-requested ${saved.cabin_requested ? "checked" : ""} /> Yes, please reserve a cabin room</label>
           <label><input type="radio" name="cabin_requested" value="false" data-cabin-requested ${saved.cabin_requested === false ? "checked" : ""} /> No, we are day guests only</label>
           <div class="rsvp-cabin-followup" data-cabin-followup ${saved.cabin_requested ? "" : "hidden"}>
-            <p class="rsvp-cabin-people__hint" data-cabin-coming-hint hidden>Mark at least one person as coming above, then choose who is staying in this family room.</p>
-            <fieldset class="rsvp-cabin-people" data-cabin-people hidden>
+            <fieldset class="rsvp-cabin-people" data-cabin-people ${saved.cabin_requested ? "" : "hidden"}>
               <legend>Who is staying overnight?</legend>
-              <p>Everyone on this invitation, or only selected people. You can change this later in Edit RSVP, or contact Keegan.</p>
+              <p>Everyone marked Coming is selected. Uncheck anyone who is day-only.</p>
               <div data-cabin-people-list>${cabinPeople}</div>
               <p class="rsvp-cabin-people__capacity" data-cabin-capacity hidden></p>
             </fieldset>
@@ -653,56 +657,83 @@
 
     const syncCabinPeople = () => {
       const cabinYes = form.querySelector('input[name="cabin_requested"]:checked')?.value === "true";
-      const comingIds = new Set(comingGuestIds().map(String));
       const autoFill = form.dataset.cabinAuto === "1" && form.dataset.cabinCustomized !== "1";
       if (cabinFollowup) cabinFollowup.hidden = !cabinYes;
-      if (cabinPeopleField) cabinPeopleField.hidden = !(cabinYes && comingIds.size);
+      if (cabinPeopleField) cabinPeopleField.hidden = !cabinYes;
       form.querySelectorAll("[data-cabin-person]").forEach((row) => {
         const guestId = row.getAttribute("data-cabin-person");
-        const isComing = comingIds.has(String(guestId));
-        row.hidden = !isComing;
+        const attendance = form.querySelector(`input[name="guest-${guestId}"]:checked`)?.value;
+        const isComing = attendance === "true";
         const checkbox = row.querySelector('input[type="checkbox"]');
+        const plusNote = row.querySelector(`[data-cabin-plus-note="${guestId}"]`);
+        let statusNote = row.querySelector("[data-cabin-status-note]");
+        row.classList.toggle("is-disabled", !isComing);
         if (!checkbox) return;
         checkbox.disabled = !isComing;
         if (!isComing) {
           checkbox.checked = false;
-        } else if (cabinYes && autoFill) {
-          checkbox.checked = true;
-        }
-        const plusNote = row.querySelector(`[data-cabin-plus-note="${guestId}"]`);
-        if (plusNote) {
-          const count = plusComingCount(guestId);
-          plusNote.textContent = count
-            ? `Includes ${count} plus one${count === 1 ? "" : "s"} in the same room`
-            : "Plus ones marked coming will share this room";
+          if (plusNote) plusNote.hidden = true;
+          if (!statusNote) {
+            statusNote = document.createElement("span");
+            statusNote.className = "rsvp-cabin-people__note";
+            statusNote.setAttribute("data-cabin-status-note", "");
+            checkbox.nextElementSibling?.appendChild(statusNote);
+          }
+          statusNote.hidden = false;
+          statusNote.textContent = attendance === "false" ? "Not coming" : "Still deciding";
+        } else {
+          if (cabinYes && autoFill) checkbox.checked = true;
+          if (statusNote) statusNote.hidden = true;
+          if (plusNote) {
+            const count = plusComingCount(guestId);
+            const hasPlusOnes = data.guests.some((plusOne) => plusOne.plus_one_of === guestId);
+            if (!hasPlusOnes) {
+              plusNote.hidden = true;
+            } else {
+              plusNote.hidden = false;
+              plusNote.textContent = count
+                ? `Includes ${count} plus one${count === 1 ? "" : "s"}`
+                : "Plus ones marked coming will share this room";
+            }
+          }
         }
       });
 
       if (!cabinCapacity) return;
-      if (!cabinYes || !comingIds.size) {
+      if (!cabinYes) {
         cabinCapacity.hidden = true;
         return;
       }
-      let overnight = 0;
-      form.querySelectorAll('input[name="cabin_guest"]:checked').forEach((input) => {
-        overnight += 1 + plusComingCount(input.value);
+      let namedStaying = 0;
+      let plusStaying = 0;
+      form.querySelectorAll('input[name="cabin_guest"]:checked:not(:disabled)').forEach((input) => {
+        namedStaying += 1;
+        plusStaying += plusComingCount(input.value);
       });
+      const overnight = namedStaying + plusStaying;
+      const pendingCount = namedGuests.filter((guest) => {
+        const value = form.querySelector(`input[name="guest-${guest.id}"]:checked`)?.value;
+        return value !== "true" && value !== "false";
+      }).length;
       if (overnight > 8) {
         cabinCapacity.hidden = false;
-        cabinCapacity.textContent = `Rooms sleep about 6 to 8 people. You have selected ${overnight}. Please contact Keegan if you need help.`;
+        cabinCapacity.textContent = `${overnight} staying overnight. Cabin rooms sleep about 6 to 8. Please contact Keegan if you need help.`;
       } else if (overnight > 0) {
+        const plusBit = plusStaying
+          ? `, including ${plusStaying} plus one${plusStaying === 1 ? "" : "s"}`
+          : "";
+        const pendingBit = pendingCount ? ` ${pendingCount} still deciding.` : "";
         cabinCapacity.hidden = false;
-        cabinCapacity.textContent = `${overnight} ${overnight === 1 ? "person" : "people"} selected for this family room (rooms sleep about 6 to 8).`;
+        cabinCapacity.textContent = `${overnight} staying overnight${plusBit}.${pendingBit}`;
+      } else if (pendingCount) {
+        cabinCapacity.hidden = false;
+        cabinCapacity.textContent = `${pendingCount} still deciding. Mark someone Coming to reserve a bunk.`;
       } else {
         cabinCapacity.hidden = true;
       }
     };
 
     const syncCabinAvailability = () => {
-      const coming = comingGuestIds().length > 0;
-      const cabinYes = form.querySelector('input[name="cabin_requested"]:checked')?.value === "true";
-      const comingHint = form.querySelector("[data-cabin-coming-hint]");
-      if (comingHint) comingHint.hidden = !(cabinYes && !coming);
       syncCabinPeople();
     };
 
