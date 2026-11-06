@@ -159,12 +159,13 @@
         <form class="rsvp-form" data-contact-form>
           <p class="section__eyebrow section__eyebrow--caps">Get in touch</p>
           <h3 class="section__title" id="contact-dialog-title">Message Keegan</h3>
-          <p class="rsvp-form__intro">Ask about the day, venue, drinks, or staying overnight. This opens your email app ready to send.</p>
+          <p class="rsvp-form__intro">Ask about the day, venue, drinks, or staying overnight. Your message is sent straight through.</p>
           <label class="form-field">Your name<input name="name" type="text" autocomplete="name" required /></label>
           <label class="form-field">Your email<input name="email" type="email" autocomplete="email" required /></label>
           <label class="form-field">Message<textarea name="message" rows="5" required></textarea></label>
+          <label class="visually-hidden" aria-hidden="true">Company<input name="company" type="text" tabindex="-1" autocomplete="off" /></label>
           <p class="form-status" aria-live="polite"></p>
-          <button class="btn btn--primary" type="submit">Open email</button>
+          <button class="btn btn--primary" type="submit">Send message</button>
         </form>
       </div>
     </dialog>

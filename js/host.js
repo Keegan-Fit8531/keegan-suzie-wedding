@@ -11,6 +11,7 @@
   const partyList = document.querySelector("[data-party-list]");
   const stats = document.querySelector("[data-host-stats]");
   const briefList = document.querySelector("[data-brief-list]");
+  const contactList = document.querySelector("[data-contact-list]");
   let pin = sessionStorage.getItem("wedding-host-pin") || "";
   let dashboard;
   let guestFieldId = 0;
@@ -195,6 +196,20 @@
         ${rsvp ? `<div class="host-rsvp-details"><p><strong>Cabin:</strong> ${escapeHtml(cabinLabel)}</p><p><strong>Email:</strong> ${escapeHtml(rsvp.contact_email)}</p>${rsvp.contact_email_secondary ? `<p><strong>Second email:</strong> ${escapeHtml(rsvp.contact_email_secondary)}</p>` : ""}${rsvp.dietary_notes ? `<p><strong>Dietary:</strong> ${escapeHtml(rsvp.dietary_notes)}</p>` : ""}${rsvp.note ? `<p><strong>Questions or notes:</strong> ${escapeHtml(rsvp.note)}</p>` : ""}</div>` : ""}
       </article>`;
     }).join("") : `<p class="host-empty">No invitations yet. Create your first household invitation.</p>`;
+
+    if (contactList) {
+      const messages = dashboard.contact_messages || [];
+      contactList.innerHTML = messages.length
+        ? messages.map((item) => `
+          <article class="brief-card">
+            <p class="section__eyebrow section__eyebrow--caps">${escapeHtml(new Date(item.created_at).toLocaleString("en-NZ", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }))}</p>
+            <h3>${escapeHtml(item.name)}</h3>
+            <p><a href="mailto:${escapeHtml(item.email)}">${escapeHtml(item.email)}</a></p>
+            <p>${escapeHtml(item.message)}</p>
+          </article>
+        `).join("")
+        : `<p class="host-empty">No messages yet.</p>`;
+    }
 
     briefList.innerHTML = ["bride", "groom"].map((side) => {
       const brief = dashboard.briefs?.[side] || {};

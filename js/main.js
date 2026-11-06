@@ -1023,22 +1023,40 @@
     event.preventDefault();
     closeContactDialog();
   });
-  contactForm?.addEventListener("submit", (event) => {
+  contactForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const status = contactForm.querySelector(".form-status");
+    const submit = contactForm.querySelector('[type="submit"]');
     const formData = new FormData(contactForm);
     const name = String(formData.get("name") || "").trim();
     const email = String(formData.get("email") || "").trim();
     const message = String(formData.get("message") || "").trim();
+    const company = String(formData.get("company") || "").trim();
     if (!name || !email || !message) {
       if (status) status.textContent = "Please fill in every field.";
       return;
     }
-    const subject = encodeURIComponent(`Wedding question from ${name}`);
-    const body = encodeURIComponent(`${message}\n\n—\n${name}\n${email}`);
-    if (status) status.textContent = "Opening your email app…";
-    window.location.href = `mailto:keegan1fitzgerald@gmail.com?subject=${subject}&body=${body}`;
-    window.setTimeout(() => closeContactDialog(), reduceMotion ? 0 : 400);
+    if (submit) submit.disabled = true;
+    if (status) status.textContent = "Sending your message…";
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/send-contact-message`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, email, message, company })
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || "Could not send your message. Please try again.");
+      if (status) status.textContent = body.warning || "Message sent. Thanks.";
+      contactForm.reset();
+      window.setTimeout(() => closeContactDialog(), reduceMotion ? 600 : 900);
+    } catch (error) {
+      if (status) status.textContent = error.message;
+      if (submit) submit.disabled = false;
+    }
   });
 
   const closeInfoTips = ({ except } = {}) => {
