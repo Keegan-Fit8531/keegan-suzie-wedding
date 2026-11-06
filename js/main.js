@@ -217,6 +217,7 @@
       return;
     }
     renderForm(inviteData);
+    rsvpDialog.classList.remove("is-closing");
     if (typeof rsvpDialog.showModal === "function") rsvpDialog.showModal();
     else rsvpDialog.setAttribute("open", "");
     const resetScroll = () => {
@@ -225,13 +226,33 @@
       rsvpDialog.scrollTop = 0;
     };
     resetScroll();
-    requestAnimationFrame(resetScroll);
+    requestAnimationFrame(() => {
+      rsvpDialog.classList.add("is-open");
+      resetScroll();
+    });
   };
 
   const closeRsvpDialog = () => {
-    if (!rsvpDialog) return;
-    if (typeof rsvpDialog.close === "function") rsvpDialog.close();
-    else rsvpDialog.removeAttribute("open");
+    if (!rsvpDialog || rsvpDialog.dataset.closing === "1") return;
+    const isOpen = rsvpDialog.open || rsvpDialog.hasAttribute("open");
+    if (!isOpen) return;
+
+    const finishClose = () => {
+      rsvpDialog.classList.remove("is-open", "is-closing");
+      delete rsvpDialog.dataset.closing;
+      if (typeof rsvpDialog.close === "function") rsvpDialog.close();
+      else rsvpDialog.removeAttribute("open");
+    };
+
+    if (reduceMotion) {
+      finishClose();
+      return;
+    }
+
+    rsvpDialog.dataset.closing = "1";
+    rsvpDialog.classList.add("is-closing");
+    rsvpDialog.classList.remove("is-open");
+    window.setTimeout(finishClose, 300);
   };
 
   const guestRoleLabel = (type) => {
@@ -487,7 +508,6 @@
           ${rsvp.dietary_notes ? `<div><dt>Dietary needs or allergies</dt><dd>${escapeHtml(rsvp.dietary_notes)}</dd></div>` : ""}
           ${rsvp.note ? `<div><dt>Questions or notes</dt><dd>${escapeHtml(rsvp.note)}</dd></div>` : ""}
         </dl>
-        ${pending ? `<p class="rsvp-pending-note">Anyone with this invite link can update answers, including replies still marked pending.</p>` : ""}
         ${data.rsvp_open ? "" : `<p class="rsvp-closed">RSVP is now closed. If you need to change your reply, please contact Keegan.</p>`}
       </div>`;
 
@@ -966,6 +986,10 @@
   document.querySelector("[data-close-rsvp]")?.addEventListener("click", closeRsvpDialog);
   rsvpDialog?.addEventListener("click", (event) => {
     if (event.target === rsvpDialog) closeRsvpDialog();
+  });
+  rsvpDialog?.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeRsvpDialog();
   });
   document.querySelector("[data-hero-rsvp]")?.addEventListener("click", (event) => {
     if (!inviteCode || !inviteData) return;

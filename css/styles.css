@@ -1583,10 +1583,37 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   border-radius: 1rem;
   background: transparent;
   color: var(--ink);
+  opacity: 0;
+  transform: translateY(1rem) scale(0.985);
+  transition:
+    opacity 0.28s var(--ease),
+    transform 0.32s var(--ease);
+}
+
+.rsvp-dialog[open],
+.rsvp-dialog.is-open {
+  opacity: 1;
+  transform: none;
+}
+
+.rsvp-dialog.is-closing {
+  opacity: 0;
+  transform: translateY(0.7rem) scale(0.985);
 }
 
 .rsvp-dialog::backdrop {
   background: rgba(20, 28, 18, 0.55);
+  opacity: 0;
+  transition: opacity 0.28s var(--ease);
+}
+
+.rsvp-dialog[open]::backdrop,
+.rsvp-dialog.is-open::backdrop {
+  opacity: 1;
+}
+
+.rsvp-dialog.is-closing::backdrop {
+  opacity: 0;
 }
 
 .rsvp-dialog__panel {
@@ -1599,6 +1626,14 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   border-radius: 1rem;
   background: var(--ivory);
   box-shadow: 0 20px 70px rgba(20, 28, 18, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rsvp-dialog,
+  .rsvp-dialog::backdrop {
+    transition: none;
+    transform: none;
+  }
 }
 
 .rsvp-dialog__close {
@@ -1740,11 +1775,17 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   text-transform: uppercase;
 }
 
+.rsvp-choice .rsvp-cabin-people__item,
 .rsvp-cabin-people__item {
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
+  gap: 0.7rem;
   margin-top: 0.7rem;
+}
+
+.rsvp-cabin-people__item > span {
+  min-width: 0;
+  flex: 1;
 }
 
 .rsvp-cabin-people__item.is-disabled {
@@ -2347,12 +2388,8 @@ body.has-nav-open {
     border-radius: 999px;
   }
 
-  .brand__text--full {
+  .brand__text {
     display: none;
-  }
-
-  .brand__text--short {
-    display: inline;
   }
 
   .timeline,
