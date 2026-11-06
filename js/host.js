@@ -120,6 +120,76 @@
     return names.join(", ") || "Untitled invitation";
   };
 
+  const familyLabel = (side) => {
+    if (side === "groom") return "Keegan’s family";
+    if (side === "bride") return "Suzie’s family";
+    return "Unassigned";
+  };
+
+  const partyCardMarkup = (party) => {
+    const rsvp = party.rsvp;
+    const cabinIds = new Set((rsvp?.cabin_guests || []).map(String));
+    const guestResponse = (id) => {
+      const value = rsvp?.guest_responses?.[id] ?? rsvp?.guest_responses?.[String(id)];
+      if (value === true || value === "true") return true;
+      if (value === false || value === "false") return false;
+      return null;
+    };
+    const statusMarkup = (text, overnight = false) => {
+      const cabinMark = overnight ? `<span class="status status--cabin">Cabin</span>` : "";
+      return `<span class="host-guest-list__statuses"><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong>${cabinMark}</span>`;
+    };
+    const guests = party.guests.flatMap((guest) => {
+      const response = guestResponse(guest.id);
+      const text = response === true ? "Coming" : response === false ? "Not coming" : "Pending";
+      const overnight = cabinIds.has(String(guest.id));
+      const type = guest.guest_type && guest.guest_type !== "guest" ? ` <small>${escapeHtml(guestTypeLabel(guest.guest_type))}</small>` : "";
+      const rows = [`<li><span>${escapeHtml(guestDisplayName(guest))}${type}</span>${statusMarkup(text, overnight)}</li>`];
+      (guest.plus_ones || []).forEach((plusOne, index) => {
+        const plusResponse = guestResponse(plusOne.id);
+        const plusText = plusResponse === true ? "Coming" : plusResponse === false ? "Not coming" : "Pending";
+        const plusOvernight = cabinIds.has(String(plusOne.id));
+        const plusLabel = (guest.plus_ones.length > 1) ? `Plus one ${index + 1}` : "Plus one";
+        rows.push(`<li class="host-guest-list__plus"><span>${plusLabel}</span>${statusMarkup(plusText, plusOvernight)}</li>`);
+      });
+      return rows;
+    }).join("");
+    const pendingGuests = party.guests.filter((guest) => guestResponse(guest.id) === null).length;
+    const cabinLabel = !rsvp
+      ? ""
+      : !rsvp.cabin_requested
+        ? "No"
+        : (() => {
+            const staying = party.guests.filter((guest) => cabinIds.has(String(guest.id))).map((guest) => {
+              const plusCount = (guest.plus_ones || []).filter((plusOne) => cabinIds.has(String(plusOne.id))).length;
+              const label = guestDisplayName(guest);
+              return plusCount ? `${label} (+${plusCount})` : label;
+            });
+            return staying.length ? `Requested for ${staying.join(", ")}` : "Requested";
+          })();
+    const rsvpNote = rsvp
+      ? `<p class="host-rsvp-banner">RSVP submitted ${new Date(rsvp.submitted_at).toLocaleDateString("en-NZ", { day: "numeric", month: "short", year: "numeric" })}.${pendingGuests ? ` ${pendingGuests} still deciding.` : ""} Guests can still edit until 1 January 2027.</p>`
+      : `<p class="host-rsvp-pending">No RSVP yet.</p>`;
+    return `<article class="host-party-card">
+      <div class="host-party-card__top">
+        <div>
+          <h2>${escapeHtml(partyTitle(party))}</h2>
+          ${rsvpNote}
+        </div>
+      </div>
+      <div class="host-party-card__actions">
+        <a class="host-action host-action--primary" href="${escapeHtml(inviteUrl(party.invite_code))}" target="_blank" rel="noopener noreferrer">View website</a>
+        <button type="button" class="host-action" data-copy="${escapeHtml(party.invite_code)}">Copy invite</button>
+        <button type="button" class="host-action" data-qr="${escapeHtml(party.invite_code)}" data-qr-name="${escapeHtml(partyTitle(party))}">Download QR</button>
+        <button type="button" class="host-action" data-edit="${party.id}">Edit</button>
+        <button type="button" class="host-action" data-reset="${party.id}" ${party.rsvp ? "" : "disabled"}>Reset RSVP</button>
+        <button type="button" class="host-action host-action--danger" data-delete="${party.id}">Delete</button>
+      </div>
+      <ul class="host-guest-list">${guests}</ul>
+      ${rsvp ? `<div class="host-rsvp-details"><p><strong>Cabin:</strong> ${escapeHtml(cabinLabel)}</p><p><strong>Email:</strong> ${escapeHtml(rsvp.contact_email)}</p>${rsvp.contact_email_secondary ? `<p><strong>Second email:</strong> ${escapeHtml(rsvp.contact_email_secondary)}</p>` : ""}${rsvp.dietary_notes ? `<p><strong>Dietary:</strong> ${escapeHtml(rsvp.dietary_notes)}</p>` : ""}${rsvp.note ? `<p><strong>Questions or notes:</strong> ${escapeHtml(rsvp.note)}</p>` : ""}</div>` : ""}
+    </article>`;
+  };
+
   const render = () => {
     const parties = dashboard.parties || [];
     const invited = parties.reduce((total, party) => total + party.guests.reduce((count, guest) => count + 1 + (guest.plus_ones?.length || 0), 0), 0);
@@ -145,64 +215,34 @@
       ["Pending", pending], ["Cabins requested", cabins]
     ].map(([label, value]) => `<article><strong>${value}</strong><span>${label}</span></article>`).join("");
 
-    partyList.innerHTML = parties.length ? parties.map((party) => {
-      const rsvp = party.rsvp;
-      const cabinIds = new Set((rsvp?.cabin_guests || []).map(String));
-      const guestResponse = (id) => {
-        const value = rsvp?.guest_responses?.[id] ?? rsvp?.guest_responses?.[String(id)];
-        if (value === true || value === "true") return true;
-        if (value === false || value === "false") return false;
-        return null;
-      };
-      const statusMarkup = (text, overnight = false) => {
-        const cabinMark = overnight ? `<span class="status status--cabin">Cabin</span>` : "";
-        return `<span class="host-guest-list__statuses"><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong>${cabinMark}</span>`;
-      };
-      const guests = party.guests.flatMap((guest) => {
-        const response = guestResponse(guest.id);
-        const text = response === true ? "Coming" : response === false ? "Not coming" : "Pending";
-        const overnight = cabinIds.has(String(guest.id));
-        const type = guest.guest_type && guest.guest_type !== "guest" ? ` <small>${escapeHtml(guestTypeLabel(guest.guest_type))}</small>` : "";
-        const rows = [`<li><span>${escapeHtml(guestDisplayName(guest))}${type}</span>${statusMarkup(text, overnight)}</li>`];
-        (guest.plus_ones || []).forEach((plusOne, index) => {
-          const plusResponse = guestResponse(plusOne.id);
-          const plusText = plusResponse === true ? "Coming" : plusResponse === false ? "Not coming" : "Pending";
-          const plusOvernight = cabinIds.has(String(plusOne.id));
-          const plusLabel = (guest.plus_ones.length > 1) ? `Plus one ${index + 1}` : "Plus one";
-          rows.push(`<li class="host-guest-list__plus"><span>${plusLabel}</span>${statusMarkup(plusText, plusOvernight)}</li>`);
-        });
-        return rows;
-      }).join("");
-      const pendingGuests = party.guests.filter((guest) => guestResponse(guest.id) === null).length;
-      const cabinLabel = !rsvp
-        ? ""
-        : !rsvp.cabin_requested
-          ? "No"
-          : (() => {
-              const staying = party.guests.filter((guest) => cabinIds.has(String(guest.id))).map((guest) => {
-                const plusCount = (guest.plus_ones || []).filter((plusOne) => cabinIds.has(String(plusOne.id))).length;
-                const label = guestDisplayName(guest);
-                return plusCount ? `${label} (+${plusCount})` : label;
-              });
-              return staying.length ? `Requested for ${staying.join(", ")}` : "Requested";
-            })();
-      const rsvpNote = rsvp
-        ? `<p class="host-rsvp-banner">RSVP submitted ${new Date(rsvp.submitted_at).toLocaleDateString("en-NZ", { day: "numeric", month: "short", year: "numeric" })}.${pendingGuests ? ` ${pendingGuests} still deciding.` : ""} Guests can still edit until 1 January 2027.</p>`
-        : `<p class="host-rsvp-pending">No RSVP yet.</p>`;
-      return `<article class="host-party-card">
-        <div class="host-party-card__top"><div><h2>${escapeHtml(partyTitle(party))}</h2>${rsvpNote}</div>
-        <div class="host-party-card__actions"><button type="button" class="text-link" data-copy="${escapeHtml(party.invite_code)}">Copy invite</button><button type="button" class="text-link" data-qr="${escapeHtml(party.invite_code)}" data-qr-name="${escapeHtml(partyTitle(party))}">Download QR</button><button type="button" class="text-link" data-edit="${party.id}">Edit</button><button type="button" class="text-link text-link--danger" data-delete="${party.id}">Delete</button></div></div>
-        <ul class="host-guest-list">${guests}</ul>
-        ${rsvp ? `<div class="host-rsvp-details"><p><strong>Cabin:</strong> ${escapeHtml(cabinLabel)}</p><p><strong>Email:</strong> ${escapeHtml(rsvp.contact_email)}</p>${rsvp.contact_email_secondary ? `<p><strong>Second email:</strong> ${escapeHtml(rsvp.contact_email_secondary)}</p>` : ""}${rsvp.dietary_notes ? `<p><strong>Dietary:</strong> ${escapeHtml(rsvp.dietary_notes)}</p>` : ""}${rsvp.note ? `<p><strong>Questions or notes:</strong> ${escapeHtml(rsvp.note)}</p>` : ""}</div>` : ""}
-      </article>`;
-    }).join("") : `<p class="host-empty">No invitations yet. Create your first household invitation.</p>`;
+    if (!parties.length) {
+      partyList.innerHTML = `<p class="host-empty">No invitations yet. Create your first household invitation.</p>`;
+    } else {
+      const sections = [
+        { side: "groom", parties: parties.filter((party) => party.wedding_side === "groom") },
+        { side: "bride", parties: parties.filter((party) => party.wedding_side === "bride") },
+        { side: null, parties: parties.filter((party) => party.wedding_side !== "groom" && party.wedding_side !== "bride") }
+      ].filter((section) => section.parties.length);
+      partyList.innerHTML = sections.map((section) => `
+        <section class="host-family-section">
+          <div class="host-family-section__heading">
+            <p class="section__eyebrow section__eyebrow--caps">${escapeHtml(familyLabel(section.side))}</p>
+            <h2 class="section__title">${section.parties.length} invitation${section.parties.length === 1 ? "" : "s"}</h2>
+          </div>
+          <div class="host-party-list">${section.parties.map(partyCardMarkup).join("")}</div>
+        </section>
+      `).join("");
+    }
 
     if (contactList) {
       const messages = dashboard.contact_messages || [];
       contactList.innerHTML = messages.length
         ? messages.map((item) => `
-          <article class="brief-card">
-            <p class="section__eyebrow section__eyebrow--caps">${escapeHtml(new Date(item.created_at).toLocaleString("en-NZ", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }))}</p>
+          <article class="brief-card host-contact-card">
+            <div class="host-contact-card__top">
+              <p class="section__eyebrow section__eyebrow--caps">${escapeHtml(new Date(item.created_at).toLocaleString("en-NZ", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }))}</p>
+              <button type="button" class="host-action host-action--danger" data-delete-contact="${escapeHtml(item.id)}">Delete</button>
+            </div>
             <h3>${escapeHtml(item.name)}</h3>
             <p><a href="mailto:${escapeHtml(item.email)}">${escapeHtml(item.email)}</a></p>
             <p>${escapeHtml(item.message)}</p>
@@ -249,6 +289,13 @@
       setTimeout(() => { button.textContent = previous; }, 1500);
     }));
     partyList.querySelectorAll("[data-edit]").forEach((button) => button.addEventListener("click", () => openParty(button.dataset.edit)));
+    partyList.querySelectorAll("[data-reset]").forEach((button) => button.addEventListener("click", async () => {
+      const party = dashboard.parties.find((item) => item.id === button.dataset.reset);
+      if (!party?.rsvp) return;
+      if (!window.confirm(`Reset RSVP for ${partyTitle(party)}? Their answers will be cleared. The invite link stays the same.`)) return;
+      dashboard = await rpc("host_reset_party_rsvp", { p_pin: pin, p_party_id: party.id });
+      render();
+    }));
     partyList.querySelectorAll("[data-delete]").forEach((button) => button.addEventListener("click", async () => {
       const party = dashboard.parties.find((item) => item.id === button.dataset.delete);
       if (!window.confirm(`Delete ${partyTitle(party)} and their RSVP?`)) return;
@@ -256,6 +303,16 @@
       render();
     }));
     briefList.querySelectorAll("[data-edit-brief]").forEach((button) => button.addEventListener("click", () => openBrief(button.dataset.editBrief)));
+    contactList?.querySelectorAll("[data-delete-contact]").forEach((button) => button.addEventListener("click", async () => {
+      const message = dashboard.contact_messages?.find((item) => item.id === button.dataset.deleteContact);
+      const label = message?.name ? `message from ${message.name}` : "this message";
+      if (!window.confirm(`Delete ${label}?`)) return;
+      dashboard = await rpc("host_delete_contact_message", {
+        p_pin: pin,
+        p_message_id: button.dataset.deleteContact
+      });
+      render();
+    }));
   };
 
   const syncExclusiveRoles = (changedInput) => {
@@ -275,6 +332,10 @@
     partyForm.reset();
     partyForm.querySelector("[name=id]").value = party?.id || "";
     partyForm.querySelector("[name=label]").value = party?.label || "";
+    const side = party?.wedding_side === "bride" || party?.wedding_side === "groom" ? party.wedding_side : "";
+    partyForm.querySelectorAll("[name=wedding_side]").forEach((input) => {
+      input.checked = input.value === side;
+    });
     partyForm.querySelector("[data-party-form-title]").textContent = party ? `Edit ${partyTitle(party)}` : "New invitation";
     storedRolesTaken = dashboard.roles_taken;
     const partyOwns = (type) => Boolean(party?.guests?.some((guest) => guest.guest_type === type));
@@ -375,9 +436,19 @@
     }
     status.textContent = "Saving…";
     try {
+      const weddingSide = data.get("wedding_side");
+      if (weddingSide !== "bride" && weddingSide !== "groom") {
+        status.textContent = "Choose whose family this invitation is for.";
+        return;
+      }
       dashboard = await rpc("host_save_party", {
         p_pin: pin,
-        p_payload: { id: data.get("id"), label: data.get("label"), guests }
+        p_payload: {
+          id: data.get("id"),
+          label: data.get("label"),
+          wedding_side: weddingSide,
+          guests
+        }
       });
       storedRolesTaken = null;
       partyDialog.close();

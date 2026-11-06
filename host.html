@@ -47,7 +47,7 @@
       </div>
 
       <div class="host-stats" data-host-stats></div>
-      <div class="host-party-list" data-party-list></div>
+      <div class="host-family-groups" data-party-list></div>
 
       <section class="host-briefs">
         <p class="section__eyebrow section__eyebrow--caps">Messages</p>
@@ -72,6 +72,12 @@
         <button class="host-dialog__close" type="button" data-close-dialog aria-label="Close">×</button>
       </div>
       <input type="hidden" name="id" />
+      <fieldset class="host-family-choice">
+        <legend>Whose family is this invitation for?</legend>
+        <p>Admin only. Guests will not see this.</p>
+        <label><input type="radio" name="wedding_side" value="groom" required /> Keegan’s family</label>
+        <label><input type="radio" name="wedding_side" value="bride" required /> Suzie’s family</label>
+      </fieldset>
       <label class="form-field">Household label <span>Optional</span><input name="label" placeholder="e.g. Dad’s family" /></label>
       <fieldset class="guest-editor">
         <legend>Named guests</legend>

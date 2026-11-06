@@ -2275,7 +2275,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 /* Host dashboard */
 .host-page { min-height: 100vh; }
 .host-header { border-bottom: 1px solid rgba(47, 59, 44, 0.1); background: rgba(255, 252, 247, 0.86); }
-.host-header__inner, .host-heading, .host-party-card__top, .host-dialog__heading, .host-dialog__actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.host-header__inner, .host-heading, .host-dialog__heading, .host-dialog__actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .host-header__inner { min-height: var(--header-h); }
 .host-header__inner > p { margin: 0; color: var(--sage-deep); font-size: 0.85rem; }
 .host-main { padding: clamp(3rem, 7vw, 6rem) 0; }
@@ -2286,12 +2286,121 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 .host-stats article, .host-party-card, .brief-card { padding: 1.25rem; border: 1px solid rgba(47, 59, 44, 0.13); border-radius: 0.8rem; background: rgba(255, 252, 247, 0.72); }
 .host-stats strong { display: block; font-family: var(--font-display); font-size: 2.3rem; line-height: 1; color: var(--forest); }
 .host-stats span { display: block; margin-top: 0.45rem; color: var(--sage-deep); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.host-family-groups { display: grid; gap: 0.5rem; }
 .host-party-list { display: grid; gap: 1rem; }
+.host-family-section { margin-bottom: 2.5rem; }
+.host-family-section__heading { margin-bottom: 1rem; }
+.host-family-section__heading .section__title { margin: 0.2rem 0 0; font-size: 1.8rem; }
+.host-family-choice {
+  margin: 0 0 1.25rem;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+.host-family-choice legend {
+  padding: 0;
+  margin: 0 0 0.35rem;
+  color: var(--sage-deep);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.host-family-choice p {
+  margin: 0 0 0.75rem;
+  color: rgba(42, 50, 39, 0.7);
+  font-size: 0.92rem;
+}
+.host-family-choice label {
+  display: block;
+  margin-top: 0.45rem;
+}
 .host-party-card h2, .brief-card h3 { margin: 0; font-family: var(--font-display); font-size: 1.7rem; font-weight: 500; }
+.host-party-card__top {
+  display: block;
+}
 .host-party-card__top p { margin: 0.25rem 0 0; color: rgba(42, 50, 39, 0.68); font-size: 0.92rem; }
 .host-rsvp-banner { color: #3e7545 !important; font-weight: 500; }
 .host-rsvp-pending { color: var(--copper) !important; }
-.host-party-card__actions { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+.host-party-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(47, 59, 44, 0.1);
+}
+.host-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.95rem;
+  border: 1px solid rgba(47, 59, 44, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.9);
+  color: var(--forest);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    background 0.2s var(--ease),
+    border-color 0.2s var(--ease),
+    color 0.2s var(--ease),
+    transform 0.2s var(--ease);
+}
+.host-action:hover,
+.host-action:focus-visible {
+  background: var(--white);
+  border-color: rgba(47, 59, 44, 0.28);
+  color: var(--sage-deep);
+  transform: translateY(-1px);
+}
+.host-action:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.host-action--primary {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: var(--white);
+}
+.host-action--primary:hover,
+.host-action--primary:focus-visible {
+  background: var(--sage-deep);
+  border-color: var(--sage-deep);
+  color: var(--white);
+}
+.host-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.host-action:disabled:hover,
+.host-action:disabled:focus-visible {
+  background: rgba(255, 252, 247, 0.9);
+  border-color: rgba(47, 59, 44, 0.16);
+  color: var(--forest);
+  transform: none;
+  box-shadow: none;
+}
+
+.host-action--danger {
+  color: #9b3e38;
+  border-color: rgba(155, 62, 56, 0.28);
+}
+.host-action--danger:hover,
+.host-action--danger:focus-visible {
+  background: rgba(155, 62, 56, 0.08);
+  border-color: rgba(155, 62, 56, 0.45);
+  color: #7e2f2a;
+}
 .text-link { border: 0; padding: 0; background: transparent; color: var(--sage-deep); cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 0.2em; }
 .text-link--danger { color: #9b3e38; }
 .host-guest-list { display: grid; gap: 0.5rem; padding: 0; margin: 1.25rem 0; list-style: none; }
@@ -2319,7 +2428,41 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 .host-briefs > .section__title { margin-bottom: 0.35rem; }
 .host-briefs > p { margin-top: 0; }
 .host-briefs [data-brief-list] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.host-briefs [data-contact-list] {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+  max-width: 40rem;
+}
 .brief-card p:not(.section__eyebrow) { min-height: 3rem; white-space: pre-line; }
+.host-contact-card {
+  padding: 0.85rem 1rem;
+}
+.host-contact-card h3 {
+  margin: 0.15rem 0 0.2rem;
+  font-size: 1.25rem;
+}
+.host-contact-card p {
+  margin: 0.15rem 0 0;
+  min-height: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+.host-contact-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.15rem;
+}
+.host-contact-card__top .section__eyebrow { margin: 0; }
+.host-contact-card .host-action {
+  flex-shrink: 0;
+  min-height: 1.85rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.74rem;
+}
 .host-dialog { width: min(42rem, calc(100% - 2rem)); max-height: calc(100% - 2rem); border: 0; border-radius: 1rem; background: var(--ivory); color: var(--ink); box-shadow: 0 20px 70px rgba(20, 28, 18, 0.35); }
 .host-dialog::backdrop { background: rgba(20, 28, 18, 0.55); }
 .host-dialog form { padding: clamp(1.25rem, 4vw, 2rem); }
@@ -2716,14 +2859,14 @@ body.has-dialog-open {
     flex-basis: min(82vw, 420px);
   }
 
-  .host-heading,
-  .host-party-card__top {
+  .host-heading {
     align-items: flex-start;
     flex-direction: column;
   }
 
   .host-stats,
-  .host-briefs [data-brief-list] {
+  .host-briefs [data-brief-list],
+  .host-briefs [data-contact-list] {
     grid-template-columns: 1fr 1fr;
   }
 
