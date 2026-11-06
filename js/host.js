@@ -183,7 +183,7 @@
         <div class="host-party-card__top"><div><h2>${escapeHtml(partyTitle(party))}</h2>${rsvpNote}</div>
         <div class="host-party-card__actions"><button type="button" class="text-link" data-copy="${escapeHtml(party.invite_code)}">Copy invite</button><button type="button" class="text-link" data-qr="${escapeHtml(party.invite_code)}" data-qr-name="${escapeHtml(partyTitle(party))}">Download QR</button><button type="button" class="text-link" data-edit="${party.id}">Edit</button><button type="button" class="text-link text-link--danger" data-delete="${party.id}">Delete</button></div></div>
         <ul class="host-guest-list">${guests}</ul>
-        ${rsvp ? `<div class="host-rsvp-details"><p><strong>Cabin:</strong> ${escapeHtml(cabinLabel)}</p><p><strong>Email:</strong> ${escapeHtml(rsvp.contact_email)}</p>${rsvp.contact_email_secondary ? `<p><strong>Second email:</strong> ${escapeHtml(rsvp.contact_email_secondary)}</p>` : ""}${rsvp.dietary_notes ? `<p><strong>Dietary:</strong> ${escapeHtml(rsvp.dietary_notes)}</p>` : ""}${rsvp.note ? `<p><strong>Note from guests:</strong> ${escapeHtml(rsvp.note)}</p>` : ""}</div>` : ""}
+        ${rsvp ? `<div class="host-rsvp-details"><p><strong>Cabin:</strong> ${escapeHtml(cabinLabel)}</p><p><strong>Email:</strong> ${escapeHtml(rsvp.contact_email)}</p>${rsvp.contact_email_secondary ? `<p><strong>Second email:</strong> ${escapeHtml(rsvp.contact_email_secondary)}</p>` : ""}${rsvp.dietary_notes ? `<p><strong>Dietary:</strong> ${escapeHtml(rsvp.dietary_notes)}</p>` : ""}${rsvp.note ? `<p><strong>Questions or notes:</strong> ${escapeHtml(rsvp.note)}</p>` : ""}</div>` : ""}
       </article>`;
     }).join("") : `<p class="host-empty">No invitations yet. Create your first household invitation.</p>`;
 

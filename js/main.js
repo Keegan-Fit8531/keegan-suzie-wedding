@@ -485,7 +485,7 @@
           <div><dt>Contact email</dt><dd>${escapeHtml(rsvp.contact_email)}</dd></div>
           ${rsvp.contact_email_secondary ? `<div><dt>Second contact</dt><dd>${escapeHtml(rsvp.contact_email_secondary)}</dd></div>` : ""}
           ${rsvp.dietary_notes ? `<div><dt>Dietary needs or allergies</dt><dd>${escapeHtml(rsvp.dietary_notes)}</dd></div>` : ""}
-          ${rsvp.note ? `<div><dt>Your note</dt><dd>${escapeHtml(rsvp.note)}</dd></div>` : ""}
+          ${rsvp.note ? `<div><dt>Questions or notes</dt><dd>${escapeHtml(rsvp.note)}</dd></div>` : ""}
         </dl>
         ${pending ? `<p class="rsvp-pending-note">Anyone with this invite link can update answers, including replies still marked pending.</p>` : ""}
         ${data.rsvp_open ? "" : `<p class="rsvp-closed">RSVP is now closed. If you need to change your reply, please contact Keegan.</p>`}
@@ -590,13 +590,15 @@
           <p>One cabin room for this invitation. People on the same invitation share that room.</p>
           <label><input type="radio" name="cabin_requested" value="true" data-cabin-requested ${saved.cabin_requested ? "checked" : ""} /> Yes, please reserve a cabin room</label>
           <label><input type="radio" name="cabin_requested" value="false" data-cabin-requested ${saved.cabin_requested === false ? "checked" : ""} /> No, we are day guests only</label>
-          <p class="rsvp-cabin-people__hint" data-cabin-coming-hint hidden>Mark at least one person as coming before choosing who stays overnight.</p>
-          <fieldset class="rsvp-cabin-people" data-cabin-people ${saved.cabin_requested ? "" : "hidden"}>
-            <legend>Who is staying overnight?</legend>
-            <p>Choose the people staying in this family room. You can change this later in Edit RSVP, or contact Keegan.</p>
-            <div data-cabin-people-list>${cabinPeople}</div>
-            <p class="rsvp-cabin-people__capacity" data-cabin-capacity hidden></p>
-          </fieldset>
+          <div class="rsvp-cabin-followup" data-cabin-followup ${saved.cabin_requested ? "" : "hidden"}>
+            <p class="rsvp-cabin-people__hint" data-cabin-coming-hint hidden>Mark at least one person as coming above, then choose who is staying in this family room.</p>
+            <fieldset class="rsvp-cabin-people" data-cabin-people hidden>
+              <legend>Who is staying overnight?</legend>
+              <p>Everyone on this invitation, or only selected people. You can change this later in Edit RSVP, or contact Keegan.</p>
+              <div data-cabin-people-list>${cabinPeople}</div>
+              <p class="rsvp-cabin-people__capacity" data-cabin-capacity hidden></p>
+            </fieldset>
+          </div>
         </fieldset>
         <div class="rsvp-contacts" data-contact-fields>
           <label class="form-field">Contact email<input name="contact_email" type="email" autocomplete="email" value="${escapeHtml(saved.contact_email || "")}" required /></label>
@@ -607,13 +609,14 @@
           <button class="text-link rsvp-contacts__add" type="button" data-add-secondary-contact ${saved.contact_email_secondary ? "hidden" : ""}>+ Add another contact</button>
         </div>
         <label class="form-field">Dietary needs or allergies <span>Optional</span><textarea name="dietary_notes" rows="3">${escapeHtml(saved.dietary_notes || "")}</textarea></label>
-        <label class="form-field">Note for Suzie and Keegan <span>Optional</span><textarea name="note" rows="3">${escapeHtml(saved.note || "")}</textarea></label>
+        <label class="form-field">Questions or notes <span>Optional</span><textarea name="note" rows="3">${escapeHtml(saved.note || "")}</textarea></label>
         <p class="rsvp-form__aside">Saving updates the whole invitation. Later replies can change earlier answers.</p>
         <p class="form-status" aria-live="polite"></p>
         <button class="btn btn--primary" type="submit">Save RSVP</button>
       </form>`;
 
     const form = rsvpApp.querySelector("[data-rsvp-form]");
+    const cabinFollowup = form.querySelector("[data-cabin-followup]");
     const cabinPeopleField = form.querySelector("[data-cabin-people]");
     const cabinCapacity = form.querySelector("[data-cabin-capacity]");
 
@@ -652,6 +655,7 @@
       const cabinYes = form.querySelector('input[name="cabin_requested"]:checked')?.value === "true";
       const comingIds = new Set(comingGuestIds().map(String));
       const autoFill = form.dataset.cabinAuto === "1" && form.dataset.cabinCustomized !== "1";
+      if (cabinFollowup) cabinFollowup.hidden = !cabinYes;
       if (cabinPeopleField) cabinPeopleField.hidden = !(cabinYes && comingIds.size);
       form.querySelectorAll("[data-cabin-person]").forEach((row) => {
         const guestId = row.getAttribute("data-cabin-person");
@@ -674,7 +678,7 @@
       });
 
       if (!cabinCapacity) return;
-      if (!cabinYes) {
+      if (!cabinYes || !comingIds.size) {
         cabinCapacity.hidden = true;
         return;
       }
@@ -740,7 +744,7 @@
         } else {
           form.dataset.cabinAuto = "";
         }
-        syncCabinPeople();
+        syncCabinAvailability();
       });
     });
     form.querySelectorAll('input[name="cabin_guest"]').forEach((input) => {
