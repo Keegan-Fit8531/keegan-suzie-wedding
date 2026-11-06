@@ -1598,9 +1598,9 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 
 .invitation-card__meta {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 0.65rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
 }
 
 .invitation-card__role,
