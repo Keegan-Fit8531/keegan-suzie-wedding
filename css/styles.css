@@ -1487,6 +1487,13 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   font-weight: 600;
 }
 
+.invitation-card__cabin-note {
+  margin: -0.35rem 0 var(--space-3);
+  color: rgba(42, 50, 39, 0.68);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
 .invitation-card__actions {
   display: flex;
   flex-wrap: wrap;
@@ -1671,6 +1678,148 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   margin: 0.2rem 0 0.7rem;
   color: rgba(42, 50, 39, 0.72);
   font-size: 0.94rem;
+}
+
+.rsvp-choice legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.rsvp-form__intro,
+.rsvp-form__aside,
+.rsvp-pending-note {
+  margin: 0.75rem 0 0;
+  color: rgba(42, 50, 39, 0.72);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.rsvp-form__aside,
+.rsvp-pending-note {
+  padding: 0.75rem 0.9rem;
+  border-left: 2px solid var(--sage);
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.rsvp-cabin-people {
+  margin: 1rem 0 0;
+  padding: 0.9rem 1rem;
+  border: 1px dashed var(--wire);
+  border-radius: 0.55rem;
+  min-inline-size: 0;
+}
+
+.rsvp-cabin-people legend {
+  padding: 0 0.25rem;
+  color: var(--sage-deep);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rsvp-cabin-people__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: 0.7rem;
+}
+
+.rsvp-cabin-people__name {
+  display: block;
+  color: var(--forest);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.rsvp-cabin-people__note,
+.rsvp-cabin-people__capacity {
+  display: block;
+  margin-top: 0.2rem;
+  color: rgba(42, 50, 39, 0.68);
+  font-size: 0.88rem;
+}
+
+.rsvp-cabin-people__capacity {
+  margin-top: 0.85rem;
+}
+
+.info-tip {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.info-tip__button {
+  display: inline-grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-left: 0.2rem;
+  padding: 0;
+  border: 1px solid var(--sage-deep);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--sage-deep);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.info-tip__button:hover,
+.info-tip__button:focus-visible {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: var(--ivory);
+}
+
+.info-tip__button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.info-tip__panel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.55rem);
+  z-index: 5;
+  width: min(18rem, 70vw);
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--wire);
+  border-radius: 0.55rem;
+  background: var(--white);
+  box-shadow: 0 10px 30px rgba(20, 28, 18, 0.16);
+  color: rgba(42, 50, 39, 0.82);
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.45;
+  text-transform: none;
+  transform: translateX(-50%);
+}
+
+.info-tip__panel::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 1px solid var(--wire);
+  border-bottom: 1px solid var(--wire);
+  background: var(--white);
+  transform: translateX(-50%) rotate(45deg);
+  margin-top: -0.3rem;
+}
+
+.stay__list .info-tip {
+  margin-left: 0.25rem;
 }
 
 .form-field {

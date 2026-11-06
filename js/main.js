@@ -283,6 +283,29 @@
     return "Pending";
   };
 
+  const cabinGuestSet = (rsvp = {}) => {
+    const ids = Array.isArray(rsvp.cabin_guests) ? rsvp.cabin_guests : [];
+    return new Set(ids.map((id) => String(id)));
+  };
+
+  const hasPendingGuests = (guests = [], responses = {}) =>
+    guests.some((guest) => responseValue(responses, guest.id) === null);
+
+  const cabinSummaryLabel = (rsvp = {}, guests = []) => {
+    if (!rsvp.cabin_requested) return "No, day guests only";
+    const cabinIds = cabinGuestSet(rsvp);
+    const named = guests.filter((guest) => !guest.is_plus_one && cabinIds.has(String(guest.id)));
+    if (!named.length) return "Yes, cabin requested";
+    const parts = named.map((guest) => {
+      const plusComing = guests.filter(
+        (plusOne) => plusOne.plus_one_of === guest.id && cabinIds.has(String(plusOne.id))
+      ).length;
+      const label = guestInviteLabel(guest);
+      return plusComing ? `${label} (+${plusComing})` : label;
+    });
+    return `Yes, for ${listNames(parts)}`;
+  };
+
   const plusAttendanceNote = (plusOnes = [], responses = {}) => {
     if (!plusOnes.length) return "";
     if (plusOnes.length === 1) {
@@ -388,7 +411,9 @@
     if (data.rsvp) {
       namesTarget.hidden = true;
       namesTarget.innerHTML = "";
-      if (heading) heading.textContent = "Thanks for your reply";
+      const namedGuests = data.guests.filter((guest) => !guest.is_plus_one);
+      const pending = hasPendingGuests(namedGuests, data.rsvp.guest_responses || {});
+      if (heading) heading.textContent = pending ? "Your invitation replies" : "Thanks for your reply";
       return;
     }
 
@@ -407,11 +432,22 @@
     if (!rsvpSummary || !openRsvpButton) return;
     const { rsvp, guests } = data;
     const deadline = invitationSection?.querySelector(".invitation-card__deadline");
-    if (deadline) deadline.hidden = Boolean(rsvp);
     const heroRsvp = document.querySelector("[data-hero-rsvp]");
+    const namedGuests = guests.filter((guest) => !guest.is_plus_one);
+    const responses = rsvp?.guest_responses || {};
+    const pending = Boolean(rsvp && hasPendingGuests(namedGuests, responses));
     const anyoneComing = Boolean(
-      rsvp && guests.some((guest) => responseValue(rsvp.guest_responses, guest.id) === true)
+      rsvp && guests.some((guest) => responseValue(responses, guest.id) === true)
     );
+
+    if (deadline) {
+      deadline.hidden = Boolean(rsvp) && !pending;
+      if (pending) {
+        deadline.innerHTML = `Some replies are still pending. Please finish by <strong>1 January 2027</strong>.`;
+      } else if (!rsvp) {
+        deadline.innerHTML = `Please RSVP by <strong>1 January 2027</strong>.`;
+      }
+    }
 
     renderInvitationPeople(data);
 
@@ -426,12 +462,11 @@
       return;
     }
 
-    const namedGuests = guests.filter((guest) => !guest.is_plus_one);
     const attendance = namedGuests.map((guest) => {
       const plusOnes = guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
-      const plusNote = plusAttendanceNote(plusOnes, rsvp.guest_responses);
+      const plusNote = plusAttendanceNote(plusOnes, responses);
       const meta = [guestRoleMarkup(guest), plusNote].filter(Boolean).join("");
-      const status = attendanceLabel(rsvp.guest_responses, guest.id);
+      const status = attendanceLabel(responses, guest.id);
       return `
         <li>
           <span class="invitation-card__guest">
@@ -446,18 +481,26 @@
       <div class="rsvp-confirmation rsvp-confirmation--inline">
         <ul class="rsvp-summary">${attendance}</ul>
         <dl class="rsvp-summary__details">
-          <div><dt>Staying overnight</dt><dd>${rsvp.cabin_requested ? "Yes, cabin requested" : "No, day guests only"}</dd></div>
+          <div><dt>Staying overnight</dt><dd>${escapeHtml(cabinSummaryLabel(rsvp, guests))}</dd></div>
           <div><dt>Contact email</dt><dd>${escapeHtml(rsvp.contact_email)}</dd></div>
           ${rsvp.dietary_notes ? `<div><dt>Dietary needs or allergies</dt><dd>${escapeHtml(rsvp.dietary_notes)}</dd></div>` : ""}
           ${rsvp.note ? `<div><dt>Your note</dt><dd>${escapeHtml(rsvp.note)}</dd></div>` : ""}
         </dl>
+        ${pending ? `<p class="rsvp-pending-note">Anyone with this invite link can update answers, including replies still marked pending.</p>` : ""}
         ${data.rsvp_open ? "" : `<p class="rsvp-closed">RSVP is now closed. If you need to change your reply, please contact Keegan.</p>`}
       </div>`;
-    openRsvpButton.textContent = "Edit RSVP";
-    openRsvpButton.className = anyoneComing ? "btn btn--secondary" : "btn btn--primary";
+
+    if (pending) {
+      openRsvpButton.textContent = "Finish RSVP";
+      openRsvpButton.className = "btn btn--primary";
+      if (heroRsvp) heroRsvp.textContent = "Finish RSVP";
+    } else {
+      openRsvpButton.textContent = "Edit RSVP";
+      openRsvpButton.className = anyoneComing ? "btn btn--secondary" : "btn btn--primary";
+      if (heroRsvp) heroRsvp.textContent = "Edit RSVP";
+    }
     openRsvpButton.hidden = !data.rsvp_open;
     if (inviteCalendar) inviteCalendar.hidden = !anyoneComing;
-    if (heroRsvp) heroRsvp.textContent = "Edit RSVP";
     renderWeddingParty(data);
   };
 
@@ -469,6 +512,7 @@
       return;
     }
     const saved = data.rsvp || {};
+    const savedCabinIds = cabinGuestSet(saved);
     const savedResponse = (guestId) => {
       const value = saved.guest_responses?.[guestId] ?? saved.guest_responses?.[String(guestId)];
       if (value === true || value === "true") return true;
@@ -476,75 +520,276 @@
       return null;
     };
     const namedGuests = data.guests.filter((guest) => !guest.is_plus_one);
+    const pendingCount = namedGuests.filter((guest) => savedResponse(guest.id) === null).length;
     const guests = namedGuests.map((guest) => {
       const attending = savedResponse(guest.id);
       const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
       const plusComing = plusOnes.filter((plusOne) => savedResponse(plusOne.id) === true).length;
       const plusKnown = plusOnes.some((plusOne) => savedResponse(plusOne.id) !== null);
       const plusField = plusOnes.length ? `
-        <fieldset class="rsvp-plus">
+        <fieldset class="rsvp-plus" data-plus-field="${guest.id}" ${attending === true ? "" : "hidden"}>
           <legend>Plus ones coming</legend>
           ${Array.from({ length: plusOnes.length + 1 }, (_, count) => `
-            <label><input type="radio" name="plus-${guest.id}" value="${count}" ${plusKnown && plusComing === count ? "checked" : ""} required /> ${count}</label>
+            <label><input type="radio" name="plus-${guest.id}" value="${count}" ${plusKnown && plusComing === count ? "checked" : ""} ${attending === true ? "required" : ""} /> ${count}</label>
           `).join("")}
         </fieldset>` : "";
       return `
-        <fieldset class="rsvp-person">
+        <fieldset class="rsvp-person" data-guest-block="${guest.id}">
           <legend>${guestFormLegend(guest)}</legend>
-          <label><input type="radio" name="guest-${guest.id}" value="true" ${attending === true ? "checked" : ""} required /> Coming</label>
-          <label><input type="radio" name="guest-${guest.id}" value="false" ${attending === false ? "checked" : ""} /> Not coming</label>
+          <label><input type="radio" name="guest-${guest.id}" value="true" data-guest-attendance="${guest.id}" ${attending === true ? "checked" : ""} /> Coming</label>
+          <label><input type="radio" name="guest-${guest.id}" value="false" data-guest-attendance="${guest.id}" ${attending === false ? "checked" : ""} /> Not coming</label>
+          <label><input type="radio" name="guest-${guest.id}" value="pending" data-guest-attendance="${guest.id}" ${attending === null ? "checked" : ""} /> Still deciding</label>
           ${plusField}
         </fieldset>`;
+    }).join("");
+
+    const cabinPeople = namedGuests.map((guest) => {
+      const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
+      const attending = savedResponse(guest.id) === true;
+      const plusComing = plusOnes.filter((plusOne) => savedResponse(plusOne.id) === true).length;
+      const cabinChecked = saved.cabin_requested
+        ? savedCabinIds.has(String(guest.id))
+        : attending;
+      const plusNote = plusOnes.length
+        ? `<span class="rsvp-cabin-people__note" data-cabin-plus-note="${guest.id}">${plusComing ? `Includes ${plusComing} plus one${plusComing === 1 ? "" : "s"} in the same room` : "Plus ones marked coming will share this room"}</span>`
+        : "";
+      return `
+        <label class="rsvp-cabin-people__item" data-cabin-person="${guest.id}" ${attending ? "" : "hidden"}>
+          <input type="checkbox" name="cabin_guest" value="${guest.id}" ${attending && cabinChecked ? "checked" : ""} />
+          <span>
+            <span class="rsvp-cabin-people__name">${guestInviteMarkup(guest)}</span>
+            ${plusNote}
+          </span>
+        </label>`;
     }).join("");
 
     rsvpApp.innerHTML = `
       <form class="rsvp-form" data-rsvp-form>
         <p class="section__eyebrow section__eyebrow--caps">Your RSVP</p>
         <h3 class="section__title" id="rsvp-dialog-title">Will you be there?</h3>
-        <p class="rsvp-form__intro">Please reply by <strong>1 January 2027</strong> for each named guest.</p>
+        <p class="rsvp-form__intro">
+          Reply for anyone you can now. Others can stay as still deciding, and anyone with this invite link can update the answers later.
+          Please finish by <strong>1 January 2027</strong>.
+        </p>
+        ${pendingCount && saved.submitted_at ? `<p class="rsvp-form__aside">${pendingCount} ${pendingCount === 1 ? "guest is" : "guests are"} still deciding on this invitation.</p>` : ""}
         <div class="rsvp-people">${guests}</div>
-        <fieldset class="rsvp-choice">
-          <legend>Would you like to stay overnight?</legend>
-          <p>Cabin rooms have multiple bunks. Please bring your own bedding and be packed by 10:00 am the next morning.</p>
-          <label><input type="radio" name="cabin_requested" value="true" ${saved.cabin_requested ? "checked" : ""} required /> Yes, please reserve a cabin room for our group</label>
-          <label><input type="radio" name="cabin_requested" value="false" ${saved.cabin_requested === false ? "checked" : ""} /> No, we are day guests only</label>
+        <fieldset class="rsvp-choice" data-cabin-choice>
+          <legend>
+            Would you like to stay overnight?
+            <span class="info-tip">
+              <button class="info-tip__button" type="button" aria-describedby="rsvp-cabin-tip" aria-expanded="false" data-info-tip>
+                <span class="visually-hidden">More about cabin rooms</span>
+                <span aria-hidden="true">i</span>
+              </button>
+              <span class="info-tip__panel" id="rsvp-cabin-tip" role="tooltip" hidden>
+                One cabin room per invitation. Same family shares the room. Rooms have 6 to 8 single bunks (about 3 to 4 bunk beds). Beds are camping mattresses only, so please bring blankets and pillows. Be packed by 10:00 am the next morning.
+              </span>
+            </span>
+          </legend>
+          <p>One cabin room for this invitation. People on the same invitation share that room.</p>
+          <label><input type="radio" name="cabin_requested" value="true" data-cabin-requested ${saved.cabin_requested ? "checked" : ""} /> Yes, please reserve a cabin room</label>
+          <label><input type="radio" name="cabin_requested" value="false" data-cabin-requested ${saved.cabin_requested === false ? "checked" : ""} /> No, we are day guests only</label>
+          <fieldset class="rsvp-cabin-people" data-cabin-people ${saved.cabin_requested ? "" : "hidden"}>
+            <legend>Who is staying overnight?</legend>
+            <p>Choose the people staying in this family room. You can change this later in Edit RSVP, or contact Keegan.</p>
+            <div data-cabin-people-list>${cabinPeople}</div>
+            <p class="rsvp-cabin-people__capacity" data-cabin-capacity hidden></p>
+          </fieldset>
         </fieldset>
         <label class="form-field">Contact email<input name="contact_email" type="email" autocomplete="email" value="${escapeHtml(saved.contact_email || "")}" required /></label>
         <label class="form-field">Dietary needs or allergies <span>Optional</span><textarea name="dietary_notes" rows="3">${escapeHtml(saved.dietary_notes || "")}</textarea></label>
         <label class="form-field">Note for Suzie and Keegan <span>Optional</span><textarea name="note" rows="3">${escapeHtml(saved.note || "")}</textarea></label>
+        <p class="rsvp-form__aside">Saving updates the whole invitation. Later replies can change earlier answers.</p>
         <p class="form-status" aria-live="polite"></p>
         <button class="btn btn--primary" type="submit">Save RSVP</button>
       </form>`;
 
     const form = rsvpApp.querySelector("[data-rsvp-form]");
+    const cabinPeopleField = form.querySelector("[data-cabin-people]");
+    const cabinCapacity = form.querySelector("[data-cabin-capacity]");
+
+    if (saved.cabin_requested) {
+      const comingNamed = namedGuests.filter((guest) => savedResponse(guest.id) === true);
+      const allComingSelected = comingNamed.length > 0
+        && comingNamed.every((guest) => savedCabinIds.has(String(guest.id)));
+      if (!allComingSelected) form.dataset.cabinCustomized = "1";
+    }
+
+    const comingGuestIds = () => namedGuests
+      .filter((guest) => form.querySelector(`input[name="guest-${guest.id}"]:checked`)?.value === "true")
+      .map((guest) => guest.id);
+
+    const plusComingCount = (guestId) => {
+      const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guestId);
+      if (!plusOnes.length) return 0;
+      return Math.max(0, Math.min(plusOnes.length, Number(form.querySelector(`input[name="plus-${guestId}"]:checked`)?.value || 0)));
+    };
+
+    const syncPlusFields = () => {
+      namedGuests.forEach((guest) => {
+        const attendance = form.querySelector(`input[name="guest-${guest.id}"]:checked`)?.value;
+        const plusField = form.querySelector(`[data-plus-field="${guest.id}"]`);
+        if (!plusField) return;
+        const show = attendance === "true";
+        plusField.hidden = !show;
+        plusField.querySelectorAll("input").forEach((input) => {
+          input.required = show;
+          if (!show) input.checked = false;
+        });
+      });
+    };
+
+    const syncCabinPeople = () => {
+      const cabinYes = form.querySelector('input[name="cabin_requested"]:checked')?.value === "true";
+      const comingIds = new Set(comingGuestIds().map(String));
+      const autoFill = form.dataset.cabinAuto === "1" && form.dataset.cabinCustomized !== "1";
+      if (cabinPeopleField) cabinPeopleField.hidden = !cabinYes;
+      form.querySelectorAll("[data-cabin-person]").forEach((row) => {
+        const guestId = row.getAttribute("data-cabin-person");
+        const isComing = comingIds.has(String(guestId));
+        row.hidden = !isComing;
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        if (!checkbox) return;
+        if (!isComing) {
+          checkbox.checked = false;
+        } else if (cabinYes && autoFill) {
+          checkbox.checked = true;
+        }
+        const plusNote = row.querySelector(`[data-cabin-plus-note="${guestId}"]`);
+        if (plusNote) {
+          const count = plusComingCount(guestId);
+          plusNote.textContent = count
+            ? `Includes ${count} plus one${count === 1 ? "" : "s"} in the same room`
+            : "Plus ones marked coming will share this room";
+        }
+      });
+
+      if (!cabinCapacity) return;
+      if (!cabinYes) {
+        cabinCapacity.hidden = true;
+        return;
+      }
+      let overnight = 0;
+      form.querySelectorAll('input[name="cabin_guest"]:checked').forEach((input) => {
+        overnight += 1 + plusComingCount(input.value);
+      });
+      if (overnight > 8) {
+        cabinCapacity.hidden = false;
+        cabinCapacity.textContent = `Rooms sleep about 6 to 8 people. You have selected ${overnight}. Please contact Keegan if you need help.`;
+      } else if (overnight > 0) {
+        cabinCapacity.hidden = false;
+        cabinCapacity.textContent = `${overnight} ${overnight === 1 ? "person" : "people"} selected for this family room (rooms sleep about 6 to 8).`;
+      } else {
+        cabinCapacity.hidden = true;
+      }
+    };
+
+    const syncCabinAvailability = () => {
+      const coming = comingGuestIds().length > 0;
+      const cabinChoice = form.querySelector("[data-cabin-choice]");
+      if (cabinChoice) cabinChoice.hidden = !coming;
+      if (!coming) {
+        form.querySelectorAll('input[name="cabin_requested"]').forEach((input) => {
+          input.checked = false;
+        });
+        form.dataset.cabinAuto = "";
+      }
+      syncCabinPeople();
+    };
+
+    form.querySelectorAll("[data-guest-attendance]").forEach((input) => {
+      input.addEventListener("change", () => {
+        if (
+          input.value === "true"
+          && form.querySelector('input[name="cabin_requested"]:checked')?.value === "true"
+          && form.dataset.cabinCustomized !== "1"
+        ) {
+          form.dataset.cabinAuto = "1";
+        }
+        syncPlusFields();
+        syncCabinAvailability();
+      });
+    });
+    form.querySelectorAll("[data-plus-field] input").forEach((input) => {
+      input.addEventListener("change", syncCabinPeople);
+    });
+    form.querySelectorAll("[data-cabin-requested]").forEach((input) => {
+      input.addEventListener("change", () => {
+        if (input.value === "true" && input.checked) {
+          form.dataset.cabinAuto = "1";
+          form.dataset.cabinCustomized = "";
+        } else {
+          form.dataset.cabinAuto = "";
+        }
+        syncCabinPeople();
+      });
+    });
+    form.querySelectorAll('input[name="cabin_guest"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        form.dataset.cabinCustomized = "1";
+        form.dataset.cabinAuto = "";
+        syncCabinPeople();
+      });
+    });
+
+    syncPlusFields();
+    syncCabinAvailability();
+
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const submit = form.querySelector('[type="submit"]');
       const status = form.querySelector(".form-status");
       const formData = new FormData(form);
       const guestResponses = {};
-      data.guests.filter((guest) => !guest.is_plus_one).forEach((guest) => {
-        guestResponses[guest.id] = formData.get(`guest-${guest.id}`);
+      namedGuests.forEach((guest) => {
+        const answer = formData.get(`guest-${guest.id}`);
+        if (answer !== "true" && answer !== "false") return;
+        guestResponses[guest.id] = answer;
         const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
+        if (answer === "false") {
+          plusOnes.forEach((plusOne) => {
+            guestResponses[plusOne.id] = "false";
+          });
+          return;
+        }
+        if (!plusOnes.length) return;
         const coming = Math.max(0, Math.min(plusOnes.length, Number(formData.get(`plus-${guest.id}`)) || 0));
         plusOnes.forEach((plusOne, index) => {
           guestResponses[plusOne.id] = index < coming ? "true" : "false";
         });
       });
-      if (!Object.values(guestResponses).includes("true") && formData.get("cabin_requested") === "true") {
+
+      if (!Object.keys(guestResponses).length) {
+        status.textContent = "Please reply for at least one guest before saving.";
+        return;
+      }
+
+      const cabinRequested = formData.get("cabin_requested") === "true";
+      const cabinGuestIds = formData.getAll("cabin_guest").map(String);
+      if (cabinRequested && !Object.values(guestResponses).includes("true")) {
         status.textContent = "A cabin can only be requested when someone is coming.";
         return;
       }
+      if (cabinRequested && !cabinGuestIds.length) {
+        status.textContent = "Please choose who is staying overnight.";
+        return;
+      }
+      if (!cabinRequested && comingGuestIds().length && formData.get("cabin_requested") !== "false") {
+        status.textContent = "Please say whether you would like a cabin room.";
+        return;
+      }
+
       submit.disabled = true;
       status.textContent = "Saving your RSVP…";
       try {
         const updated = await rpc("submit_wedding_rsvp", {
           p_invite_code: inviteCode,
           p_contact_email: formData.get("contact_email"),
-          p_cabin_requested: formData.get("cabin_requested") === "true",
+          p_cabin_requested: cabinRequested,
           p_dietary_notes: formData.get("dietary_notes"),
           p_note: formData.get("note"),
-          p_guest_responses: guestResponses
+          p_guest_responses: guestResponses,
+          p_cabin_guest_ids: cabinGuestIds
         });
         inviteData = updated;
         renderSummary(updated);
@@ -669,6 +914,33 @@
     event.preventDefault();
     invitationSection?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
     openRsvpDialog();
+  });
+
+  const closeInfoTips = ({ except } = {}) => {
+    document.querySelectorAll("[data-info-tip]").forEach((button) => {
+      if (button === except) return;
+      button.setAttribute("aria-expanded", "false");
+      const panel = button.parentElement?.querySelector(".info-tip__panel");
+      if (panel) panel.hidden = true;
+    });
+  };
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-info-tip]");
+    if (button) {
+      event.preventDefault();
+      const panel = button.parentElement?.querySelector(".info-tip__panel");
+      const open = button.getAttribute("aria-expanded") === "true";
+      closeInfoTips({ except: button });
+      button.setAttribute("aria-expanded", open ? "false" : "true");
+      if (panel) panel.hidden = open;
+      return;
+    }
+    if (!event.target.closest(".info-tip")) closeInfoTips();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeInfoTips();
   });
 
   loadInvitation();

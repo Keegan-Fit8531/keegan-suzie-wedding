@@ -159,14 +159,31 @@
         });
         return rows;
       }).join("");
+      const pendingGuests = party.guests.filter((guest) => {
+        const response = rsvp?.guest_responses?.[guest.id];
+        return response !== true && response !== false;
+      }).length;
+      const cabinIds = new Set((rsvp?.cabin_guests || []).map(String));
+      const cabinLabel = !rsvp
+        ? ""
+        : !rsvp.cabin_requested
+          ? "No"
+          : (() => {
+              const staying = party.guests.filter((guest) => cabinIds.has(String(guest.id))).map((guest) => {
+                const plusCount = (guest.plus_ones || []).filter((plusOne) => cabinIds.has(String(plusOne.id))).length;
+                const label = guestDisplayName(guest);
+                return plusCount ? `${label} (+${plusCount})` : label;
+              });
+              return staying.length ? `Requested for ${staying.join(", ")}` : "Requested";
+            })();
       const rsvpNote = rsvp
-        ? `<p class="host-rsvp-banner">RSVP submitted ${new Date(rsvp.submitted_at).toLocaleDateString("en-NZ", { day: "numeric", month: "short", year: "numeric" })}. Guests can still edit until 1 January 2027.</p>`
+        ? `<p class="host-rsvp-banner">RSVP submitted ${new Date(rsvp.submitted_at).toLocaleDateString("en-NZ", { day: "numeric", month: "short", year: "numeric" })}.${pendingGuests ? ` ${pendingGuests} still deciding.` : ""} Guests can still edit until 1 January 2027.</p>`
         : `<p class="host-rsvp-pending">No RSVP yet.</p>`;
       return `<article class="host-party-card">
         <div class="host-party-card__top"><div><h2>${escapeHtml(partyTitle(party))}</h2>${rsvpNote}</div>
         <div class="host-party-card__actions"><button type="button" class="text-link" data-copy="${escapeHtml(party.invite_code)}">Copy invite</button><button type="button" class="text-link" data-qr="${escapeHtml(party.invite_code)}" data-qr-name="${escapeHtml(partyTitle(party))}">Download QR</button><button type="button" class="text-link" data-edit="${party.id}">Edit</button><button type="button" class="text-link text-link--danger" data-delete="${party.id}">Delete</button></div></div>
         <ul class="host-guest-list">${guests}</ul>
-        ${rsvp ? `<div class="host-rsvp-details"><p><strong>Cabin:</strong> ${rsvp.cabin_requested ? "Requested" : "No"}</p><p><strong>Email:</strong> ${escapeHtml(rsvp.contact_email)}</p>${rsvp.dietary_notes ? `<p><strong>Dietary:</strong> ${escapeHtml(rsvp.dietary_notes)}</p>` : ""}${rsvp.note ? `<p><strong>Note from guests:</strong> ${escapeHtml(rsvp.note)}</p>` : ""}</div>` : ""}
+        ${rsvp ? `<div class="host-rsvp-details"><p><strong>Cabin:</strong> ${escapeHtml(cabinLabel)}</p><p><strong>Email:</strong> ${escapeHtml(rsvp.contact_email)}</p>${rsvp.dietary_notes ? `<p><strong>Dietary:</strong> ${escapeHtml(rsvp.dietary_notes)}</p>` : ""}${rsvp.note ? `<p><strong>Note from guests:</strong> ${escapeHtml(rsvp.note)}</p>` : ""}</div>` : ""}
       </article>`;
     }).join("") : `<p class="host-empty">No invitations yet. Create your first household invitation.</p>`;
 
