@@ -146,24 +146,33 @@
 
     partyList.innerHTML = parties.length ? parties.map((party) => {
       const rsvp = party.rsvp;
+      const cabinIds = new Set((rsvp?.cabin_guests || []).map(String));
+      const guestResponse = (id) => {
+        const value = rsvp?.guest_responses?.[id] ?? rsvp?.guest_responses?.[String(id)];
+        if (value === true || value === "true") return true;
+        if (value === false || value === "false") return false;
+        return null;
+      };
+      const statusMarkup = (text, overnight = false) => {
+        const cabinMark = overnight ? `<span class="status status--cabin">Cabin</span>` : "";
+        return `<span class="host-guest-list__statuses"><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong>${cabinMark}</span>`;
+      };
       const guests = party.guests.flatMap((guest) => {
-        const response = rsvp?.guest_responses?.[guest.id];
+        const response = guestResponse(guest.id);
         const text = response === true ? "Coming" : response === false ? "Not coming" : "Pending";
+        const overnight = cabinIds.has(String(guest.id));
         const type = guest.guest_type && guest.guest_type !== "guest" ? ` <small>${escapeHtml(guestTypeLabel(guest.guest_type))}</small>` : "";
-        const rows = [`<li><span>${escapeHtml(guestDisplayName(guest))}${type}</span><strong class="status status--${text.toLowerCase().replace(" ", "-")}">${text}</strong></li>`];
+        const rows = [`<li><span>${escapeHtml(guestDisplayName(guest))}${type}</span>${statusMarkup(text, overnight)}</li>`];
         (guest.plus_ones || []).forEach((plusOne, index) => {
-          const plusResponse = rsvp?.guest_responses?.[plusOne.id];
+          const plusResponse = guestResponse(plusOne.id);
           const plusText = plusResponse === true ? "Coming" : plusResponse === false ? "Not coming" : "Pending";
+          const plusOvernight = cabinIds.has(String(plusOne.id));
           const plusLabel = (guest.plus_ones.length > 1) ? `Plus one ${index + 1}` : "Plus one";
-          rows.push(`<li class="host-guest-list__plus"><span>${plusLabel}</span><strong class="status status--${plusText.toLowerCase().replace(" ", "-")}">${plusText}</strong></li>`);
+          rows.push(`<li class="host-guest-list__plus"><span>${plusLabel}</span>${statusMarkup(plusText, plusOvernight)}</li>`);
         });
         return rows;
       }).join("");
-      const pendingGuests = party.guests.filter((guest) => {
-        const response = rsvp?.guest_responses?.[guest.id];
-        return response !== true && response !== false;
-      }).length;
-      const cabinIds = new Set((rsvp?.cabin_guests || []).map(String));
+      const pendingGuests = party.guests.filter((guest) => guestResponse(guest.id) === null).length;
       const cabinLabel = !rsvp
         ? ""
         : !rsvp.cabin_requested

@@ -663,6 +663,7 @@
         row.hidden = !isComing;
         const checkbox = row.querySelector('input[type="checkbox"]');
         if (!checkbox) return;
+        checkbox.disabled = !isComing;
         if (!isComing) {
           checkbox.checked = false;
         } else if (cabinYes && autoFill) {
@@ -788,7 +789,9 @@
       }
 
       const cabinRequested = formData.get("cabin_requested") === "true";
-      const cabinGuestIds = formData.getAll("cabin_guest").map(String);
+      const cabinGuestIds = formData.getAll("cabin_guest")
+        .map(String)
+        .filter((guestId) => guestResponses[guestId] === "true");
       if (formData.get("cabin_requested") !== "true" && formData.get("cabin_requested") !== "false") {
         status.textContent = "Please say whether you would like a cabin room.";
         return;
@@ -798,7 +801,7 @@
         return;
       }
       if (cabinRequested && !cabinGuestIds.length) {
-        status.textContent = "Please choose who is staying overnight.";
+        status.textContent = "Please choose who is staying overnight. Only people marked coming can stay.";
         return;
       }
 
