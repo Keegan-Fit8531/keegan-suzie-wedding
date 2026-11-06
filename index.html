@@ -35,7 +35,6 @@
   </script>
 </head>
 <body>
-  <div class="film-grain" aria-hidden="true"></div>
   <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="site-header" data-header>
@@ -55,14 +54,13 @@
 
       <nav class="site-nav" id="site-nav" data-nav>
         <ul class="site-nav__list">
-          <li><a href="#welcome">Welcome</a></li>
           <li><a href="#day">The Day</a></li>
           <li><a href="#venue">Venue</a></li>
-          <li><a href="#stay">Stay</a></li>
+          <li><a href="#stay">Cabins</a></li>
           <li><a href="#details">Details</a></li>
-          <li data-public-nav><a href="#questions">Questions</a></li>
+          <li data-public-nav><a href="#questions">Contact</a></li>
+          <li data-invite-nav hidden><a href="#questions">Contact</a></li>
           <li data-invite-nav hidden><a class="site-nav__rsvp" href="#your-invitation">RSVP</a></li>
-          <li data-invite-nav hidden><a href="#questions">Questions</a></li>
         </ul>
       </nav>
     </div>
@@ -149,6 +147,7 @@
 
     <dialog class="rsvp-dialog" data-rsvp-dialog aria-labelledby="rsvp-dialog-title">
       <div class="rsvp-dialog__panel">
+        <div class="film-grain film-grain--local" aria-hidden="true"></div>
         <button class="rsvp-dialog__close" type="button" data-close-rsvp aria-label="Close RSVP">×</button>
         <div data-rsvp-app></div>
       </div>
@@ -156,6 +155,7 @@
 
     <dialog class="rsvp-dialog" data-contact-dialog aria-labelledby="contact-dialog-title">
       <div class="rsvp-dialog__panel">
+        <div class="film-grain film-grain--local" aria-hidden="true"></div>
         <button class="rsvp-dialog__close" type="button" data-close-contact aria-label="Close message">×</button>
         <form class="rsvp-form" data-contact-form>
           <p class="section__eyebrow section__eyebrow--caps">Get in touch</p>
@@ -444,6 +444,8 @@
       <p class="site-footer__place">Hunua Falls Camp · Auckland</p>
     </div>
   </footer>
+
+  <div class="film-grain" aria-hidden="true"></div>
 
   <script src="js/main.js"></script>
 </body>

@@ -31,6 +31,8 @@
     }
   };
 
+  let navCloseTimer = 0;
+
   const closeNav = ({ restoreFocus = false } = {}) => {
     if (!nav || !toggle) return;
     nav.classList.remove("is-open");
@@ -39,16 +41,18 @@
     header?.classList.remove("has-nav-open");
     document.body.classList.remove("has-nav-open");
     backdrop?.classList.remove("is-visible");
-    if (backdrop) {
-      backdrop.hidden = true;
-      backdrop.setAttribute("aria-hidden", "true");
-    }
+    if (backdrop) backdrop.setAttribute("aria-hidden", "true");
     setPageInert(false);
+    window.clearTimeout(navCloseTimer);
+    navCloseTimer = window.setTimeout(() => {
+      if (!nav.classList.contains("is-open") && backdrop) backdrop.hidden = true;
+    }, reduceMotion ? 0 : 400);
     if (restoreFocus) toggle.focus();
   };
 
   const openNav = () => {
     if (!nav || !toggle || !navDrawerQuery.matches) return;
+    window.clearTimeout(navCloseTimer);
     nav.classList.add("is-open");
     nav.setAttribute("aria-modal", "true");
     toggle.setAttribute("aria-expanded", "true");
@@ -56,6 +60,8 @@
     document.body.classList.add("has-nav-open");
     if (backdrop) {
       backdrop.hidden = false;
+      // Force a frame so the opacity transition can run after unhiding.
+      void backdrop.offsetWidth;
       backdrop.classList.add("is-visible");
       backdrop.setAttribute("aria-hidden", "false");
     }
@@ -190,11 +196,35 @@
   const contactForm = document.querySelector("[data-contact-form]");
   const listNames = (names = []) => new Intl.ListFormat("en-NZ", { style: "long", type: "conjunction" }).format(names);
   let inviteData = null;
+  let dialogScrollY = 0;
+
+  const lockPageScroll = () => {
+    if (document.body.classList.contains("has-dialog-open")) return;
+    dialogScrollY = window.scrollY;
+    document.body.classList.add("has-dialog-open");
+    document.body.style.top = `-${dialogScrollY}px`;
+  };
+
+  const unlockPageScroll = () => {
+    const rsvpOpen = rsvpDialog?.open || rsvpDialog?.hasAttribute("open");
+    const contactOpen = contactDialog?.open || contactDialog?.hasAttribute("open");
+    if (rsvpOpen || contactOpen) return;
+    const y = dialogScrollY;
+    const root = document.documentElement;
+    const previousBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = "auto";
+    document.body.classList.remove("has-dialog-open");
+    document.body.style.removeProperty("top");
+    // Instant restore — page smooth-scroll would otherwise animate from the top.
+    window.scrollTo(0, y);
+    root.style.scrollBehavior = previousBehavior;
+  };
 
   const openAnimatedDialog = (dialog) => {
     if (!dialog) return;
     dialog.classList.remove("is-open", "is-closing");
     delete dialog.dataset.closing;
+    lockPageScroll();
     if (typeof dialog.showModal === "function") dialog.showModal();
     else dialog.setAttribute("open", "");
     const panel = dialog.querySelector(".rsvp-dialog__panel");
@@ -217,6 +247,7 @@
       delete dialog.dataset.closing;
       if (typeof dialog.close === "function") dialog.close();
       else dialog.removeAttribute("open");
+      unlockPageScroll();
     };
 
     if (reduceMotion) {
@@ -313,11 +344,23 @@
 
   const isDeclined = (memberId, responses = {}) => responseValue(responses, memberId) === false;
 
-  const attendanceLabel = (responses = {}, guestId) => {
+  const attendanceTone = (responses = {}, guestId) => {
     const value = responseValue(responses, guestId);
-    if (value === true) return "Coming";
-    if (value === false) return "Not coming";
+    if (value === true) return "coming";
+    if (value === false) return "not-coming";
+    return "pending";
+  };
+
+  const attendanceLabel = (responses = {}, guestId) => {
+    const tone = attendanceTone(responses, guestId);
+    if (tone === "coming") return "Coming";
+    if (tone === "not-coming") return "Not coming";
     return "Pending";
+  };
+
+  const attendanceStatusMarkup = (responses = {}, guestId) => {
+    const tone = attendanceTone(responses, guestId);
+    return `<strong class="rsvp-status rsvp-status--${tone}">${attendanceLabel(responses, guestId)}</strong>`;
   };
 
   const cabinGuestSet = (rsvp = {}) => {
@@ -343,24 +386,41 @@
     return `Yes, for ${listNames(parts)}`;
   };
 
-  const plusAttendanceNote = (plusOnes = [], responses = {}) => {
+  const plusOnesStatusMarkup = (plusOnes = [], responses = {}) => {
     if (!plusOnes.length) return "";
-    if (plusOnes.length === 1) {
-      const value = responseValue(responses, plusOnes[0].id);
-      if (value === true) return `<span class="invitation-card__plus">Plus one coming</span>`;
-      if (value === false) return `<span class="invitation-card__plus">Plus one not coming</span>`;
-      return `<span class="invitation-card__plus">Plus one pending</span>`;
-    }
+    if (plusOnes.length === 1) return attendanceStatusMarkup(responses, plusOnes[0].id);
     const known = plusOnes.filter((plusOne) => responseValue(responses, plusOne.id) !== null);
-    if (!known.length) {
-      return `<span class="invitation-card__plus">${plusOnes.length} plus ones pending</span>`;
-    }
     const coming = plusOnes.filter((plusOne) => responseValue(responses, plusOne.id) === true).length;
     const pending = plusOnes.length - known.length;
-    if (pending) {
-      return `<span class="invitation-card__plus">${coming} coming · ${pending} pending</span>`;
+    let tone = "pending";
+    let label = `${plusOnes.length} pending`;
+    if (!known.length) {
+      tone = "pending";
+      label = `${plusOnes.length} pending`;
+    } else if (pending) {
+      tone = "mixed";
+      label = `${coming} coming · ${pending} pending`;
+    } else if (coming === plusOnes.length) {
+      tone = "coming";
+      label = "All coming";
+    } else if (coming === 0) {
+      tone = "not-coming";
+      label = "None coming";
+    } else {
+      tone = "mixed";
+      label = `${coming} of ${plusOnes.length} coming`;
     }
-    return `<span class="invitation-card__plus">${coming} of ${plusOnes.length} plus ones coming</span>`;
+    return `<strong class="rsvp-status rsvp-status--${tone}">${escapeHtml(label)}</strong>`;
+  };
+
+  const plusSummaryRow = (plusOnes = [], responses = {}) => {
+    if (!plusOnes.length) return "";
+    const label = plusOnes.length === 1 ? "Plus one" : "Plus ones";
+    return `
+      <div class="rsvp-summary__row rsvp-summary__row--plus">
+        <span class="rsvp-summary__plus-label">${label}</span>
+        ${plusOnesStatusMarkup(plusOnes, responses)}
+      </div>`;
   };
 
   const renderWeddingParty = (data) => {
@@ -501,16 +561,17 @@
 
     const attendance = namedGuests.map((guest) => {
       const plusOnes = guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
-      const plusNote = plusAttendanceNote(plusOnes, responses);
-      const meta = [guestRoleMarkup(guest), plusNote].filter(Boolean).join("");
-      const status = attendanceLabel(responses, guest.id);
+      const role = guestRoleMarkup(guest);
       return `
-        <li>
-          <span class="invitation-card__guest">
-            <span class="invitation-card__guest-name">${guestInviteMarkup(guest)}</span>
-            ${meta ? `<span class="invitation-card__meta">${meta}</span>` : ""}
-          </span>
-          <strong>${status}</strong>
+        <li class="rsvp-summary__person">
+          <div class="rsvp-summary__row">
+            <span class="invitation-card__guest">
+              <span class="invitation-card__guest-name">${guestInviteMarkup(guest)}</span>
+              ${role ? `<span class="invitation-card__meta">${role}</span>` : ""}
+            </span>
+            ${attendanceStatusMarkup(responses, guest.id)}
+          </div>
+          ${plusSummaryRow(plusOnes, responses)}
         </li>`;
     }).join("");
 
