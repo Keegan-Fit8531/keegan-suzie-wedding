@@ -61,6 +61,7 @@
           <li><a href="#details">Details</a></li>
           <li data-public-nav><a href="#questions">Questions</a></li>
           <li data-invite-nav hidden><a class="site-nav__rsvp" href="#your-invitation">RSVP</a></li>
+          <li data-invite-nav hidden><a href="#questions">Questions</a></li>
         </ul>
       </nav>
     </div>
@@ -149,6 +150,22 @@
       <div class="rsvp-dialog__panel">
         <button class="rsvp-dialog__close" type="button" data-close-rsvp aria-label="Close RSVP">×</button>
         <div data-rsvp-app></div>
+      </div>
+    </dialog>
+
+    <dialog class="rsvp-dialog" data-contact-dialog aria-labelledby="contact-dialog-title">
+      <div class="rsvp-dialog__panel">
+        <button class="rsvp-dialog__close" type="button" data-close-contact aria-label="Close message">×</button>
+        <form class="rsvp-form" data-contact-form>
+          <p class="section__eyebrow section__eyebrow--caps">Get in touch</p>
+          <h3 class="section__title" id="contact-dialog-title">Message Keegan</h3>
+          <p class="rsvp-form__intro">Ask about the day, venue, drinks, or staying overnight. This opens your email app ready to send.</p>
+          <label class="form-field">Your name<input name="name" type="text" autocomplete="name" required /></label>
+          <label class="form-field">Your email<input name="email" type="email" autocomplete="email" required /></label>
+          <label class="form-field">Message<textarea name="message" rows="5" required></textarea></label>
+          <p class="form-status" aria-live="polite"></p>
+          <button class="btn btn--primary" type="submit">Open email</button>
+        </form>
       </div>
     </dialog>
 
@@ -363,6 +380,14 @@
             </p>
           </article>
           <article class="detail reveal">
+            <h3 class="detail__title">Drinks</h3>
+            <p class="detail__copy">
+              We will provide drinks free of charge, while supplies last.
+              Please do not bring your own alcohol. The camp licence means only the drinks we supply can be served on site.
+              Alcohol service runs from the reception at <strong>5:00 pm</strong> until <strong>11:00 pm</strong>, when service stops.
+            </p>
+          </article>
+          <article class="detail reveal">
             <h3 class="detail__title">Gifts</h3>
             <p class="detail__copy">
               Thank you for being part of our special day. Your presence is gift enough.
@@ -373,29 +398,29 @@
             <h3 class="detail__title">Questions</h3>
             <p class="detail__copy">
               Call or text Keegan on <a href="tel:+64220426068">022 042 6068</a>,
-              or email <a href="mailto:keegan1fitzgerald@gmail.com">keegan1fitzgerald@gmail.com</a>.
+              or <button class="detail__link" type="button" data-open-contact>send a message</button>.
             </p>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="section section--rsvp" id="questions" data-public-rsvp>
+    <section class="section section--rsvp" id="questions">
       <div class="section-divider" aria-hidden="true"><span class="section-divider__mark">&amp;</span></div>
       <div class="shell">
         <div class="measure">
           <p class="section__eyebrow section__eyebrow--caps reveal">Questions</p>
           <h2 class="section__title reveal">Get in touch</h2>
-          <p class="section__body reveal">
+          <p class="section__body reveal" data-public-contact-note>
             This page is general wedding information. It cannot take an RSVP.
             If you are invited, you will already have a personal link or QR code for that.
           </p>
           <p class="section__body reveal">
-            For anything about the day, venue, or staying overnight, call, text, or email Keegan.
+            For anything about the day, venue, drinks, or staying overnight, send Keegan a message, or call or text.
           </p>
           <div class="contact-actions reveal">
-            <a class="btn btn--primary" href="tel:+64220426068">Call or text Keegan</a>
-            <a class="btn btn--secondary" href="mailto:keegan1fitzgerald@gmail.com">Email Keegan</a>
+            <button class="btn btn--primary" type="button" data-open-contact>Send a message</button>
+            <a class="btn btn--secondary" href="tel:+64220426068">Call or text Keegan</a>
             <a
               class="btn btn--secondary"
               href="https://calendar.google.com/calendar/event?action=TEMPLATE&amp;tmeid=NnBjZGcxczVtaW01NWZoaTdtZ2dicGFxMDUga2VlZ2FuMWZpdHpnZXJhbGRAbQ&amp;tmsrc=keegan1fitzgerald%40gmail.com"

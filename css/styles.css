@@ -1064,6 +1064,35 @@ button {
   font-size: 1.1rem;
 }
 
+.detail__copy a,
+.detail__link {
+  color: var(--ivory);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.detail__link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.detail__copy a:hover,
+.detail__copy a:focus-visible,
+.detail__link:hover,
+.detail__link:focus-visible {
+  color: var(--copper);
+}
+
+.detail__link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 0.2rem;
+}
+
 .detail__lead + .detail__copy,
 .detail__copy + .palette {
   margin-top: var(--space-2);
@@ -1243,8 +1272,11 @@ html.has-invite .section--day {
   padding-top: var(--space-5);
 }
 
-html.has-invite #welcome,
-html.has-invite #questions {
+html.has-invite #welcome {
+  display: none !important;
+}
+
+html.has-invite [data-public-contact-note] {
   display: none !important;
 }
 

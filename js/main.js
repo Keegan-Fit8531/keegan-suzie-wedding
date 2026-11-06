@@ -185,10 +185,47 @@
   const rsvpSummary = document.querySelector("[data-rsvp-summary]");
   const openRsvpButton = document.querySelector("[data-open-rsvp]");
   const inviteCalendar = document.querySelector("[data-invite-calendar]");
-  const publicRsvp = document.querySelector("[data-public-rsvp]");
   const welcomeSection = document.querySelector("#welcome");
+  const contactDialog = document.querySelector("[data-contact-dialog]");
+  const contactForm = document.querySelector("[data-contact-form]");
   const listNames = (names = []) => new Intl.ListFormat("en-NZ", { style: "long", type: "conjunction" }).format(names);
   let inviteData = null;
+
+  const openAnimatedDialog = (dialog) => {
+    if (!dialog) return;
+    dialog.classList.remove("is-closing");
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+    requestAnimationFrame(() => {
+      dialog.classList.add("is-open");
+      const panel = dialog.querySelector(".rsvp-dialog__panel");
+      if (panel) panel.scrollTop = 0;
+      dialog.scrollTop = 0;
+    });
+  };
+
+  const closeAnimatedDialog = (dialog) => {
+    if (!dialog || dialog.dataset.closing === "1") return;
+    const isOpen = dialog.open || dialog.hasAttribute("open");
+    if (!isOpen) return;
+
+    const finishClose = () => {
+      dialog.classList.remove("is-open", "is-closing");
+      delete dialog.dataset.closing;
+      if (typeof dialog.close === "function") dialog.close();
+      else dialog.removeAttribute("open");
+    };
+
+    if (reduceMotion) {
+      finishClose();
+      return;
+    }
+
+    dialog.dataset.closing = "1";
+    dialog.classList.add("is-closing");
+    dialog.classList.remove("is-open");
+    window.setTimeout(finishClose, 300);
+  };
 
   const escapeHtml = (value = "") =>
     String(value).replace(/[&<>"']/g, (character) => ({
@@ -217,43 +254,19 @@
       return;
     }
     renderForm(inviteData);
-    rsvpDialog.classList.remove("is-closing");
-    if (typeof rsvpDialog.showModal === "function") rsvpDialog.showModal();
-    else rsvpDialog.setAttribute("open", "");
-    const resetScroll = () => {
-      const panel = rsvpDialog.querySelector(".rsvp-dialog__panel");
-      if (panel) panel.scrollTop = 0;
-      rsvpDialog.scrollTop = 0;
-    };
-    resetScroll();
-    requestAnimationFrame(() => {
-      rsvpDialog.classList.add("is-open");
-      resetScroll();
-    });
+    openAnimatedDialog(rsvpDialog);
   };
 
-  const closeRsvpDialog = () => {
-    if (!rsvpDialog || rsvpDialog.dataset.closing === "1") return;
-    const isOpen = rsvpDialog.open || rsvpDialog.hasAttribute("open");
-    if (!isOpen) return;
+  const closeRsvpDialog = () => closeAnimatedDialog(rsvpDialog);
 
-    const finishClose = () => {
-      rsvpDialog.classList.remove("is-open", "is-closing");
-      delete rsvpDialog.dataset.closing;
-      if (typeof rsvpDialog.close === "function") rsvpDialog.close();
-      else rsvpDialog.removeAttribute("open");
-    };
-
-    if (reduceMotion) {
-      finishClose();
-      return;
-    }
-
-    rsvpDialog.dataset.closing = "1";
-    rsvpDialog.classList.add("is-closing");
-    rsvpDialog.classList.remove("is-open");
-    window.setTimeout(finishClose, 300);
+  const openContactDialog = () => {
+    if (!contactDialog) return;
+    contactForm?.querySelector(".form-status") && (contactForm.querySelector(".form-status").textContent = "");
+    openAnimatedDialog(contactDialog);
+    window.setTimeout(() => contactForm?.querySelector("input[name='name']")?.focus(), reduceMotion ? 0 : 280);
   };
+
+  const closeContactDialog = () => closeAnimatedDialog(contactDialog);
 
   const guestRoleLabel = (type) => {
     if (type === "maid_of_honor") return "Maid of Honor";
@@ -883,28 +896,26 @@
   const inviteCard = document.querySelector("[data-invite-card]");
 
   const publicNav = document.querySelector("[data-public-nav]");
-  const inviteNav = document.querySelector("[data-invite-nav]");
+  const inviteNavItems = document.querySelectorAll("[data-invite-nav]");
   const heroCalendar = document.querySelector("[data-hero-calendar]");
   const publicCtas = document.querySelectorAll("[data-public-cta]");
   const heroRsvpLink = document.querySelector("[data-hero-rsvp]");
 
   const applyInviteChrome = () => {
     if (publicNav) publicNav.hidden = true;
-    if (inviteNav) inviteNav.hidden = false;
+    inviteNavItems.forEach((item) => { item.hidden = false; });
     publicCtas.forEach((cta) => { cta.hidden = true; });
     if (heroRsvpLink) heroRsvpLink.hidden = false;
     if (heroCalendar) heroCalendar.className = "btn btn--ghost";
-    if (publicRsvp) publicRsvp.hidden = true;
     if (welcomeSection) welcomeSection.hidden = true;
   };
 
   const clearInviteChrome = () => {
     if (publicNav) publicNav.hidden = false;
-    if (inviteNav) inviteNav.hidden = true;
+    inviteNavItems.forEach((item) => { item.hidden = true; });
     publicCtas.forEach((cta) => { cta.hidden = false; });
     if (heroRsvpLink) heroRsvpLink.hidden = true;
     if (heroCalendar) heroCalendar.className = "btn btn--ghost";
-    if (publicRsvp) publicRsvp.hidden = false;
     if (welcomeSection) welcomeSection.hidden = false;
   };
 
@@ -996,6 +1007,35 @@
     event.preventDefault();
     invitationSection?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
     openRsvpDialog();
+  });
+
+  document.querySelectorAll("[data-open-contact]").forEach((button) => {
+    button.addEventListener("click", openContactDialog);
+  });
+  document.querySelector("[data-close-contact]")?.addEventListener("click", closeContactDialog);
+  contactDialog?.addEventListener("click", (event) => {
+    if (event.target === contactDialog) closeContactDialog();
+  });
+  contactDialog?.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeContactDialog();
+  });
+  contactForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const status = contactForm.querySelector(".form-status");
+    const formData = new FormData(contactForm);
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const message = String(formData.get("message") || "").trim();
+    if (!name || !email || !message) {
+      if (status) status.textContent = "Please fill in every field.";
+      return;
+    }
+    const subject = encodeURIComponent(`Wedding question from ${name}`);
+    const body = encodeURIComponent(`${message}\n\n—\n${name}\n${email}`);
+    if (status) status.textContent = "Opening your email app…";
+    window.location.href = `mailto:keegan1fitzgerald@gmail.com?subject=${subject}&body=${body}`;
+    window.setTimeout(() => closeContactDialog(), reduceMotion ? 0 : 400);
   });
 
   const closeInfoTips = ({ except } = {}) => {
