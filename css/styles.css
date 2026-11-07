@@ -1596,6 +1596,16 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   vertical-align: baseline;
 }
 
+.invitation-card__role {
+  margin-left: 0.35em;
+  font-family: var(--font-ui);
+  font-size: 0.62em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: rgba(42, 50, 39, 0.78);
+  vertical-align: baseline;
+}
+
 .invitation-card__meta {
   display: flex;
   flex-direction: column;
@@ -1603,7 +1613,6 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   gap: 0.15rem;
 }
 
-.invitation-card__role,
 .invitation-card__plus {
   font-family: var(--font-ui);
   font-size: 0.9rem;

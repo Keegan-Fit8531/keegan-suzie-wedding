@@ -32,10 +32,10 @@
   };
 
   const inviteUrl = (code) => {
-    // Hash links preview more reliably in Messages/WhatsApp: crawlers fetch the
-    // clean homepage (with OG tags) while the browser still keeps the invite code.
+    // Query links survive Messenger (and similar apps) that strip # fragments.
+    // Hash invites still open via main.js for any older shared links.
     const path = window.location.pathname.replace(/host\.html$/, "").replace(/\/?$/, "/");
-    return `${window.location.origin}${path}#invite=${encodeURIComponent(code)}`;
+    return `${window.location.origin}${path}?invite=${encodeURIComponent(code)}`;
   };
 
   const guestTypeLabel = (type) => {

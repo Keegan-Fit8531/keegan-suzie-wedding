@@ -490,14 +490,11 @@
   const guestInviteRow = (guest = {}, guests = []) => {
     const plusCount = guests.filter((plusOne) => plusOne.plus_one_of === guest.id).length;
     const plusLabel = plusOnesLabel(plusCount);
-    const meta = [
-      guestRoleMarkup(guest),
-      plusLabel ? `<span class="invitation-card__plus">${escapeHtml(plusLabel)}</span>` : ""
-    ].filter(Boolean).join("");
+    const role = guestRoleMarkup(guest);
     return `
       <span class="invitation-card__guest">
-        <span class="invitation-card__guest-name">${guestInviteMarkup(guest)}</span>
-        ${meta ? `<span class="invitation-card__meta">${meta}</span>` : ""}
+        <span class="invitation-card__guest-name">${guestInviteMarkup(guest)}${role ? ` ${role}` : ""}</span>
+        ${plusLabel ? `<span class="invitation-card__meta"><span class="invitation-card__plus">${escapeHtml(plusLabel)}</span></span>` : ""}
       </span>`;
   };
 
@@ -573,8 +570,7 @@
         <li class="rsvp-summary__person">
           <div class="rsvp-summary__row">
             <span class="invitation-card__guest">
-              <span class="invitation-card__guest-name">${guestInviteMarkup(guest)}</span>
-              ${role ? `<span class="invitation-card__meta">${role}</span>` : ""}
+              <span class="invitation-card__guest-name">${guestInviteMarkup(guest)}${role ? ` ${role}` : ""}</span>
             </span>
             ${attendanceStatusMarkup(responses, guest.id)}
           </div>
