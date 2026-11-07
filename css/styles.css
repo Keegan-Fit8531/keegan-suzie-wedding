@@ -2312,10 +2312,10 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 .host-stats strong { display: block; font-family: var(--font-display); font-size: 2.3rem; line-height: 1; color: var(--forest); }
 .host-stats span { display: block; margin-top: 0.45rem; color: var(--sage-deep); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .host-filters {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(11rem, 1.35fr) auto repeat(3, minmax(8.25rem, 0.85fr)) auto;
   align-items: end;
-  gap: 0.85rem 1rem;
+  gap: 0.75rem 0.85rem;
   margin-bottom: 0.85rem;
   padding: 1rem 1.15rem;
   border: 1px solid rgba(47, 59, 44, 0.12);
@@ -2335,19 +2335,20 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 .host-filters__search,
 .host-filters__select,
 .host-filters__family {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   margin: 0;
   padding: 0;
   border: 0;
+  min-width: 0;
   min-inline-size: 0;
 }
-.host-filters__search { flex: 1 1 12rem; min-width: 10rem; }
-.host-filters__select { flex: 0 1 9.5rem; }
-.host-filters__family { flex: 1 1 16rem; }
 .host-filters__search input,
 .host-filters__select select {
   width: 100%;
-  min-height: 2.55rem;
-  padding: 0.55rem 0.75rem;
+  height: 2.5rem;
+  padding: 0 0.75rem;
   border: 1px solid rgba(47, 59, 44, 0.16);
   border-radius: 0.45rem;
   background: var(--white);
@@ -2356,40 +2357,50 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 .host-filters__chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
 }
 .host-filters__chips label {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  min-height: 2.55rem;
-  padding: 0 0.85rem;
+  justify-content: center;
+  height: 2.5rem;
+  padding: 0 0.8rem;
   border: 1px solid rgba(47, 59, 44, 0.16);
-  border-radius: 999px;
+  border-radius: 0.45rem;
   background: var(--white);
   color: var(--forest);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
   cursor: pointer;
 }
 .host-filters__chips input {
-  accent-color: var(--forest);
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 .host-filters__chips label:has(input:checked) {
   border-color: var(--forest);
-  background: rgba(47, 59, 44, 0.08);
+  background: rgba(47, 59, 44, 0.1);
+  font-weight: 500;
+}
+.host-filters__chips label:has(input:focus-visible) {
+  box-shadow: var(--focus-ring);
 }
 .host-filters__clear {
-  min-height: 2.55rem;
-  padding: 0 0.9rem;
+  height: 2.5rem;
+  padding: 0 0.15rem 0 0.35rem;
   border: 0;
-  border-radius: 0.45rem;
   background: transparent;
   color: var(--copper);
   font: inherit;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   text-decoration: underline;
   text-underline-offset: 0.18em;
+  white-space: nowrap;
   cursor: pointer;
 }
 .host-filters__clear:hover,
@@ -2400,6 +2411,17 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   margin: 0 0 1.5rem;
   color: var(--sage-deep);
   font-size: 0.92rem;
+}
+@media (max-width: 1180px) and (min-width: 901px) {
+  .host-filters {
+    grid-template-columns: minmax(12rem, 1.2fr) auto repeat(3, minmax(7.5rem, 1fr));
+  }
+
+  .host-filters__clear {
+    grid-column: 1 / -1;
+    justify-self: start;
+    padding-left: 0;
+  }
 }
 .host-family-groups { display: grid; gap: 0.5rem; }
 .host-party-list { display: grid; gap: 1rem; }
@@ -2986,13 +3008,26 @@ body.has-dialog-open {
   }
 
   .host-filters {
-    align-items: stretch;
+    grid-template-columns: 1fr 1fr;
   }
 
-  .host-filters__select,
-  .host-filters__family,
-  .host-filters__search {
-    flex: 1 1 100%;
+  .host-filters__search,
+  .host-filters__family {
+    grid-column: 1 / -1;
+  }
+
+  .host-filters__chips {
+    width: 100%;
+  }
+
+  .host-filters__chips label {
+    flex: 1 1 0;
+  }
+
+  .host-filters__clear {
+    grid-column: 1 / -1;
+    justify-self: start;
+    padding-left: 0;
   }
 
   .guest-editor__names {
