@@ -47,6 +47,50 @@
       </div>
 
       <div class="host-stats" data-host-stats></div>
+
+      <div class="host-filters" data-host-filters>
+        <label class="host-filters__search">
+          <span class="host-filters__label">Search</span>
+          <input type="search" data-filter-search placeholder="Name or household" autocomplete="off" />
+        </label>
+        <fieldset class="host-filters__family">
+          <legend class="host-filters__label">Family</legend>
+          <div class="host-filters__chips">
+            <label><input type="radio" name="filter-side" value="all" checked /> Both</label>
+            <label><input type="radio" name="filter-side" value="groom" /> Keegan’s</label>
+            <label><input type="radio" name="filter-side" value="bride" /> Suzie’s</label>
+          </div>
+        </fieldset>
+        <label class="host-filters__select">
+          <span class="host-filters__label">RSVP</span>
+          <select data-filter-rsvp>
+            <option value="all">All</option>
+            <option value="submitted">Submitted</option>
+            <option value="none">No RSVP yet</option>
+            <option value="partial">Still deciding</option>
+          </select>
+        </label>
+        <label class="host-filters__select">
+          <span class="host-filters__label">Cabin</span>
+          <select data-filter-cabin>
+            <option value="all">All</option>
+            <option value="yes">Requested</option>
+            <option value="no">Not requested</option>
+          </select>
+        </label>
+        <label class="host-filters__select">
+          <span class="host-filters__label">Guests</span>
+          <select data-filter-guests>
+            <option value="all">All invitations</option>
+            <option value="party">Wedding party</option>
+            <option value="plus">Has plus one</option>
+            <option value="child">Has child or infant</option>
+          </select>
+        </label>
+        <button class="host-filters__clear" type="button" data-filter-clear hidden>Clear filters</button>
+      </div>
+      <p class="host-filters__summary" data-filter-summary hidden></p>
+
       <div class="host-family-groups" data-party-list></div>
 
       <section class="host-briefs">

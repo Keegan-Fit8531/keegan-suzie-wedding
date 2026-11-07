@@ -10,6 +10,9 @@
   const briefForm = document.querySelector("[data-brief-form]");
   const partyList = document.querySelector("[data-party-list]");
   const stats = document.querySelector("[data-host-stats]");
+  const filters = document.querySelector("[data-host-filters]");
+  const filterSummary = document.querySelector("[data-filter-summary]");
+  const filterClear = document.querySelector("[data-filter-clear]");
   const briefList = document.querySelector("[data-brief-list]");
   const contactList = document.querySelector("[data-contact-list]");
   let pin = sessionStorage.getItem("wedding-host-pin") || "";
@@ -128,6 +131,62 @@
     return "Unassigned";
   };
 
+  const partyHasPending = (party) => {
+    if (!party.rsvp) return false;
+    return party.guests.some((guest) => {
+      const value = party.rsvp.guest_responses?.[guest.id] ?? party.rsvp.guest_responses?.[String(guest.id)];
+      if (value == null) return true;
+      return (guest.plus_ones || []).some((plusOne) => {
+        const plusValue = party.rsvp.guest_responses?.[plusOne.id] ?? party.rsvp.guest_responses?.[String(plusOne.id)];
+        return plusValue == null;
+      });
+    });
+  };
+
+  const partyHasRole = (party, roles) =>
+    party.guests.some((guest) => roles.includes(guest.guest_type));
+
+  const readFilters = () => ({
+    search: (filters?.querySelector("[data-filter-search]")?.value || "").trim().toLowerCase(),
+    side: filters?.querySelector("[name=filter-side]:checked")?.value || "all",
+    rsvp: filters?.querySelector("[data-filter-rsvp]")?.value || "all",
+    cabin: filters?.querySelector("[data-filter-cabin]")?.value || "all",
+    guests: filters?.querySelector("[data-filter-guests]")?.value || "all"
+  });
+
+  const filtersActive = (state = readFilters()) =>
+    Boolean(state.search || state.side !== "all" || state.rsvp !== "all" || state.cabin !== "all" || state.guests !== "all");
+
+  const partyMatchesFilters = (party, state = readFilters()) => {
+    if (state.side === "groom" && party.wedding_side !== "groom") return false;
+    if (state.side === "bride" && party.wedding_side !== "bride") return false;
+
+    if (state.rsvp === "submitted" && !party.rsvp) return false;
+    if (state.rsvp === "none" && party.rsvp) return false;
+    if (state.rsvp === "partial" && !partyHasPending(party)) return false;
+
+    if (state.cabin === "yes" && !party.rsvp?.cabin_requested) return false;
+    if (state.cabin === "no" && party.rsvp?.cabin_requested) return false;
+
+    if (state.guests === "party" && !partyHasRole(party, ["bridesmaid", "maid_of_honor", "groomsman", "best_man"])) return false;
+    if (state.guests === "plus" && !party.guests.some((guest) => (guest.plus_ones || []).length)) return false;
+    if (state.guests === "child" && !partyHasRole(party, ["child", "infant"])) return false;
+
+    if (state.search) {
+      const haystack = [
+        party.label || "",
+        ...(party.guests || []).flatMap((guest) => [
+          guest.name || "",
+          guest.legal_name || "",
+          ...((guest.plus_ones || []).map((plusOne) => plusOne.name || ""))
+        ])
+      ].join(" ").toLowerCase();
+      if (!haystack.includes(state.search)) return false;
+    }
+
+    return true;
+  };
+
   const partyCardMarkup = (party) => {
     const rsvp = party.rsvp;
     const cabinIds = new Set((rsvp?.cabin_guests || []).map(String));
@@ -193,14 +252,31 @@
   };
 
   const render = () => {
-    const parties = dashboard.parties || [];
+    const allParties = dashboard.parties || [];
+    const filterState = readFilters();
+    const parties = allParties.filter((party) => partyMatchesFilters(party, filterState));
+    const active = filtersActive(filterState);
+    if (filterClear) filterClear.hidden = !active;
+    if (filterSummary) {
+      if (!allParties.length) {
+        filterSummary.hidden = true;
+        filterSummary.textContent = "";
+      } else if (active) {
+        filterSummary.hidden = false;
+        filterSummary.textContent = `Showing ${parties.length} of ${allParties.length} invitation${allParties.length === 1 ? "" : "s"}.`;
+      } else {
+        filterSummary.hidden = true;
+        filterSummary.textContent = "";
+      }
+    }
+
     const invited = parties.reduce((total, party) => total + party.guests.reduce((count, guest) => count + 1 + (guest.plus_ones?.length || 0), 0), 0);
     let coming = 0;
     let declined = 0;
     let pending = 0;
     let cabins = 0;
     const countResponse = (party, id) => {
-      const response = party.rsvp?.guest_responses?.[id];
+      const response = party.rsvp?.guest_responses?.[id] ?? party.rsvp?.guest_responses?.[String(id)];
       if (response === true) coming += 1;
       else if (response === false) declined += 1;
       else pending += 1;
@@ -217,8 +293,10 @@
       ["Pending", pending], ["Cabins requested", cabins]
     ].map(([label, value]) => `<article><strong>${value}</strong><span>${label}</span></article>`).join("");
 
-    if (!parties.length) {
+    if (!allParties.length) {
       partyList.innerHTML = `<p class="host-empty">No invitations yet. Create your first household invitation.</p>`;
+    } else if (!parties.length) {
+      partyList.innerHTML = `<p class="host-empty">No invitations match these filters.</p>`;
     } else {
       const sections = [
         { side: "groom", parties: parties.filter((party) => party.wedding_side === "groom") },
@@ -381,6 +459,30 @@
     } catch (error) {
       status.textContent = "Incorrect PIN. Please try again.";
     }
+  });
+
+  filters?.addEventListener("input", () => {
+    if (!dashboard) return;
+    render();
+  });
+  filters?.addEventListener("change", () => {
+    if (!dashboard) return;
+    render();
+  });
+  filterClear?.addEventListener("click", () => {
+    if (!filters) return;
+    const search = filters.querySelector("[data-filter-search]");
+    if (search) search.value = "";
+    filters.querySelectorAll("[name=filter-side]").forEach((input) => {
+      input.checked = input.value === "all";
+    });
+    const rsvp = filters.querySelector("[data-filter-rsvp]");
+    const cabin = filters.querySelector("[data-filter-cabin]");
+    const guests = filters.querySelector("[data-filter-guests]");
+    if (rsvp) rsvp.value = "all";
+    if (cabin) cabin.value = "all";
+    if (guests) guests.value = "all";
+    if (dashboard) render();
   });
 
   document.querySelector("[data-new-party]").addEventListener("click", () => openParty());
