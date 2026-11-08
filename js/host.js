@@ -150,6 +150,14 @@
     return Object.values(responses).some(responseIsDecided);
   };
 
+  const partyHasAccepted = (party) => {
+    const responses = party.rsvp?.guest_responses || {};
+    return Object.values(responses).some((value) => value === true || value === "true");
+  };
+
+  const sortParties = (list) =>
+    [...list].sort((a, b) => Number(partyHasAccepted(a)) - Number(partyHasAccepted(b)));
+
   const formatInviteSentAgo = (iso) => {
     const sent = new Date(iso);
     if (Number.isNaN(sent.getTime())) return "";
@@ -285,7 +293,7 @@
   const render = () => {
     const allParties = dashboard.parties || [];
     const filterState = readFilters();
-    const parties = allParties.filter((party) => partyMatchesFilters(party, filterState));
+    const parties = sortParties(allParties.filter((party) => partyMatchesFilters(party, filterState)));
     const active = filtersActive(filterState);
     if (filterClear) filterClear.hidden = !active;
     if (filterSummary) {
