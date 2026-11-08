@@ -1,0 +1,29 @@
+name: Supabase keep-alive
+
+# Pings a no-op RPC daily so the Free-tier project is less likely to pause.
+# keep_alive() only returns true. It does not read or write invites, guests, or RSVPs.
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call keep_alive RPC
+        env:
+          SUPABASE_URL: https://fwtkgtokyurntzzsqgwc.supabase.co
+          SUPABASE_KEY: sb_publishable_HZ9IEPcCW_2MjD-i5dVILA_1r-_w5FX
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/keepalive-body.txt -w "%{http_code}" \
+            -X POST "${SUPABASE_URL}/rest/v1/rpc/keep_alive" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          echo "HTTP ${code}"
+          cat /tmp/keepalive-body.txt
+          echo
+          test "${code}" = "200"
