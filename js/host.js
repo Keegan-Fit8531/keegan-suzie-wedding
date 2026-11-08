@@ -143,6 +143,23 @@
     });
   };
 
+  const responseIsDecided = (value) => value === true || value === false || value === "true" || value === "false";
+
+  const partyHasAnyReply = (party) => {
+    const responses = party.rsvp?.guest_responses || {};
+    return Object.values(responses).some(responseIsDecided);
+  };
+
+  const formatInviteSentAgo = (iso) => {
+    const sent = new Date(iso);
+    if (Number.isNaN(sent.getTime())) return "";
+    const days = Math.max(0, Math.floor((Date.now() - sent.getTime()) / 86400000));
+    const dateLabel = sent.toLocaleDateString("en-NZ", { day: "numeric", month: "short", year: "numeric" });
+    if (days <= 0) return `Invite sent ${dateLabel} · today`;
+    if (days === 1) return `Invite sent ${dateLabel} · 1 day ago`;
+    return `Invite sent ${dateLabel} · ${days} days ago`;
+  };
+
   const partyHasRole = (party, roles) =>
     party.guests.some((guest) => roles.includes(guest.guest_type));
 
@@ -164,6 +181,8 @@
     if (state.rsvp === "submitted" && !party.rsvp) return false;
     if (state.rsvp === "none" && party.rsvp) return false;
     if (state.rsvp === "partial" && !partyHasPending(party)) return false;
+    if (state.rsvp === "awaiting" && !(party.invite_sent_at && !partyHasAnyReply(party))) return false;
+    if (state.rsvp === "unsent" && (party.invite_sent_at || partyHasAnyReply(party))) return false;
 
     if (state.cabin === "yes" && !party.rsvp?.cabin_requested) return false;
     if (state.cabin === "no" && party.rsvp?.cabin_requested) return false;
@@ -228,20 +247,32 @@
             });
             return staying.length ? `Requested for ${staying.join(", ")}` : "Requested";
           })();
+    const hasReply = partyHasAnyReply(party);
+    const showInviteSent = !hasReply;
+    const inviteSentNote = showInviteSent && party.invite_sent_at
+      ? `<p class="host-invite-sent">${escapeHtml(formatInviteSentAgo(party.invite_sent_at))}${!rsvp ? " · no reply yet" : ""}</p>`
+      : "";
     const rsvpNote = rsvp
       ? `<p class="host-rsvp-banner">RSVP submitted ${new Date(rsvp.submitted_at).toLocaleDateString("en-NZ", { day: "numeric", month: "short", year: "numeric" })}.${pendingGuests ? ` ${pendingGuests} still deciding.` : ""} Guests can still edit until 1 January 2027.</p>`
       : `<p class="host-rsvp-pending">No RSVP yet.</p>`;
+    const inviteSentAction = showInviteSent
+      ? (party.invite_sent_at
+        ? `<button type="button" class="host-action" data-invite-sent="${party.id}" data-sent="false">Clear sent</button>`
+        : `<button type="button" class="host-action host-action--sent" data-invite-sent="${party.id}" data-sent="true">Mark invite sent</button>`)
+      : "";
     return `<article class="host-party-card">
       <div class="host-party-card__top">
         <div>
           <h2>${escapeHtml(partyTitle(party))}</h2>
           ${rsvpNote}
+          ${inviteSentNote}
         </div>
       </div>
       <div class="host-party-card__actions">
         <a class="host-action host-action--primary" href="${escapeHtml(inviteUrl(party.invite_code))}" target="_blank" rel="noopener noreferrer">View website</a>
         <button type="button" class="host-action" data-copy="${escapeHtml(party.invite_code)}">Copy invite</button>
         <button type="button" class="host-action" data-qr="${escapeHtml(party.invite_code)}" data-qr-name="${escapeHtml(partyTitle(party))}">Download QR</button>
+        ${inviteSentAction}
         <button type="button" class="host-action" data-edit="${party.id}">Edit</button>
         <button type="button" class="host-action" data-reset="${party.id}" ${party.rsvp ? "" : "disabled"}>Reset RSVP</button>
         <button type="button" class="host-action host-action--danger" data-delete="${party.id}">Delete</button>
@@ -369,6 +400,21 @@
       setTimeout(() => { button.textContent = previous; }, 1500);
     }));
     partyList.querySelectorAll("[data-edit]").forEach((button) => button.addEventListener("click", () => openParty(button.dataset.edit)));
+    partyList.querySelectorAll("[data-invite-sent]").forEach((button) => button.addEventListener("click", async () => {
+      const sent = button.dataset.sent === "true";
+      button.disabled = true;
+      try {
+        dashboard = await rpc("host_mark_invite_sent", {
+          p_pin: pin,
+          p_party_id: button.dataset.inviteSent,
+          p_sent: sent
+        });
+        render();
+      } catch (error) {
+        button.disabled = false;
+        window.alert(error.message || "Could not update invite sent status.");
+      }
+    }));
     partyList.querySelectorAll("[data-reset]").forEach((button) => button.addEventListener("click", async () => {
       const party = dashboard.parties.find((item) => item.id === button.dataset.reset);
       if (!party?.rsvp) return;
