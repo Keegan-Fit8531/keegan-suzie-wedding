@@ -482,8 +482,8 @@
   };
 
   const plusOnesLabel = (count) => {
-    if (count === 1) return "Plus one";
-    if (count > 1) return `Plus ${count}`;
+    if (count === 1) return "Plus one included";
+    if (count > 1) return `${count} plus ones included`;
     return "";
   };
 
@@ -629,9 +629,11 @@
       const plusKnown = plusOnes.some((plusOne) => savedResponse(plusOne.id) !== null);
       const plusDisabled = attending !== true;
       const plusHidden = attending === false;
+      const plusLegend = plusOnes.length === 1 ? "Plus one included" : "Plus ones included";
       const plusField = plusOnes.length ? `
         <fieldset class="rsvp-plus${plusDisabled && !plusHidden ? " is-disabled" : ""}" data-plus-field="${guest.id}" ${plusHidden ? "hidden" : ""}>
-          <legend>Plus ones coming</legend>
+          <legend>${plusLegend} <span class="rsvp-plus__optional">Optional</span></legend>
+          <p class="rsvp-plus__hint">Bring them, or choose 0.</p>
           ${Array.from({ length: plusOnes.length + 1 }, (_, count) => `
             <label><input type="radio" name="plus-${guest.id}" value="${count}" ${plusKnown && plusComing === count ? "checked" : ""} ${attending === true ? "required" : ""} ${plusDisabled ? "disabled" : ""} /> ${count}</label>
           `).join("")}
