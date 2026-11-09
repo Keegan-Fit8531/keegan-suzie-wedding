@@ -486,7 +486,7 @@ button {
   height: 100%;
   object-fit: cover;
   object-position: center 42%;
-  filter: blur(5px);
+  filter: blur(1.5px);
   transform: translateZ(0);
 }
 
@@ -496,16 +496,16 @@ button {
   background:
     radial-gradient(
       ellipse 72% 68% at 50% 42%,
-      rgba(14, 20, 12, 0) 35%,
-      rgba(14, 20, 12, 0.28) 70%,
+      rgba(14, 20, 12, 0) 40%,
+      rgba(14, 20, 12, 0.28) 72%,
       rgba(8, 12, 8, 0.72) 100%
     ),
     linear-gradient(
       180deg,
-      rgba(20, 28, 18, 0.55) 0%,
-      rgba(20, 28, 18, 0.28) 28%,
-      rgba(20, 28, 18, 0.55) 58%,
-      rgba(14, 20, 12, 0.92) 100%
+      rgba(20, 28, 18, 0.5) 0%,
+      rgba(20, 28, 18, 0.22) 28%,
+      rgba(20, 28, 18, 0.34) 58%,
+      rgba(14, 20, 12, 0.9) 100%
     );
   pointer-events: none;
 }
@@ -577,6 +577,10 @@ button {
   color: rgba(255, 252, 247, 0.94);
 }
 
+.hero__date-place {
+  white-space: nowrap;
+}
+
 .hero__lede {
   margin: 0 auto var(--space-4);
   max-width: 28ch;
@@ -585,12 +589,18 @@ button {
   color: rgba(255, 252, 247, 0.92);
 }
 
+/* Equal-width hero buttons: every column matches the widest label. */
 .hero__actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   justify-content: center;
   gap: var(--space-2);
   min-height: 3.1rem;
+}
+
+.hero__actions .btn {
+  min-width: 10rem;
 }
 
 /* Invite pages: hold hero CTAs until RSVP label is known (avoids Reply → Finish/Edit flash). */
@@ -854,7 +864,9 @@ html.has-invite a[data-hero-rsvp] {
 
 .timeline__title {
   margin: 0 0 var(--space-1);
-  font-size: 1.7rem;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  line-height: 1.15;
   font-weight: 500;
   color: var(--forest);
 }
@@ -937,7 +949,7 @@ html.has-invite a[data-hero-rsvp] {
   font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--copper);
+  color: var(--sage-deep);
 }
 
 .gallery-slider__controls {
@@ -1098,7 +1110,7 @@ html.has-invite a[data-hero-rsvp] {
 
 .details-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-4) var(--space-5);
 }
 
@@ -3080,6 +3092,7 @@ body.has-dialog-open {
   }
 
   .stay__media {
+    order: 2;
     aspect-ratio: 16 / 10;
   }
 
@@ -3132,6 +3145,24 @@ body.has-dialog-open {
 
   .hero__content {
     padding: calc(var(--header-h) * 0.35) 0 0;
+  }
+
+  .hero__date-sep {
+    display: none;
+  }
+
+  .hero__actions {
+    grid-auto-flow: row;
+    width: min(100%, 18rem);
+  }
+
+  .hero__actions .btn {
+    min-width: 0;
+  }
+
+  .hero__date-place {
+    display: block;
+    margin-top: 0.35em;
   }
 
   .section {

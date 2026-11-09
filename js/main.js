@@ -533,6 +533,8 @@
     if (!rsvpSummary || !openRsvpButton) return;
     const { rsvp, guests } = data;
     const deadline = invitationSection?.querySelector(".invitation-card__deadline");
+    const cabinNote = invitationSection?.querySelector("[data-cabin-note]");
+    if (cabinNote) cabinNote.hidden = !rsvp?.cabin_requested;
     const heroRsvp = document.querySelector("[data-hero-rsvp]");
     const namedGuests = guests.filter((guest) => !guest.is_plus_one);
     const responses = rsvp?.guest_responses || {};
@@ -546,7 +548,7 @@
       if (pending) {
         deadline.innerHTML = `Some replies are still pending. Please finish by <strong>1 January 2027</strong>.`;
       } else if (!rsvp) {
-        deadline.innerHTML = `Please RSVP by <strong>1 January 2027</strong>.`;
+        deadline.innerHTML = `Please reply by <strong>1 January 2027</strong>.`;
       }
     }
 
@@ -558,7 +560,7 @@
       openRsvpButton.className = "btn btn--primary";
       openRsvpButton.hidden = !data.rsvp_open;
       if (inviteCalendar) inviteCalendar.hidden = true;
-      if (heroRsvp) heroRsvp.textContent = "Kindly RSVP";
+      if (heroRsvp) heroRsvp.textContent = "Reply";
       renderWeddingParty(data);
       return;
     }
@@ -588,17 +590,17 @@
           ${rsvp.dietary_notes ? `<div><dt>Dietary needs or allergies</dt><dd>${escapeHtml(rsvp.dietary_notes)}</dd></div>` : ""}
           ${rsvp.note ? `<div><dt>Questions or notes</dt><dd>${escapeHtml(rsvp.note)}</dd></div>` : ""}
         </dl>
-        ${data.rsvp_open ? "" : `<p class="rsvp-closed">RSVP is now closed. If you need to change your reply, please contact Keegan.</p>`}
+        ${data.rsvp_open ? "" : `<p class="rsvp-closed">Replies are now closed. If you need to change your reply, please contact Keegan.</p>`}
       </div>`;
 
     if (pending) {
-      openRsvpButton.textContent = "Finish RSVP";
+      openRsvpButton.textContent = "Finish reply";
       openRsvpButton.className = "btn btn--primary";
-      if (heroRsvp) heroRsvp.textContent = "Finish RSVP";
+      if (heroRsvp) heroRsvp.textContent = "Finish reply";
     } else {
-      openRsvpButton.textContent = "Edit RSVP";
+      openRsvpButton.textContent = "Change reply";
       openRsvpButton.className = anyoneComing ? "btn btn--secondary" : "btn btn--primary";
-      if (heroRsvp) heroRsvp.textContent = "Edit RSVP";
+      if (heroRsvp) heroRsvp.textContent = "Change reply";
     }
     openRsvpButton.hidden = !data.rsvp_open;
     if (inviteCalendar) inviteCalendar.hidden = !anyoneComing;
@@ -675,7 +677,7 @@
 
     rsvpApp.innerHTML = `
       <form class="rsvp-form" data-rsvp-form>
-        <p class="section__eyebrow section__eyebrow--caps">Your RSVP</p>
+        <p class="section__eyebrow section__eyebrow--caps">Your reply</p>
         <h3 class="section__title" id="rsvp-dialog-title">Will you be there?</h3>
         <p class="rsvp-form__intro">
           Reply for anyone you can now. Others can stay as still deciding, and anyone with this invite link can update the answers later.
@@ -692,17 +694,16 @@
                 <span aria-hidden="true">i</span>
               </button>
               <span class="info-tip__panel" id="rsvp-cabin-tip" role="tooltip" hidden>
-                One cabin room per invitation. Same family shares the room. Rooms have 6 to 8 single bunks (about 3 to 4 bunk beds). Beds are camping mattresses only, so please bring blankets and pillows. Be packed by 10:00 am the next morning.
+                Everyone on this invitation shares one room. Rooms have 6 to 8 single bunks (about 3 to 4 bunk beds). Beds are camping mattresses only, so please bring blankets and pillows. Be packed by 10:00 am the next morning.
               </span>
             </span>
           </legend>
-          <p>One cabin room per invitation. People on the same invitation share that room.</p>
+          <p>Everyone on this invitation shares one cabin room. Space is limited, so earlier requests get priority. You may share with other members of your own family.</p>
           <label><input type="radio" name="cabin_requested" value="true" data-cabin-requested ${saved.cabin_requested ? "checked" : ""} /> Yes, please reserve a cabin room</label>
           <label><input type="radio" name="cabin_requested" value="false" data-cabin-requested ${saved.cabin_requested === false ? "checked" : ""} /> No, we are day guests only</label>
           <div class="rsvp-cabin-followup" data-cabin-followup ${saved.cabin_requested ? "" : "hidden"}>
             <fieldset class="rsvp-cabin-people" data-cabin-people ${saved.cabin_requested ? "" : "hidden"}>
               <legend>Who is staying overnight?</legend>
-              <p>Everyone marked Coming is selected. Uncheck anyone who is day-only.</p>
               <div data-cabin-people-list>${cabinPeople}</div>
               <p class="rsvp-cabin-people__capacity" data-cabin-capacity hidden></p>
             </fieldset>
@@ -720,7 +721,7 @@
         <label class="form-field">Questions or notes <span>Optional</span><textarea name="note" rows="3">${escapeHtml(saved.note || "")}</textarea></label>
         <p class="rsvp-form__aside">Saving updates the whole invitation. Later replies can change earlier answers.</p>
         <p class="form-status" aria-live="polite"></p>
-        <button class="btn btn--primary" type="submit">Save RSVP</button>
+        <button class="btn btn--primary" type="submit">Send reply</button>
       </form>`;
 
     const form = rsvpApp.querySelector("[data-rsvp-form]");
@@ -944,7 +945,7 @@
       }
 
       submit.disabled = true;
-      status.textContent = "Saving your RSVP…";
+      status.textContent = "Sending your reply…";
       try {
         const updated = await rpc("submit_wedding_rsvp", {
           p_invite_code: inviteCode,
@@ -1041,7 +1042,7 @@
       });
       const stayRsvp = document.querySelector("[data-stay-rsvp]");
       if (stayRsvp) {
-        stayRsvp.textContent = "Request a cabin in the RSVP";
+        stayRsvp.textContent = "Request a cabin";
         stayRsvp.className = "btn btn--primary";
       }
       renderSummary(data);
@@ -1049,7 +1050,7 @@
       requestAnimationFrame(() => showInviteReady());
     } catch (error) {
       if (invitationSection) {
-        if (heroRsvpLink) heroRsvpLink.textContent = "RSVP";
+        if (heroRsvpLink) heroRsvpLink.textContent = "Reply";
         requestAnimationFrame(() => showInviteReady());
         const heading = invitationSection.querySelector("[data-invite-heading]");
         if (heading) heading.textContent = "Invitation unavailable";

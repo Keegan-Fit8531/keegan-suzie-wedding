@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>You're invited to Suzie &amp; Keegan's wedding</title>
+  <title>Suzie &amp; Keegan · 20 February 2027</title>
   <meta name="description" content="Join Suzie and Keegan on 20 February 2027 at Hunua Falls Camp, Auckland." />
   <link rel="canonical" href="https://suziekeegan.love/" />
   <meta property="og:type" content="website" />
@@ -11,7 +11,7 @@
   <meta property="og:locale" content="en_NZ" />
   <meta property="og:url" content="https://suziekeegan.love/" />
   <meta property="og:title" content="You're invited to Suzie &amp; Keegan's wedding" />
-  <meta property="og:description" content="20 February 2027 at Hunua Falls Camp, Auckland. Open your invite for the details and RSVP." />
+  <meta property="og:description" content="20 February 2027 at Hunua Falls Camp, Auckland. Open your invite for the details and to reply." />
   <meta property="og:image" content="https://suziekeegan.love/images/og-invite.jpg" />
   <meta property="og:image:secure_url" content="https://suziekeegan.love/images/og-invite.jpg" />
   <meta property="og:image:type" content="image/jpeg" />
@@ -20,7 +20,7 @@
   <meta property="og:image:alt" content="You're invited to Suzie and Keegan's wedding at Hunua Falls Camp" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="You're invited to Suzie &amp; Keegan's wedding" />
-  <meta name="twitter:description" content="20 February 2027 at Hunua Falls Camp, Auckland. Open your invite for the details and RSVP." />
+  <meta name="twitter:description" content="20 February 2027 at Hunua Falls Camp, Auckland. Open your invite for the details and to reply." />
   <meta name="twitter:image" content="https://suziekeegan.love/images/og-invite.jpg" />
   <meta name="twitter:image:alt" content="You're invited to Suzie and Keegan's wedding at Hunua Falls Camp" />
   <link rel="image_src" href="https://suziekeegan.love/images/og-invite.jpg" />
@@ -38,6 +38,7 @@
       var hashInvite = /(?:^|[&#])invite=/.test(location.hash);
       if (!searchInvite && !hashInvite) return;
       document.documentElement.classList.add("has-invite");
+      document.title = "You're invited to Suzie & Keegan's wedding";
     })();
   </script>
 </head>
@@ -67,7 +68,7 @@
           <li><a href="#details">Details</a></li>
           <li data-public-nav><a href="#questions">Contact</a></li>
           <li data-invite-nav hidden><a href="#questions">Contact</a></li>
-          <li data-invite-nav hidden><a class="site-nav__rsvp" href="#your-invitation">RSVP</a></li>
+          <li data-invite-nav hidden><a class="site-nav__rsvp" href="#your-invitation">Reply</a></li>
         </ul>
       </nav>
     </div>
@@ -95,7 +96,7 @@
         <h1 class="hero__title reveal">
           <span class="hero__name">Suzie</span><span class="hero__ampersand" aria-hidden="true">&amp;</span><span class="hero__name">Keegan</span>
         </h1>
-        <p class="hero__date reveal">20 February 2027 · Hunua Falls Camp</p>
+        <p class="hero__date reveal"><span class="hero__date-day">20 February 2027</span><span class="hero__date-sep" aria-hidden="true"> · </span><span class="hero__date-place">Hunua Falls Camp</span></p>
         <div class="hero__actions reveal">
           <a class="btn btn--primary" href="#day" data-public-cta>The day</a>
           <a
@@ -128,8 +129,8 @@
           <div class="invitation-card__people" data-invite-names></div>
           <div class="invitation-card__rsvp" data-rsvp-summary></div>
           <div class="invitation-card__footer">
-            <p class="invitation-card__deadline">Please RSVP by <strong>1 January 2027</strong>.</p>
-            <p class="invitation-card__cabin-note">Cabin rooms are shared by people on the same invitation. Separate invitations get separate rooms.</p>
+            <p class="invitation-card__deadline">Please reply by <strong>1 January 2027</strong>.</p>
+            <p class="invitation-card__cabin-note" data-cabin-note hidden>Everyone on this invitation shares one cabin room. If space is tight, you may share with other members of your own family.</p>
             <div class="invitation-card__actions">
               <a
                 class="btn btn--secondary"
@@ -182,15 +183,10 @@
       <div class="section-divider" aria-hidden="true"><span class="section-divider__mark">&amp;</span></div>
       <div class="shell">
         <div class="measure">
-          <p class="section__eyebrow section__eyebrow--caps reveal">Our wedding</p>
-          <h2 class="section__title reveal">Hunua Falls Camp</h2>
+          <h2 class="visually-hidden">Welcome</h2>
           <p class="section__body reveal">
             Ceremony and celebration on <strong>20 February 2027</strong>.
-            This page shares the plan for the day, the venue, and how to stay overnight.
-          </p>
-          <p class="section__aside reveal" data-welcome-aside>
-            This page is general information.
-            If you are invited, your RSVP link will have been sent to you separately.
+            Here’s the plan for the day, the venue, and staying overnight.
           </p>
         </div>
       </div>
@@ -207,7 +203,7 @@
 
         <ol class="timeline">
           <li class="timeline__item reveal">
-            <p class="timeline__time">2:50 pm · 3:00 pm</p>
+            <p class="timeline__time">3:00 pm</p>
             <h3 class="timeline__title">Ceremony</h3>
             <p class="timeline__copy">Please be seated by 2:50 pm. Ceremony begins at 3:00 pm.</p>
           </li>
@@ -217,7 +213,7 @@
             <p class="timeline__copy">Time for photos, a drink, and settling into the grounds before we gather again.</p>
           </li>
           <li class="timeline__item reveal">
-            <p class="timeline__time">4:50 pm · 5:00 pm</p>
+            <p class="timeline__time">5:00 pm</p>
             <h3 class="timeline__title">Reception</h3>
             <p class="timeline__copy">Please be seated by 4:50 pm. Reception begins at 5:00 pm at Hunua Falls Camp.</p>
           </li>
@@ -286,9 +282,6 @@
               <img src="images/venue/falls-aerial.jpg" alt="Aerial view of Hunua Falls and the surrounding park" width="1200" height="800" loading="lazy" />
             </figure>
             <figure class="gallery-slider__slide">
-              <img src="images/venue/bunks.jpg" alt="Cabin bunk room at Hunua Falls Camp" width="1200" height="900" loading="lazy" />
-            </figure>
-            <figure class="gallery-slider__slide">
               <img src="images/venue/grounds-lawn.webp" alt="Grassy hillside and lodge buildings at Hunua Falls Camp" width="1024" height="682" loading="lazy" />
             </figure>
             <figure class="gallery-slider__slide gallery-slider__slide--tall">
@@ -335,16 +328,17 @@
             <p class="section__eyebrow section__eyebrow--caps">Stay the night</p>
             <h2 class="section__title">Cabins after the wedding</h2>
             <p class="section__body">
-              Want to stay overnight after the wedding? Request an on-site cabin through your personal RSVP link.
-              One room per invitation, shared by everyone on that invite.
+              Want to stay overnight after the wedding? Request an on-site cabin through your personal invite link.
+              Everyone on your invitation shares one room.
             </p>
             <ul class="stay__list">
               <li>Rooms sleep 6 to 8 on single bunks</li>
               <li>Camping mattresses only. Bring your own blankets and pillows</li>
               <li>Please leave cabins clean, packed, and out by <strong>10:00 am</strong> the next morning, when the venue booking ends</li>
               <li>Rooms need to be requested ahead. They may not be available on the day without one</li>
+              <li>Space is limited, so earlier requests get priority. You may share with other members of your own family</li>
             </ul>
-            <a class="btn btn--secondary" href="#questions" data-stay-rsvp>Questions about staying</a>
+            <a class="btn btn--secondary" href="#questions" data-stay-rsvp>Ask about cabins</a>
           </div>
         </div>
       </div>
@@ -406,8 +400,8 @@
             <article class="detail reveal">
               <h3 class="detail__title">Guest list</h3>
               <p class="detail__copy">
-                The wedding is for named guests only. Please only bring a plus one if your invitation includes one.
-                Do not bring anyone else.
+                Please only bring a plus one if your invitation includes one.
+                We’ve planned for the names on your invitation, so please don’t bring additional guests.
               </p>
             </article>
 
@@ -427,14 +421,6 @@
                 If you feel inclined to give a wedding gift, a contribution toward our honeymoon would help us start newlywed life off right.
               </p>
             </article>
-
-            <article class="detail reveal">
-              <h3 class="detail__title">Questions</h3>
-              <p class="detail__copy">
-                Call or text Keegan on <a href="tel:+64220426068">022 042 6068</a>,
-                or <button class="detail__link" type="button" data-open-contact>send a message</button>.
-              </p>
-            </article>
           </div>
         </div>
       </div>
@@ -447,23 +433,15 @@
           <p class="section__eyebrow section__eyebrow--caps reveal">Questions</p>
           <h2 class="section__title reveal">Get in touch</h2>
           <p class="section__body reveal" data-public-contact-note>
-            This page is general wedding information. It cannot take an RSVP.
-            If you are invited, you will already have a personal link or QR code for that.
+            This page is general wedding information.
+            If you are invited, reply using the personal link or QR code you were sent.
           </p>
           <p class="section__body reveal">
             For anything about the day, venue, drinks, or staying overnight, send Keegan a message, or call or text.
           </p>
           <div class="contact-actions reveal">
             <button class="btn btn--primary" type="button" data-open-contact>Send a message</button>
-            <a class="btn btn--secondary" href="tel:+64220426068">Call or text Keegan</a>
-            <a
-              class="btn btn--secondary"
-              href="https://calendar.google.com/calendar/event?action=TEMPLATE&amp;tmeid=NnBjZGcxczVtaW01NWZoaTdtZ2dicGFxMDUga2VlZ2FuMWZpdHpnZXJhbGRAbQ&amp;tmsrc=keegan1fitzgerald%40gmail.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Add to calendar
-            </a>
+            <a class="btn btn--secondary" href="tel:+64220426068">Call or text</a>
           </div>
         </div>
       </div>
