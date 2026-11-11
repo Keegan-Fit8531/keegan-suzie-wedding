@@ -755,6 +755,29 @@ html.has-invite a[data-hero-rsvp] {
   transform: translateY(0.06em);
 }
 
+/* Magnolia sprig from the stationery, tinted through a mask so it can take any palette colour. */
+.floral {
+  display: block;
+  width: min(14rem, 58vw);
+  aspect-ratio: 873 / 380;
+  margin-inline: auto;
+  background: var(--floral-ink, var(--copper));
+  -webkit-mask: url("../images/brand/floral-sprig.png") center / contain no-repeat;
+  mask: url("../images/brand/floral-sprig.png") center / contain no-repeat;
+  pointer-events: none;
+}
+
+.section-divider--floral {
+  width: min(30rem, 88vw);
+  height: auto;
+  gap: var(--space-3);
+}
+
+.section-divider--floral .floral {
+  flex: 0 0 auto;
+  width: min(11rem, 44vw);
+}
+
 .section__eyebrow,
 .section__eyebrow--caps {
   margin: 0 0 var(--space-2);
