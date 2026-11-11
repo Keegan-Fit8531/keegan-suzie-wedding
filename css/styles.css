@@ -1763,6 +1763,111 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   min-height: 3.1rem;
 }
 
+/* Invitation as printed stationery: centred, crisp corners, inset copper keyline, monogram crest. */
+.invitation-card--stationery {
+  position: relative;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding: clamp(2.5rem, 6vw, 3.75rem) clamp(1.75rem, 6vw, 3.75rem);
+  text-align: center;
+  background: var(--white);
+  border: 1px solid rgba(138, 101, 72, 0.2);
+  border-radius: 0.4rem;
+  box-shadow:
+    0 1px 2px rgba(47, 59, 44, 0.05),
+    0 26px 50px -22px rgba(47, 59, 44, 0.28);
+}
+
+.invitation-card--stationery::before {
+  content: "";
+  position: absolute;
+  inset: clamp(0.5rem, 1.6vw, 0.8rem);
+  border: 1px solid rgba(138, 101, 72, 0.42);
+  border-radius: 0.2rem;
+  pointer-events: none;
+}
+
+.invitation-card__crest {
+  width: clamp(3.75rem, 9vw, 4.75rem);
+  height: auto;
+  margin: 0 auto var(--space-3);
+  opacity: 0.82;
+}
+
+.invitation-card--stationery .invitation-card__title {
+  font-size: clamp(2.2rem, 5vw, 3rem);
+  margin-bottom: var(--space-3);
+  text-wrap: balance;
+}
+
+.invitation-card--stationery .invitation-card__guests {
+  justify-items: center;
+  gap: 0.7rem;
+}
+
+.invitation-card--stationery .invitation-card__guests li {
+  padding-left: 0;
+  font-style: italic;
+  font-size: clamp(1.4rem, 3vw, 1.75rem);
+}
+
+.invitation-card--stationery .invitation-card__guests li::before {
+  content: none;
+}
+
+.invitation-card--stationery .invitation-card__guest,
+.invitation-card--stationery .invitation-card__meta {
+  align-items: center;
+}
+
+.invitation-card--stationery .invitation-card__nick,
+.invitation-card--stationery .invitation-card__role,
+.invitation-card--stationery .invitation-card__plus {
+  font-style: normal;
+}
+
+/* Reply summary stays left-aligned so names and statuses line up. */
+.invitation-card--stationery .invitation-card__rsvp {
+  text-align: left;
+}
+
+.invitation-card--stationery .invitation-card__footer {
+  position: relative;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 0;
+}
+
+.invitation-card--stationery .invitation-card__footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 3.5rem;
+  height: 1px;
+  background: rgba(138, 101, 72, 0.5);
+  transform: translateX(-50%);
+}
+
+.invitation-card--stationery .invitation-card__deadline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.3rem;
+}
+
+.invitation-card--stationery .invitation-card__actions {
+  justify-content: center;
+}
+
+.invitation-card--stationery.invitation-card--loading,
+.invitation-card--stationery .invitation-card__skeleton {
+  justify-items: center;
+}
+
+.invitation-card--stationery .invitation-card__skeleton {
+  width: 100%;
+}
+
 .wedding-party__for {
   margin: 0 0 var(--space-2);
   color: var(--sage-deep);
