@@ -38,7 +38,16 @@
     </section>
 
     <section data-host-app hidden>
-      <div class="host-heading">
+      <nav class="host-jump" aria-label="Dashboard sections">
+        <a href="#host-overview">Overview</a>
+        <a href="#family-groom" data-jump-family="groom" hidden>Keegan’s family</a>
+        <a href="#family-bride" data-jump-family="bride" hidden>Suzie’s family</a>
+        <a href="#family-unassigned" data-jump-family="unassigned" hidden>Unassigned</a>
+        <a href="#host-messages">Messages <span class="host-jump__count" data-jump-messages hidden></span></a>
+        <a href="#host-briefs">Briefs</a>
+      </nav>
+
+      <div class="host-heading" id="host-overview">
         <div>
           <p class="section__eyebrow section__eyebrow--caps">Invite management</p>
           <h1 class="section__title">Guest overview</h1>
@@ -97,14 +106,14 @@
 
       <div class="host-family-groups" data-party-list></div>
 
-      <section class="host-briefs">
+      <section class="host-briefs" id="host-messages">
         <p class="section__eyebrow section__eyebrow--caps">Messages</p>
         <h2 class="section__title">Contact form</h2>
         <p>Messages sent from the website contact popup.</p>
         <div data-contact-list></div>
       </section>
 
-      <section class="host-briefs">
+      <section class="host-briefs" id="host-briefs">
         <p class="section__eyebrow section__eyebrow--caps">Wedding party</p>
         <h2 class="section__title">Private briefs</h2>
         <p>These appear only when an invitation includes a bridesmaid, maid of honor, groomsman, or best man. You can fill them in later.</p>

@@ -2516,6 +2516,47 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 .host-header__inner > p { margin: 0; color: var(--sage-deep); font-size: 0.85rem; }
 .host-main { padding: clamp(3rem, 7vw, 6rem) 0; }
 .host-login { max-width: 30rem; margin: 8vh auto; }
+.host-jump {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 2rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(47, 59, 44, 0.1);
+  background: rgba(246, 242, 234, 0.94);
+  backdrop-filter: blur(6px);
+}
+.host-jump a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid rgba(47, 59, 44, 0.14);
+  border-radius: 999px;
+  color: var(--forest);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  text-decoration: none;
+  background: rgba(255, 252, 247, 0.8);
+}
+.host-jump a:hover { border-color: var(--copper); color: var(--copper); }
+.host-jump a:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.host-jump a[hidden] { display: none; }
+.host-jump__count {
+  min-width: 1.3rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--copper);
+  color: var(--white);
+  font-size: 0.7rem;
+  line-height: 1.3rem;
+  text-align: center;
+}
+.host-jump__count[hidden] { display: none; }
+.host-page [id^="host-"], .host-page [id^="family-"] { scroll-margin-top: 4.5rem; }
 .host-heading { margin-bottom: 2rem; }
 .host-heading .section__title { margin-bottom: 0; }
 .host-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }

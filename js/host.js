@@ -365,7 +365,7 @@
         { side: null, parties: parties.filter((party) => party.wedding_side !== "groom" && party.wedding_side !== "bride") }
       ].filter((section) => section.parties.length);
       partyList.innerHTML = sections.map((section) => `
-        <section class="host-family-section">
+        <section class="host-family-section" id="family-${section.side || "unassigned"}">
           <div class="host-family-section__heading">
             <p class="section__eyebrow section__eyebrow--caps">${escapeHtml(familyLabel(section.side))}</p>
             <h2 class="section__title">${section.parties.length} invitation${section.parties.length === 1 ? "" : "s"}</h2>
@@ -373,6 +373,17 @@
           <div class="host-party-list">${section.parties.map(partyCardMarkup).join("")}</div>
         </section>
       `).join("");
+    }
+
+    const shownFamilies = new Set(parties.map((party) => (party.wedding_side === "groom" || party.wedding_side === "bride") ? party.wedding_side : "unassigned"));
+    document.querySelectorAll("[data-jump-family]").forEach((link) => {
+      link.hidden = !shownFamilies.has(link.dataset.jumpFamily);
+    });
+    const messageCount = document.querySelector("[data-jump-messages]");
+    if (messageCount) {
+      const total = (dashboard.contact_messages || []).length;
+      messageCount.hidden = !total;
+      messageCount.textContent = total ? String(total) : "";
     }
 
     if (contactList) {
