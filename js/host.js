@@ -212,7 +212,9 @@
 
     if (state.guests === "party" && !partyHasRole(party, ["bridesmaid", "maid_of_honor", "groomsman", "best_man"])) return false;
     if (state.guests === "plus" && !party.guests.some((guest) => plusOnesOf(guest).length)) return false;
-    if (state.guests === "child" && !partyHasRole(party, ["child", "infant"]) && !party.guests.some((guest) => kidsOf(guest).length)) return false;
+    const partyHasKids = partyHasRole(party, ["child", "infant"]) || party.guests.some((guest) => kidsOf(guest).length);
+    if (state.guests === "child" && !partyHasKids) return false;
+    if (state.guests === "adults" && partyHasKids) return false;
 
     if (state.search) {
       const haystack = [
