@@ -2931,6 +2931,12 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   padding-top: 0.95rem;
   border-top: 1px solid rgba(47, 59, 44, 0.1);
 }
+.plus-one-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.25rem;
+  align-items: end;
+}
 .plus-one-count {
   display: grid;
   gap: 0.4rem;

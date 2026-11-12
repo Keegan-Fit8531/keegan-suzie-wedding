@@ -370,6 +370,18 @@
     return `<strong class="rsvp-status rsvp-status--${tone}">${attendanceLabel(responses, guestId)}</strong>`;
   };
 
+  // Unnamed slots linked to a named guest: plus ones (guest_type "guest") and kids (guest_type "child").
+  const isKidSlot = (slot = {}) => slot.guest_type === "child";
+  const plusOnesFor = (guests = [], guestId) =>
+    guests.filter((slot) => slot.plus_one_of === guestId && !isKidSlot(slot));
+  const kidsFor = (guests = [], guestId) =>
+    guests.filter((slot) => slot.plus_one_of === guestId && isKidSlot(slot));
+  const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+  const extrasPhrase = (plusCount, kidCount) => [
+    plusCount ? plural(plusCount, "plus one", "plus ones") : "",
+    kidCount ? plural(kidCount, "kid", "kids") : ""
+  ].filter(Boolean).join(" and ");
+
   const cabinGuestSet = (rsvp = {}) => {
     const ids = Array.isArray(rsvp.cabin_guests) ? rsvp.cabin_guests : [];
     return new Set(ids.map((id) => String(id)));
@@ -420,9 +432,11 @@
     return `<strong class="rsvp-status rsvp-status--${tone}">${escapeHtml(label)}</strong>`;
   };
 
-  const plusSummaryRow = (plusOnes = [], responses = {}) => {
+  const plusSummaryRow = (plusOnes = [], responses = {}, kind = "plus") => {
     if (!plusOnes.length) return "";
-    const label = plusOnes.length === 1 ? "Plus one" : "Plus ones";
+    const label = kind === "kids"
+      ? (plusOnes.length === 1 ? "Your child" : "Your children")
+      : (plusOnes.length === 1 ? "Plus one" : "Plus ones");
     return `
       <div class="rsvp-summary__row rsvp-summary__row--plus">
         <span class="rsvp-summary__plus-label">${label}</span>
@@ -487,9 +501,17 @@
     return "";
   };
 
+  const kidsLabel = (count) => {
+    if (count === 1) return "Your child is welcome";
+    if (count > 1) return `Your children are welcome (up to ${count})`;
+    return "";
+  };
+
   const guestInviteRow = (guest = {}, guests = []) => {
-    const plusCount = guests.filter((plusOne) => plusOne.plus_one_of === guest.id).length;
-    const plusLabel = plusOnesLabel(plusCount);
+    const plusLabel = [
+      plusOnesLabel(plusOnesFor(guests, guest.id).length),
+      kidsLabel(kidsFor(guests, guest.id).length)
+    ].filter(Boolean).join(" · ");
     const role = guestRoleMarkup(guest);
     return `
       <span class="invitation-card__guest">
@@ -564,7 +586,8 @@
     }
 
     const attendance = namedGuests.map((guest) => {
-      const plusOnes = guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
+      const plusOnes = plusOnesFor(guests, guest.id);
+      const kids = kidsFor(guests, guest.id);
       const role = guestRoleMarkup(guest);
       return `
         <li class="rsvp-summary__person">
@@ -575,6 +598,7 @@
             ${attendanceStatusMarkup(responses, guest.id)}
           </div>
           ${plusSummaryRow(plusOnes, responses)}
+          ${plusSummaryRow(kids, responses, "kids")}
         </li>`;
     }).join("");
 
@@ -622,20 +646,34 @@
     const pendingCount = namedGuests.filter((guest) => savedResponse(guest.id) === null).length;
     const guests = namedGuests.map((guest) => {
       const attending = savedResponse(guest.id);
-      const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
-      const plusComing = plusOnes.filter((plusOne) => savedResponse(plusOne.id) === true).length;
-      const plusKnown = plusOnes.some((plusOne) => savedResponse(plusOne.id) !== null);
       const plusDisabled = attending !== true;
       const plusHidden = attending === false;
-      const plusLegend = plusOnes.length === 1 ? "Plus one included" : "Plus ones included";
-      const plusField = plusOnes.length ? `
+      const slotField = (slots, prefix, legend, hint) => {
+        if (!slots.length) return "";
+        const coming = slots.filter((slot) => savedResponse(slot.id) === true).length;
+        const known = slots.some((slot) => savedResponse(slot.id) !== null);
+        return `
         <fieldset class="rsvp-plus${plusDisabled && !plusHidden ? " is-disabled" : ""}" data-plus-field="${guest.id}" ${plusHidden ? "hidden" : ""}>
-          <legend>${plusLegend} <span class="rsvp-plus__optional">Optional</span></legend>
-          <p class="rsvp-plus__hint">Bring them, or choose 0.</p>
-          ${Array.from({ length: plusOnes.length + 1 }, (_, count) => `
-            <label><input type="radio" name="plus-${guest.id}" value="${count}" ${plusKnown && plusComing === count ? "checked" : ""} ${attending === true ? "required" : ""} ${plusDisabled ? "disabled" : ""} /> ${count}</label>
+          <legend>${legend} <span class="rsvp-plus__optional">Optional</span></legend>
+          <p class="rsvp-plus__hint">${hint}</p>
+          ${Array.from({ length: slots.length + 1 }, (_, count) => `
+            <label><input type="radio" name="${prefix}-${guest.id}" value="${count}" ${known && coming === count ? "checked" : ""} ${attending === true ? "required" : ""} ${plusDisabled ? "disabled" : ""} /> ${count}</label>
           `).join("")}
-        </fieldset>` : "";
+        </fieldset>`;
+      };
+      const plusOnes = plusOnesFor(data.guests, guest.id);
+      const kids = kidsFor(data.guests, guest.id);
+      const plusField = slotField(
+        plusOnes, "plus",
+        plusOnes.length === 1 ? "Plus one included" : "Plus ones included",
+        "Bring them, or choose 0."
+      ) + slotField(
+        kids, "kids",
+        kids.length === 1 ? "Your child" : "Your children",
+        kids.length === 1
+          ? "Is your child coming? Choose 1 for yes, 0 for no."
+          : `How many of your own children are coming? Up to ${kids.length}.`
+      );
       return `
         <fieldset class="rsvp-person" data-guest-block="${guest.id}">
           <legend>${guestFormLegend(guest)}</legend>
@@ -651,12 +689,19 @@
       const attending = savedResponse(guest.id);
       const isComing = attending === true;
       const plusComing = plusOnes.filter((plusOne) => savedResponse(plusOne.id) === true).length;
+      const extrasComing = extrasPhrase(
+        plusOnesFor(data.guests, guest.id).filter((slot) => savedResponse(slot.id) === true).length,
+        kidsFor(data.guests, guest.id).filter((slot) => savedResponse(slot.id) === true).length
+      );
+      const extrasEmpty = kidsFor(data.guests, guest.id).length
+        ? "Anyone else marked coming will share this room"
+        : "Plus ones marked coming will share this room";
       const cabinChecked = saved.cabin_requested
         ? savedCabinIds.has(String(guest.id))
         : isComing;
       const statusNote = isComing
         ? (plusOnes.length
-          ? `<span class="rsvp-cabin-people__note" data-cabin-plus-note="${guest.id}">${plusComing ? `Includes ${plusComing} plus one${plusComing === 1 ? "" : "s"}` : "Plus ones marked coming will share this room"}</span>`
+          ? `<span class="rsvp-cabin-people__note" data-cabin-plus-note="${guest.id}">${plusComing ? `Includes ${extrasComing}` : extrasEmpty}</span>`
           : `<span class="rsvp-cabin-people__note" data-cabin-plus-note="${guest.id}" hidden></span>`)
         : attending === false
           ? `<span class="rsvp-cabin-people__note" data-cabin-status-note>Not coming</span>`
@@ -736,25 +781,27 @@
       .filter((guest) => form.querySelector(`input[name="guest-${guest.id}"]:checked`)?.value === "true")
       .map((guest) => guest.id);
 
-    const plusComingCount = (guestId) => {
-      const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guestId);
-      if (!plusOnes.length) return 0;
-      return Math.max(0, Math.min(plusOnes.length, Number(form.querySelector(`input[name="plus-${guestId}"]:checked`)?.value || 0)));
+    const slotComingCount = (slots, prefix, guestId) => {
+      if (!slots.length) return 0;
+      return Math.max(0, Math.min(slots.length, Number(form.querySelector(`input[name="${prefix}-${guestId}"]:checked`)?.value || 0)));
     };
+    const plusOnlyComingCount = (guestId) => slotComingCount(plusOnesFor(data.guests, guestId), "plus", guestId);
+    const kidsComingCount = (guestId) => slotComingCount(kidsFor(data.guests, guestId), "kids", guestId);
+    const plusComingCount = (guestId) => plusOnlyComingCount(guestId) + kidsComingCount(guestId);
 
     const syncPlusFields = () => {
       namedGuests.forEach((guest) => {
         const attendance = form.querySelector(`input[name="guest-${guest.id}"]:checked`)?.value;
-        const plusField = form.querySelector(`[data-plus-field="${guest.id}"]`);
-        if (!plusField) return;
         const isComing = attendance === "true";
         const isNotComing = attendance === "false";
-        plusField.hidden = isNotComing;
-        plusField.classList.toggle("is-disabled", !isComing && !isNotComing);
-        plusField.querySelectorAll("input").forEach((input) => {
-          input.disabled = !isComing;
-          input.required = isComing;
-          if (!isComing) input.checked = false;
+        form.querySelectorAll(`[data-plus-field="${guest.id}"]`).forEach((plusField) => {
+          plusField.hidden = isNotComing;
+          plusField.classList.toggle("is-disabled", !isComing && !isNotComing);
+          plusField.querySelectorAll("input").forEach((input) => {
+            input.disabled = !isComing;
+            input.required = isComing;
+            if (!isComing) input.checked = false;
+          });
         });
       });
     };
@@ -791,13 +838,14 @@
           if (plusNote) {
             const count = plusComingCount(guestId);
             const hasPlusOnes = data.guests.some((plusOne) => plusOne.plus_one_of === guestId);
+            const hasKids = kidsFor(data.guests, guestId).length > 0;
             if (!hasPlusOnes) {
               plusNote.hidden = true;
             } else {
               plusNote.hidden = false;
               plusNote.textContent = count
-                ? `Includes ${count} plus one${count === 1 ? "" : "s"}`
-                : "Plus ones marked coming will share this room";
+                ? `Includes ${extrasPhrase(plusOnlyComingCount(guestId), kidsComingCount(guestId))}`
+                : (hasKids ? "Anyone else marked coming will share this room" : "Plus ones marked coming will share this room");
             }
           }
         }
@@ -810,11 +858,13 @@
       }
       let namedStaying = 0;
       let plusStaying = 0;
+      let kidsStaying = 0;
       form.querySelectorAll('input[name="cabin_guest"]:checked:not(:disabled)').forEach((input) => {
         namedStaying += 1;
-        plusStaying += plusComingCount(input.value);
+        plusStaying += plusOnlyComingCount(input.value);
+        kidsStaying += kidsComingCount(input.value);
       });
-      const overnight = namedStaying + plusStaying;
+      const overnight = namedStaying + plusStaying + kidsStaying;
       const pendingCount = namedGuests.filter((guest) => {
         const value = form.querySelector(`input[name="guest-${guest.id}"]:checked`)?.value;
         return value !== "true" && value !== "false";
@@ -823,9 +873,8 @@
         cabinCapacity.hidden = false;
         cabinCapacity.textContent = `${overnight} staying overnight. Cabin rooms sleep about 6 to 8. Please contact Keegan if you need help.`;
       } else if (overnight > 0) {
-        const plusBit = plusStaying
-          ? `, including ${plusStaying} plus one${plusStaying === 1 ? "" : "s"}`
-          : "";
+        const extras = extrasPhrase(plusStaying, kidsStaying);
+        const plusBit = extras ? `, including ${extras}` : "";
         const pendingBit = pendingCount ? ` ${pendingCount} still deciding.` : "";
         cabinCapacity.hidden = false;
         cabinCapacity.textContent = `${overnight} staying overnight${plusBit}.${pendingBit}`;
@@ -904,17 +953,14 @@
         const answer = formData.get(`guest-${guest.id}`);
         if (answer !== "true" && answer !== "false") return;
         guestResponses[guest.id] = answer;
-        const plusOnes = data.guests.filter((plusOne) => plusOne.plus_one_of === guest.id);
-        if (answer === "false") {
-          plusOnes.forEach((plusOne) => {
-            guestResponses[plusOne.id] = "false";
+        [[plusOnesFor(data.guests, guest.id), "plus"], [kidsFor(data.guests, guest.id), "kids"]].forEach(([slots, prefix]) => {
+          if (!slots.length) return;
+          const coming = answer === "false"
+            ? 0
+            : Math.max(0, Math.min(slots.length, Number(formData.get(`${prefix}-${guest.id}`)) || 0));
+          slots.forEach((slot, index) => {
+            guestResponses[slot.id] = index < coming ? "true" : "false";
           });
-          return;
-        }
-        if (!plusOnes.length) return;
-        const coming = Math.max(0, Math.min(plusOnes.length, Number(formData.get(`plus-${guest.id}`)) || 0));
-        plusOnes.forEach((plusOne, index) => {
-          guestResponses[plusOne.id] = index < coming ? "true" : "false";
         });
       });
 

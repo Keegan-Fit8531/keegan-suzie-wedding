@@ -68,10 +68,15 @@
     };
   };
 
+  const isKidSlot = (slot = {}) => slot.guest_type === "child";
+  const plusOnesOf = (guest = {}) => (guest.plus_ones || []).filter((slot) => !isKidSlot(slot));
+  const kidsOf = (guest = {}) => (guest.plus_ones || []).filter(isKidSlot);
+
   const guestField = (guest = {}) => {
     const id = `guest-type-${guestFieldId++}`;
     const type = guest.guest_type || "guest";
-    const plusCount = guest.plus_ones?.length || 0;
+    const plusCount = plusOnesOf(guest).length;
+    const kidCount = kidsOf(guest).length;
     const nickname = (guest.name || "").trim();
     const legalName = (guest.legal_name || "").trim();
     const realNameValue = legalName || (!legalName && nickname ? nickname : "");
@@ -107,12 +112,22 @@
           <label><input type="radio" name="${id}" data-guest-type value="bridesmaid" ${type === "bridesmaid" ? "checked" : ""} /> Bridesmaid</label>
           ${roles.maid_of_honor ? `<label><input type="radio" name="${id}" data-guest-type value="maid_of_honor" ${type === "maid_of_honor" ? "checked" : ""} /> Maid of Honor</label>` : ""}
         </fieldset>
-        <div class="plus-one-count">
-          <span class="plus-one-count__label">Plus ones</span>
-          <div class="plus-one-count__controls">
-            <button type="button" data-plus-minus aria-label="Remove a plus one">−</button>
-            <output data-plus-value>${plusCount}</output>
-            <button type="button" data-plus-plus aria-label="Add a plus one">+</button>
+        <div class="plus-one-counts">
+          <div class="plus-one-count" data-slot-count="plus">
+            <span class="plus-one-count__label">Plus ones</span>
+            <div class="plus-one-count__controls">
+              <button type="button" data-plus-minus aria-label="Remove a plus one">−</button>
+              <output data-plus-value>${plusCount}</output>
+              <button type="button" data-plus-plus aria-label="Add a plus one">+</button>
+            </div>
+          </div>
+          <div class="plus-one-count" data-slot-count="kids">
+            <span class="plus-one-count__label">Kids</span>
+            <div class="plus-one-count__controls">
+              <button type="button" data-plus-minus aria-label="Remove a kid">−</button>
+              <output data-plus-value>${kidCount}</output>
+              <button type="button" data-plus-plus aria-label="Add a kid">+</button>
+            </div>
           </div>
         </div>
       </div>
@@ -196,8 +211,8 @@
     if (state.cabin === "no" && party.rsvp?.cabin_requested) return false;
 
     if (state.guests === "party" && !partyHasRole(party, ["bridesmaid", "maid_of_honor", "groomsman", "best_man"])) return false;
-    if (state.guests === "plus" && !party.guests.some((guest) => (guest.plus_ones || []).length)) return false;
-    if (state.guests === "child" && !partyHasRole(party, ["child", "infant"])) return false;
+    if (state.guests === "plus" && !party.guests.some((guest) => plusOnesOf(guest).length)) return false;
+    if (state.guests === "child" && !partyHasRole(party, ["child", "infant"]) && !party.guests.some((guest) => kidsOf(guest).length)) return false;
 
     if (state.search) {
       const haystack = [
@@ -233,12 +248,14 @@
       const overnight = cabinIds.has(String(guest.id));
       const type = guest.guest_type && guest.guest_type !== "guest" ? ` <small>${escapeHtml(guestTypeLabel(guest.guest_type))}</small>` : "";
       const rows = [`<li><span>${escapeHtml(guestDisplayName(guest))}${type}</span>${statusMarkup(text, overnight)}</li>`];
-      (guest.plus_ones || []).forEach((plusOne, index) => {
-        const plusResponse = guestResponse(plusOne.id);
-        const plusText = plusResponse === true ? "Coming" : plusResponse === false ? "Not coming" : "Pending";
-        const plusOvernight = cabinIds.has(String(plusOne.id));
-        const plusLabel = (guest.plus_ones.length > 1) ? `Plus one ${index + 1}` : "Plus one";
-        rows.push(`<li class="host-guest-list__plus"><span>${plusLabel}</span>${statusMarkup(plusText, plusOvernight)}</li>`);
+      [[plusOnesOf(guest), "Plus one"], [kidsOf(guest), "Kid"]].forEach(([slots, noun]) => {
+        slots.forEach((slot, index) => {
+          const slotResponse = guestResponse(slot.id);
+          const slotText = slotResponse === true ? "Coming" : slotResponse === false ? "Not coming" : "Pending";
+          const slotOvernight = cabinIds.has(String(slot.id));
+          const slotLabel = slots.length > 1 ? `${noun} ${index + 1}` : noun;
+          rows.push(`<li class="host-guest-list__plus"><span>${slotLabel}</span>${statusMarkup(slotText, slotOvernight)}</li>`);
+        });
       });
       return rows;
     }).join("");
@@ -584,7 +601,8 @@
         legal_name: hasDistinctNickname ? realName : "",
         guest_type: block.querySelector("[data-guest-type]:checked")?.value || "guest",
         sort_order,
-        plus_one_count: Number(block.querySelector("[data-plus-value]").textContent) || 0
+        plus_one_count: Number(block.querySelector('[data-slot-count="plus"] [data-plus-value]').textContent) || 0,
+        kid_count: Number(block.querySelector('[data-slot-count="kids"] [data-plus-value]').textContent) || 0
       };
     }).filter((guest) => guest.name);
     const status = partyForm.querySelector(".form-status");
