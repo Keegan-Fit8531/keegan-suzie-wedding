@@ -535,7 +535,6 @@
     const deadline = invitationSection?.querySelector(".invitation-card__deadline");
     const cabinNote = invitationSection?.querySelector("[data-cabin-note]");
     if (cabinNote) cabinNote.hidden = !rsvp?.cabin_requested;
-    const heroRsvp = document.querySelector("[data-hero-rsvp]");
     const namedGuests = guests.filter((guest) => !guest.is_plus_one);
     const responses = rsvp?.guest_responses || {};
     const pending = Boolean(rsvp && hasPendingGuests(namedGuests, responses));
@@ -560,7 +559,6 @@
       openRsvpButton.className = "btn btn--primary";
       openRsvpButton.hidden = !data.rsvp_open;
       if (inviteCalendar) inviteCalendar.hidden = true;
-      if (heroRsvp) heroRsvp.textContent = "Reply";
       renderWeddingParty(data);
       return;
     }
@@ -596,11 +594,9 @@
     if (pending) {
       openRsvpButton.textContent = "Finish reply";
       openRsvpButton.className = "btn btn--primary";
-      if (heroRsvp) heroRsvp.textContent = "Finish reply";
     } else {
       openRsvpButton.textContent = "Change reply";
       openRsvpButton.className = anyoneComing ? "btn btn--secondary" : "btn btn--primary";
-      if (heroRsvp) heroRsvp.textContent = "Change reply";
     }
     openRsvpButton.hidden = !data.rsvp_open;
     if (inviteCalendar) inviteCalendar.hidden = !anyoneComing;
@@ -1050,7 +1046,6 @@
       requestAnimationFrame(() => showInviteReady());
     } catch (error) {
       if (invitationSection) {
-        if (heroRsvpLink) heroRsvpLink.textContent = "Reply";
         requestAnimationFrame(() => showInviteReady());
         const heading = invitationSection.querySelector("[data-invite-heading]");
         if (heading) heading.textContent = "Invitation unavailable";
@@ -1084,7 +1079,6 @@
     if (!inviteCode || !inviteData) return;
     event.preventDefault();
     invitationSection?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-    openRsvpDialog();
   });
 
   document.querySelectorAll("[data-open-contact]").forEach((button) => {
