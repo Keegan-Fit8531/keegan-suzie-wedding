@@ -215,6 +215,9 @@
     const partyHasKids = partyHasRole(party, ["child", "infant"]) || party.guests.some((guest) => kidsOf(guest).length);
     if (state.guests === "child" && !partyHasKids) return false;
     if (state.guests === "adults" && partyHasKids) return false;
+    const partyIsAllKids = party.guests.length > 0
+      && party.guests.every((guest) => ["child", "infant"].includes(guest.guest_type) && !plusOnesOf(guest).length);
+    if (state.guests === "kids" && !partyIsAllKids) return false;
 
     if (state.search) {
       const haystack = [
