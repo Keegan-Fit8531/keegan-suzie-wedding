@@ -318,6 +318,54 @@
     return body;
   };
 
+  // The keyboard's Enter key (shown as a tick or "Done" via enterkeyhint) just closes the keyboard.
+  // Only the form's own button sends it, so a half-filled form can't go off by accident.
+  const keepEnterFromSubmitting = (form) => {
+    form?.addEventListener("keydown", (event) => {
+      const field = event.target;
+      if (event.key !== "Enter" || event.isComposing || !(field instanceof HTMLInputElement)) return;
+      event.preventDefault();
+      if (!["radio", "checkbox"].includes(field.type)) field.blur();
+    });
+  };
+
+  const clearFormError = (form) => {
+    form.querySelectorAll(".form-error").forEach((note) => note.remove());
+    form.querySelectorAll(".is-invalid").forEach((block) => block.classList.remove("is-invalid"));
+    form.querySelectorAll("[aria-invalid]").forEach((control) => control.removeAttribute("aria-invalid"));
+  };
+
+  // Point at the one detail that needs attention: a short note beside it, scrolled into view.
+  const showFormError = (form, block, message) => {
+    clearFormError(form);
+    const status = form.querySelector(".form-status");
+    if (status) status.textContent = "";
+    if (!block) {
+      if (status) status.textContent = message;
+      return;
+    }
+    const note = document.createElement("p");
+    note.className = "form-error";
+    note.setAttribute("role", "alert");
+    note.textContent = message;
+    block.classList.add("is-invalid");
+    if (block.matches("label")) block.after(note);
+    else block.append(note);
+    const control = block.querySelector("input:not([disabled]):not([type='hidden']), textarea");
+    control?.setAttribute("aria-invalid", "true");
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    block.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+    // Radios and checkboxes take focus quietly; a text field waits for a tap so the keyboard stays closed.
+    if (control && ["radio", "checkbox"].includes(control.type)) control.focus({ preventScroll: true });
+    const clear = () => {
+      clearFormError(form);
+      block.removeEventListener("input", clear);
+      block.removeEventListener("change", clear);
+    };
+    block.addEventListener("input", clear);
+    block.addEventListener("change", clear);
+  };
+
   const openRsvpDialog = () => {
     if (!inviteData || !rsvpDialog) return;
     if (!inviteData.rsvp_open && inviteData.rsvp) {
@@ -649,7 +697,7 @@
         <ul class="rsvp-summary">${attendance}</ul>
         <dl class="rsvp-summary__details">
           <div><dt>Staying overnight</dt><dd>${escapeHtml(cabinSummaryLabel(rsvp, guests))}</dd></div>
-          <div><dt>Contact email</dt><dd>${escapeHtml(rsvp.contact_email)}</dd></div>
+          ${rsvp.contact_email ? `<div><dt>Contact email</dt><dd>${escapeHtml(rsvp.contact_email)}</dd></div>` : ""}
           ${rsvp.contact_email_secondary ? `<div><dt>Second contact</dt><dd>${escapeHtml(rsvp.contact_email_secondary)}</dd></div>` : ""}
           ${rsvp.dietary_notes ? `<div><dt>Dietary needs or allergies</dt><dd>${escapeHtml(rsvp.dietary_notes)}</dd></div>` : ""}
           ${rsvp.note ? `<div><dt>Questions or notes</dt><dd>${escapeHtml(rsvp.note)}</dd></div>` : ""}
@@ -759,7 +807,7 @@
     }).join("");
 
     rsvpApp.innerHTML = `
-      <form class="rsvp-form" data-rsvp-form>
+      <form class="rsvp-form" data-rsvp-form novalidate>
         <p class="section__eyebrow section__eyebrow--caps">Your reply</p>
         <h3 class="section__title" id="rsvp-dialog-title">Will you be there?</h3>
         <p class="rsvp-form__intro">
@@ -793,9 +841,9 @@
           </div>
         </fieldset>
         <div class="rsvp-contacts" data-contact-fields>
-          <label class="form-field">Contact email<input name="contact_email" type="email" autocomplete="email" value="${escapeHtml(saved.contact_email || "")}" required /></label>
+          <label class="form-field">Contact email <span>Optional</span><input name="contact_email" type="email" autocomplete="email" enterkeyhint="done" value="${escapeHtml(saved.contact_email || "")}" /></label>
           <div class="rsvp-contacts__secondary" data-secondary-contact ${saved.contact_email_secondary ? "" : "hidden"}>
-            <label class="form-field">Second contact email <span>Optional</span><input name="contact_email_secondary" type="email" autocomplete="email" value="${escapeHtml(saved.contact_email_secondary || "")}" /></label>
+            <label class="form-field">Second contact email <span>Optional</span><input name="contact_email_secondary" type="email" autocomplete="email" enterkeyhint="done" value="${escapeHtml(saved.contact_email_secondary || "")}" /></label>
             <button class="text-link" type="button" data-remove-secondary-contact>Remove</button>
           </div>
           <button class="text-link rsvp-contacts__add" type="button" data-add-secondary-contact ${saved.contact_email_secondary ? "hidden" : ""}>+ Add another contact</button>
@@ -984,6 +1032,54 @@
 
     syncPlusFields();
     syncCabinAvailability();
+    keepEnterFromSubmitting(form);
+
+    // The first detail still needed, top to bottom, as [where it is, what to say]; null when all is well.
+    const findMissingDetail = (formData, guestResponses) => {
+      if (!Object.keys(guestResponses).length) {
+        return [form.querySelector("[data-guest-block]"), "Choose Coming or Not coming for at least one person to send your reply."];
+      }
+      for (const guest of namedGuests) {
+        if (formData.get(`guest-${guest.id}`) !== "true") continue;
+        for (const field of form.querySelectorAll(`[data-plus-field="${guest.id}"]`)) {
+          if (field.hidden || field.querySelector("input:checked")) continue;
+          const isKids = Boolean(field.querySelector('input[name^="kids-"]'));
+          const options = field.querySelectorAll("input").length - 1;
+          const message = isKids
+            ? (options === 1 ? "Let us know if your child is coming. Choose 0 if not." : "Let us know how many of your children are coming. Choose 0 if none.")
+            : (options === 1 ? "Let us know if your plus one is coming. Choose 0 if not." : "Let us know how many plus ones are coming. Choose 0 if none.");
+          return [field, message];
+        }
+      }
+      const cabinChoice = form.querySelector("[data-cabin-choice]");
+      const cabinAnswer = formData.get("cabin_requested");
+      if (cabinAnswer !== "true" && cabinAnswer !== "false") {
+        return [cabinChoice, "Let us know if you would like to stay overnight."];
+      }
+      if (cabinAnswer === "true") {
+        if (!Object.values(guestResponses).includes("true")) {
+          return [cabinChoice, "A cabin room can only be requested when someone is coming."];
+        }
+        const staying = formData.getAll("cabin_guest").filter((guestId) => guestResponses[guestId] === "true");
+        if (!staying.length) return [cabinPeopleField, "Tick who is staying overnight. Only people marked coming can stay."];
+      }
+      const email = form.querySelector('input[name="contact_email"]');
+      const secondEmail = form.querySelector('input[name="contact_email_secondary"]');
+      const emailLabel = email?.closest("label");
+      const secondLabel = secondEmail?.closest("label");
+      if (email?.value.trim() && email.validity.typeMismatch) {
+        return [emailLabel, "That email doesn’t look quite right. Check it, or leave it blank."];
+      }
+      if (secondEmail && !secondEmail.closest("[hidden]") && secondEmail.value.trim()) {
+        if (secondEmail.validity.typeMismatch) {
+          return [secondLabel, "That second email doesn’t look quite right. Check it, or remove it."];
+        }
+        if (secondEmail.value.trim().toLowerCase() === email?.value.trim().toLowerCase()) {
+          return [secondLabel, "This is the same as the first email. Use a different one, or remove it."];
+        }
+      }
+      return null;
+    };
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -1006,28 +1102,19 @@
         });
       });
 
-      if (!Object.keys(guestResponses).length) {
-        status.textContent = "Please reply for at least one guest before saving.";
+      const missing = findMissingDetail(formData, guestResponses);
+      if (missing) {
+        showFormError(form, ...missing);
         return;
       }
+      clearFormError(form);
 
       const cabinRequested = formData.get("cabin_requested") === "true";
       const cabinGuestIds = formData.getAll("cabin_guest")
         .map(String)
         .filter((guestId) => guestResponses[guestId] === "true");
-      if (formData.get("cabin_requested") !== "true" && formData.get("cabin_requested") !== "false") {
-        status.textContent = "Please say whether you would like a cabin room.";
-        return;
-      }
-      if (cabinRequested && !Object.values(guestResponses).includes("true")) {
-        status.textContent = "A cabin can only be requested when someone is coming.";
-        return;
-      }
-      if (cabinRequested && !cabinGuestIds.length) {
-        status.textContent = "Please choose who is staying overnight. Only people marked coming can stay.";
-        return;
-      }
 
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
       submit.disabled = true;
       status.textContent = "Sending your reply…";
       try {
@@ -1321,6 +1408,7 @@
     event.preventDefault();
     closeContactDialog();
   });
+  keepEnterFromSubmitting(contactForm);
   contactForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const status = contactForm.querySelector(".form-status");
@@ -1330,10 +1418,23 @@
     const email = String(formData.get("email") || "").trim();
     const message = String(formData.get("message") || "").trim();
     const company = String(formData.get("company") || "").trim();
-    if (!name || !email || !message) {
-      if (status) status.textContent = "Please fill in every field.";
+    const fieldBlock = (fieldName) => contactForm.querySelector(`[name="${fieldName}"]`)?.closest("label");
+    const emailInput = contactForm.querySelector('[name="email"]');
+    const missing = !name
+      ? [fieldBlock("name"), "Add your name so Keegan knows who it is from."]
+      : !email
+        ? [fieldBlock("email"), "Add your email so Keegan can reply."]
+        : emailInput?.validity.typeMismatch
+          ? [fieldBlock("email"), "That email doesn’t look quite right. Please check it."]
+          : !message
+            ? [fieldBlock("message"), "Write a message before sending."]
+            : null;
+    if (missing) {
+      showFormError(contactForm, ...missing);
       return;
     }
+    clearFormError(contactForm);
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     if (submit) submit.disabled = true;
     if (status) status.textContent = "Sending…";
     try {

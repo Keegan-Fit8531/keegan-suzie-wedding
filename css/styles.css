@@ -2675,6 +2675,42 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   color: var(--sage-deep);
 }
 
+/* A gentle note beside the one detail that still needs filling in. */
+.form-error {
+  margin: 0.65rem 0 0;
+  padding-left: 0.75rem;
+  border-left: 2px solid #9b3e38;
+  color: #9b3e38;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.45;
+  animation: formErrorIn 0.35s var(--ease);
+}
+
+.rsvp-person.is-invalid,
+.rsvp-choice.is-invalid,
+.rsvp-cabin-people.is-invalid {
+  border-color: rgba(155, 62, 56, 0.55);
+}
+
+.form-field.is-invalid input,
+.form-field.is-invalid textarea {
+  border-color: #9b3e38;
+}
+
+@keyframes formErrorIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-error {
+    animation: none;
+  }
+}
+
 .rsvp-summary {
   padding: 0;
   margin: 0 0 var(--space-3);

@@ -308,7 +308,7 @@
         <button type="button" class="host-action host-action--danger" data-delete="${party.id}">Delete</button>
       </div>
       <ul class="host-guest-list">${guests}</ul>
-      ${rsvp ? `<div class="host-rsvp-details"><p><strong>Cabin:</strong> ${escapeHtml(cabinLabel)}</p><p><strong>Email:</strong> ${escapeHtml(rsvp.contact_email)}</p>${rsvp.contact_email_secondary ? `<p><strong>Second email:</strong> ${escapeHtml(rsvp.contact_email_secondary)}</p>` : ""}${rsvp.dietary_notes ? `<p><strong>Dietary:</strong> ${escapeHtml(rsvp.dietary_notes)}</p>` : ""}${rsvp.note ? `<p><strong>Questions or notes:</strong> ${escapeHtml(rsvp.note)}</p>` : ""}</div>` : ""}
+      ${rsvp ? `<div class="host-rsvp-details"><p><strong>Cabin:</strong> ${escapeHtml(cabinLabel)}</p>${rsvp.contact_email ? `<p><strong>Email:</strong> ${escapeHtml(rsvp.contact_email)}</p>` : `<p><strong>Email:</strong> none given</p>`}${rsvp.contact_email_secondary ? `<p><strong>Second email:</strong> ${escapeHtml(rsvp.contact_email_secondary)}</p>` : ""}${rsvp.dietary_notes ? `<p><strong>Dietary:</strong> ${escapeHtml(rsvp.dietary_notes)}</p>` : ""}${rsvp.note ? `<p><strong>Questions or notes:</strong> ${escapeHtml(rsvp.note)}</p>` : ""}</div>` : ""}
     </article>`;
   };
 

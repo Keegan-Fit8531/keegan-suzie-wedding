@@ -177,12 +177,12 @@
       <div class="rsvp-dialog__panel">
         <div class="film-grain film-grain--local" aria-hidden="true"></div>
         <button class="rsvp-dialog__close" type="button" data-close-contact aria-label="Close message">×</button>
-        <form class="rsvp-form" data-contact-form>
+        <form class="rsvp-form" data-contact-form novalidate>
           <p class="section__eyebrow section__eyebrow--caps">Get in touch</p>
           <h3 class="section__title" id="contact-dialog-title">Message Keegan</h3>
           <p class="rsvp-form__intro">Ask about the day, venue, drinks, or staying overnight. Your message is sent straight through.</p>
-          <label class="form-field">Your name<input name="name" type="text" autocomplete="name" required /></label>
-          <label class="form-field">Your email<input name="email" type="email" autocomplete="email" required /></label>
+          <label class="form-field">Your name<input name="name" type="text" autocomplete="name" enterkeyhint="done" required /></label>
+          <label class="form-field">Your email<input name="email" type="email" autocomplete="email" enterkeyhint="done" required /></label>
           <label class="form-field">Message<textarea name="message" rows="5" required></textarea></label>
           <label class="visually-hidden" aria-hidden="true">Company<input name="company" type="text" tabindex="-1" autocomplete="off" /></label>
           <p class="form-status" aria-live="polite"></p>
