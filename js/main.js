@@ -335,7 +335,7 @@
           return `<li><span>${escapeHtml(member.name)}</span>${role ? `<small>${escapeHtml(role)}</small>` : ""}</li>`;
         }).join("")}</ul>`;
     return `
-      <div class="invitation-card invitation-card--party">
+      <div class="invitation-card invitation-card--stationery invitation-card--party">
         <p class="section__eyebrow section__eyebrow--caps">${escapeHtml(eyebrow)}</p>
         ${heading}
         <p class="section__body">${escapeHtml(brief?.body || "Day-of details will be added here.")}</p>
