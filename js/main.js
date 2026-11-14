@@ -506,16 +506,27 @@
     return "";
   };
 
-  const guestInviteRow = (guest = {}, guests = []) => {
+  // Parties of more than three get a tighter list: one name line, then role and extras together on one quiet line.
+  const LARGE_PARTY_FROM = 4;
+
+  const guestInviteRow = (guest = {}, guests = [], compact = false) => {
     const plusLabel = [
       plusOnesLabel(plusOnesFor(guests, guest.id).length),
       kidsLabel(kidsFor(guests, guest.id).length)
     ].filter(Boolean).join(" · ");
     const role = guestRoleMarkup(guest);
+    const plus = plusLabel ? `<span class="invitation-card__plus">${escapeHtml(plusLabel)}</span>` : "";
+    if (compact) {
+      return `
+      <span class="invitation-card__guest">
+        <span class="invitation-card__guest-name">${guestInviteMarkup(guest)}</span>
+        ${role || plus ? `<span class="invitation-card__meta">${role}${plus}</span>` : ""}
+      </span>`;
+    }
     return `
       <span class="invitation-card__guest">
         <span class="invitation-card__guest-name">${guestInviteMarkup(guest)}${role ? ` ${role}` : ""}</span>
-        ${plusLabel ? `<span class="invitation-card__meta"><span class="invitation-card__plus">${escapeHtml(plusLabel)}</span></span>` : ""}
+        ${plus ? `<span class="invitation-card__meta">${plus}</span>` : ""}
       </span>`;
   };
 
@@ -541,11 +552,13 @@
 
     const namedGuests = data.guests.filter((guest) => !guest.is_plus_one);
     const label = data.party?.label?.trim();
-    if (heading) heading.textContent = label ? `You’re invited, ${label}` : "You’re invited";
+    const largeParty = namedGuests.length >= LARGE_PARTY_FROM;
+    // A long run of names in the heading only repeats the list below it.
+    if (heading) heading.textContent = label && !largeParty ? `You’re invited, ${label}` : "You’re invited";
     namesTarget.hidden = false;
     namesTarget.innerHTML = `
-      <ul class="invitation-card__guests">
-        ${namedGuests.map((guest) => `<li>${guestInviteRow(guest, data.guests)}</li>`).join("")}
+      <ul class="invitation-card__guests${largeParty ? " invitation-card__guests--many" : ""}">
+        ${namedGuests.map((guest) => `<li>${guestInviteRow(guest, data.guests, largeParty)}</li>`).join("")}
       </ul>
     `;
   };

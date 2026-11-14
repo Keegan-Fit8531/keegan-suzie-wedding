@@ -1831,6 +1831,48 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   font-style: normal;
 }
 
+/* Larger parties: smaller names in evenly ruled rows, with role and extras on a single line beneath. */
+.invitation-card--stationery .invitation-card__guests--many {
+  justify-items: stretch;
+  gap: 0;
+  width: min(100%, 23rem);
+  margin-inline: auto;
+}
+
+.invitation-card--stationery .invitation-card__guests--many li {
+  padding: 0.7rem 0;
+  font-size: clamp(1.3rem, 2.6vw, 1.45rem);
+  line-height: 1.25;
+}
+
+.invitation-card--stationery .invitation-card__guests--many li + li {
+  border-top: 1px solid rgba(138, 101, 72, 0.2);
+}
+
+.invitation-card--stationery .invitation-card__guests--many .invitation-card__guest {
+  gap: 0.2rem;
+}
+
+.invitation-card--stationery .invitation-card__guests--many .invitation-card__guest-name {
+  text-wrap: balance;
+}
+
+.invitation-card--stationery .invitation-card__guests--many .invitation-card__nick {
+  white-space: nowrap;
+}
+
+.invitation-card--stationery .invitation-card__guests--many .invitation-card__meta {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 0.5rem;
+}
+
+.invitation-card--stationery .invitation-card__guests--many .invitation-card__meta > * + *::before {
+  content: "·";
+  margin-right: 0.5rem;
+}
+
 /* Reply summary stays left-aligned so names and statuses line up. */
 .invitation-card--stationery .invitation-card__rsvp {
   text-align: left;
