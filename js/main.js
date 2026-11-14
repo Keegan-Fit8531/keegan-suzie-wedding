@@ -1035,6 +1035,144 @@
     if (welcomeSection) welcomeSection.hidden = false;
   };
 
+  // Envelope: an unanswered invitation arrives sealed and opens the first time it scrolls into view.
+  const envelopeStage = document.querySelector("[data-envelope-stage]");
+  const envelope = envelopeStage?.querySelector("[data-envelope]");
+  let envelopeState = "none";
+  let envelopeObserver = null;
+
+  const finishEnvelope = () => {
+    if (!envelopeStage || !envelope) return;
+    envelopeState = "open";
+    envelopeObserver?.disconnect();
+    envelope.hidden = true;
+    envelopeStage.classList.remove("is-sealed", "is-opening");
+    [envelopeStage, inviteCard, ...envelope.querySelectorAll("span")].forEach((el) => {
+      el?.getAnimations?.().forEach((animation) => animation.cancel());
+    });
+    if (inviteCard) inviteCard.style.visibility = "";
+    const flap = envelope.querySelector("[data-envelope-flap]");
+    if (flap) flap.style.zIndex = "";
+  };
+
+  const openEnvelope = () => {
+    if (envelopeState !== "sealed" || !envelopeStage || !envelope || !inviteCard) return;
+    envelopeState = "opening";
+    envelopeObserver?.disconnect();
+    envelopeStage.classList.add("is-opening");
+
+    const stageRect = envelopeStage.getBoundingClientRect();
+    const envRect = envelope.getBoundingClientRect();
+    const cardWidth = inviteCard.offsetWidth;
+    const cardHeight = inviteCard.offsetHeight;
+    if (!cardWidth || !cardHeight || !envRect.width) {
+      finishEnvelope();
+      return;
+    }
+
+    const envTop = envRect.top - stageRect.top;
+    const envHeight = envRect.height;
+    const envFloor = envTop + envHeight * 0.97;
+    const scale = (envRect.width * 0.9) / cardWidth;
+    const tuckedY = envTop + envHeight * 0.08;
+    const liftedY = envTop - envHeight * 0.38;
+    // Hide whatever part of the card would hang below the envelope.
+    const clipAt = (y) => `inset(0 0 ${Math.max(0, cardHeight - (envFloor - y) / scale).toFixed(1)}px 0)`;
+    const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
+    const flapAt = 150;
+    const liftAt = 850;
+    const settleAt = 1800;
+    const drop = envHeight * 0.7;
+
+    const flap = envelope.querySelector("[data-envelope-flap]");
+    const back = envelope.querySelector(".envelope__back");
+    const pocket = envelope.querySelector(".envelope__pocket");
+
+    flap?.animate(
+      [
+        { transform: "perspective(60rem) rotateX(0deg)" },
+        { transform: "perspective(60rem) rotateX(180deg)" }
+      ],
+      { duration: 800, delay: flapAt, easing: "cubic-bezier(0.45, 0, 0.3, 1)", fill: "both" }
+    );
+    // Swap to the liner side at the moment the flap is edge-on (halfway through the same eased turn).
+    const flapTiming = { duration: 800, delay: flapAt, easing: "cubic-bezier(0.45, 0, 0.3, 1)", fill: "both" };
+    envelope.querySelector(".envelope__flap-face--front")?.animate(
+      [{ visibility: "visible" }, { visibility: "hidden" }],
+      flapTiming
+    );
+    envelope.querySelector(".envelope__flap-face--back")?.animate(
+      [{ visibility: "hidden" }, { visibility: "visible" }],
+      flapTiming
+    );
+    // Once the flap is past upright it belongs behind the card.
+    window.setTimeout(() => {
+      if (envelopeState !== "opening") return;
+      if (flap) flap.style.zIndex = "1";
+      inviteCard.style.visibility = "visible";
+    }, flapAt + 430);
+
+    inviteCard.animate(
+      [
+        { transform: `translateY(${tuckedY}px) scale(${scale})`, clipPath: clipAt(tuckedY) },
+        { transform: `translateY(${liftedY}px) scale(${scale})`, clipPath: clipAt(liftedY) }
+      ],
+      { duration: 950, delay: liftAt, easing: ease, fill: "both" }
+    );
+    const settle = inviteCard.animate(
+      [
+        { transform: `translateY(${liftedY}px) scale(${scale})`, clipPath: clipAt(liftedY) },
+        { transform: "translateY(0px) scale(1)", clipPath: "inset(0 0 0px 0)" }
+      ],
+      { duration: 1100, delay: settleAt, easing: ease, fill: "forwards" }
+    );
+    envelopeStage.animate(
+      [{ height: `${stageRect.height}px` }, { height: `${cardHeight}px` }],
+      { duration: 1100, delay: settleAt, easing: ease, fill: "forwards" }
+    );
+    [back, pocket].forEach((part) => {
+      part?.animate(
+        [
+          { transform: "translateY(0px)", opacity: 1 },
+          { transform: `translateY(${drop}px)`, opacity: 0 }
+        ],
+        { duration: 650, delay: settleAt, easing: "ease-in", fill: "forwards" }
+      );
+    });
+    flap?.animate(
+      [
+        { transform: "perspective(60rem) translateY(0px) rotateX(180deg)", opacity: 1 },
+        { transform: `perspective(60rem) translateY(${drop}px) rotateX(180deg)`, opacity: 0 }
+      ],
+      { duration: 650, delay: settleAt, easing: "ease-in", fill: "forwards" }
+    );
+
+    settle.finished.then(finishEnvelope, finishEnvelope);
+  };
+
+  const sealEnvelope = (data) => {
+    if (!envelopeStage || !envelope || !inviteCard || envelopeState !== "none") return;
+    if (reduceMotion || data.rsvp || typeof envelope.animate !== "function" || !("IntersectionObserver" in window)) return;
+    const name = envelope.querySelector("[data-envelope-name]");
+    if (name) name.textContent = data.party?.label?.trim() || "";
+    envelope.hidden = false;
+    envelopeStage.classList.add("is-sealed");
+    envelopeState = "sealed";
+    envelopeObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) window.setTimeout(openEnvelope, 450);
+      },
+      { threshold: 0.7 }
+    );
+    envelopeObserver.observe(envelope);
+    envelope.addEventListener("click", openEnvelope);
+    envelope.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      openEnvelope();
+    });
+  };
+
   const showInviteLoading = () => {
     if (!invitationSection) return;
     document.documentElement.classList.add("has-invite");
@@ -1087,6 +1225,7 @@
         stayRsvp.className = "btn btn--primary";
       }
       renderSummary(data);
+      sealEnvelope(data);
       // Paint correct hero button labels before revealing the action row.
       requestAnimationFrame(() => showInviteReady());
     } catch (error) {

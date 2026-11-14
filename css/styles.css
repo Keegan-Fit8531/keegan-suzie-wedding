@@ -1873,6 +1873,163 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   width: 100%;
 }
 
+/* Envelope: the invitation arrives sealed and opens onto the stationery card the first time it scrolls into view. */
+.envelope-stage {
+  position: relative;
+  isolation: isolate;
+  container-type: inline-size;
+}
+
+.envelope {
+  --w: min(100cqw, 27rem);
+  position: relative;
+  display: block;
+  width: var(--w);
+  aspect-ratio: 10 / 7;
+  /* Headroom for the opened flap and the card as it lifts out. */
+  margin: calc(var(--w) * 0.21) auto 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.envelope:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 0.35rem;
+}
+
+.section--invitation.is-ready .envelope {
+  animation: inviteReveal 0.55s var(--ease);
+}
+
+.envelope__back,
+.envelope__pocket,
+.envelope__flap,
+.envelope__flap-face,
+.envelope__flap-paper {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.envelope__back {
+  z-index: 1;
+  border-radius: 0.35rem;
+  background: linear-gradient(180deg, #1f281d, #2a3527 70%);
+  box-shadow:
+    0 1px 2px rgba(47, 59, 44, 0.2),
+    0 28px 44px -24px rgba(47, 59, 44, 0.55);
+}
+
+.envelope__pocket {
+  z-index: 3;
+  border-radius: 0.35rem;
+  overflow: hidden;
+}
+
+.envelope__pocket::before,
+.envelope__pocket::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+/* Side folds. */
+.envelope__pocket::before {
+  clip-path: polygon(0 0, 50% 54%, 100% 0, 100% 100%, 0 100%);
+  background: linear-gradient(90deg, #3d4a37, #48553f 50%, #3d4a37);
+}
+
+/* Bottom fold. */
+.envelope__pocket::after {
+  clip-path: polygon(0 100%, 50% 47%, 100% 100%);
+  background: linear-gradient(180deg, #55634a, #46533e 75%);
+}
+
+.envelope__name {
+  position: absolute;
+  z-index: 1;
+  left: 8%;
+  right: 8%;
+  bottom: 7%;
+  overflow: hidden;
+  font-family: var(--font-script);
+  font-size: calc(var(--w) * 0.085);
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--copper-light);
+}
+
+.envelope__flap {
+  z-index: 4;
+  bottom: auto;
+  height: 60%;
+  transform-origin: top center;
+  transform: perspective(60rem) rotateX(0deg);
+}
+
+.envelope__flap-face--front {
+  filter: drop-shadow(0 2px 3px rgba(20, 26, 18, 0.4));
+}
+
+/* The liner side; the script swaps faces as the flap passes upright. */
+.envelope__flap-face--back {
+  visibility: hidden;
+}
+
+.envelope__flap-paper {
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: linear-gradient(180deg, #4f5c44, #5b6950);
+}
+
+.envelope__flap-face--back .envelope__flap-paper {
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.22), transparent 60%),
+    var(--copper-light);
+}
+
+.envelope__seal {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: calc(var(--w) * 0.17);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -64%);
+  background: radial-gradient(circle at 35% 30%, #c08d63, var(--copper) 55%, #6b4a33);
+  box-shadow:
+    inset 0 0 0 calc(var(--w) * 0.012) rgba(255, 252, 247, 0.12),
+    inset 0 -2px 4px rgba(40, 24, 12, 0.3),
+    0 2px 5px rgba(20, 26, 18, 0.4);
+}
+
+.envelope__seal::after {
+  content: "";
+  position: absolute;
+  inset: 15%;
+  background: rgba(58, 36, 20, 0.72);
+  -webkit-mask: url("../images/brand/monogram-sk.png") center / contain no-repeat;
+  mask: url("../images/brand/monogram-sk.png") center / contain no-repeat;
+}
+
+/* While sealed the card waits out of flow, tucked between the envelope's back and pocket. */
+.envelope-stage.is-sealed [data-invite-card] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  visibility: hidden;
+  transform-origin: top center;
+  animation: none;
+}
+
+.envelope-stage.is-sealed.is-opening [data-invite-card] {
+  will-change: transform, clip-path;
+}
+
 .wedding-party__for {
   margin: 0 0 var(--space-2);
   color: var(--sage-deep);
