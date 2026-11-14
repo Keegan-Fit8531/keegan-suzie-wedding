@@ -1928,8 +1928,8 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   display: block;
   width: var(--w);
   aspect-ratio: 10 / 7;
-  /* Headroom for the opened flap and the card as it lifts out. */
-  margin: calc(var(--w) * 0.27) auto 0;
+  /* No headroom: the opened flap and the card lifting out rise over the divider above. */
+  margin: 0 auto;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }

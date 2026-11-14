@@ -1089,7 +1089,8 @@
     const envFloor = envTop + envHeight * 0.97;
     const scale = (envRect.width * 0.9) / cardWidth;
     const tuckedY = envTop + envHeight * 0.08;
-    const liftedY = Math.max(0, envTop - envHeight * 0.38);
+    // The card may rise above the stage, over the divider, since the envelope keeps no headroom.
+    const liftedY = envTop - envHeight * 0.38;
     // Hide whatever part of the card would hang below the envelope.
     const clipAt = (y) => `inset(0 0 ${Math.max(0, cardHeight - (envFloor - y) / scale).toFixed(1)}px 0)`;
     const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
