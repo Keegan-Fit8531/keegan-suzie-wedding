@@ -1472,6 +1472,11 @@ html.has-invite a[data-hero-rsvp] {
   padding-bottom: var(--space-4);
 }
 
+/* Sit the wedding-party card close under the invitation. */
+.section.section--invitation:has(+ .section--wedding-party:not([hidden])) {
+  padding-bottom: 0;
+}
+
 .section.section--wedding-party {
   --band: var(--cream);
   padding-top: var(--space-3);

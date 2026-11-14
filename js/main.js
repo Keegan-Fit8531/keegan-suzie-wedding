@@ -349,8 +349,6 @@
     return null;
   };
 
-  const isDeclined = (memberId, responses = {}) => responseValue(responses, memberId) === false;
-
   const attendanceTone = (responses = {}, guestId) => {
     const value = responseValue(responses, guestId);
     if (value === true) return "coming";
@@ -454,7 +452,8 @@
     }
 
     const responses = data?.rsvp?.guest_responses || {};
-    const keepMember = (member) => !isDeclined(member.id, responses);
+    // Only show a member's party card once they've accepted.
+    const keepMember = (member) => responseValue(responses, member.id) === true;
     const bridesmaids = (weddingParty.bridesmaids?.members || []).filter(keepMember);
     const groomsmen = (weddingParty.groomsmen?.members || []).filter(keepMember);
     const cards = [];
