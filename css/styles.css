@@ -2213,20 +2213,24 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   background: transparent;
   color: var(--ink);
   overscroll-behavior: contain;
+  /* The dimming is a spread shadow, not ::backdrop: iOS Safari sizes ::backdrop to the screen as it
+     was with the toolbar expanded, leaving the page showing in a strip once the toolbar shrinks.
+     A shadow spreads past every edge, toolbar or not. */
+  box-shadow: 0 0 0 100vmax rgba(20, 28, 18, 0);
+  transition: box-shadow 0.35s var(--ease);
 }
 
+/* Still there to catch taps outside the panel, just not tinted. */
 .rsvp-dialog::backdrop {
-  background: rgba(20, 28, 18, 0.58);
-  opacity: 0;
-  transition: opacity 0.35s var(--ease);
+  background: transparent;
 }
 
-.rsvp-dialog.is-open::backdrop {
-  opacity: 1;
+.rsvp-dialog.is-open {
+  box-shadow: 0 0 0 100vmax rgba(20, 28, 18, 0.58);
 }
 
-.rsvp-dialog.is-closing::backdrop {
-  opacity: 0;
+.rsvp-dialog.is-closing {
+  box-shadow: 0 0 0 100vmax rgba(20, 28, 18, 0);
 }
 
 .rsvp-dialog__panel {
@@ -2270,7 +2274,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rsvp-dialog::backdrop,
+  .rsvp-dialog,
   .rsvp-dialog__panel {
     transition: none;
   }
@@ -2280,8 +2284,8 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
     transform: none;
   }
 
-  .rsvp-dialog.is-open::backdrop {
-    opacity: 1;
+  .rsvp-dialog[open]:not(.is-closing) {
+    box-shadow: 0 0 0 100vmax rgba(20, 28, 18, 0.58);
   }
 }
 
