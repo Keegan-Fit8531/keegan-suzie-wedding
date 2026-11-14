@@ -1985,9 +1985,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 .envelope__flap-face--back .envelope__flap-paper {
-  background:
-    linear-gradient(180deg, rgba(255, 252, 247, 0.22), transparent 60%),
-    var(--copper-light);
+  background: linear-gradient(180deg, #2a3527, #36432f);
 }
 
 .envelope__seal {

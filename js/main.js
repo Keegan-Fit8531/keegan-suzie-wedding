@@ -1082,7 +1082,6 @@
     const flapAt = 150;
     const liftAt = 850;
     const settleAt = 1800;
-    const drop = envHeight * 0.7;
 
     const flap = envelope.querySelector("[data-envelope-flap]");
     const back = envelope.querySelector(".envelope__back");
@@ -1119,33 +1118,37 @@
       ],
       { duration: 950, delay: liftAt, easing: ease, fill: "both" }
     );
-    const settle = inviteCard.animate(
-      [
-        { transform: `translateY(${liftedY}px) scale(${scale})`, clipPath: clipAt(liftedY) },
-        { transform: "translateY(0px) scale(1)", clipPath: "inset(0 0 0px 0)" }
-      ],
-      { duration: 1100, delay: settleAt, easing: ease, fill: "forwards" }
-    );
+    // Settle: the envelope slides down off the card and out under the card's bottom edge, staying solid
+    // the whole way, while the card grows to full size. Sampled so the card's hidden part tracks the envelope.
+    const settleFor = 1400;
+    const slide = cardHeight - envTop;
+    const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const mix = (from, to, p) => from + (to - from) * p;
+    const cardFrames = [];
+    const stageFrames = [];
+    const slideFrames = [];
+    const flapFrames = [];
+    for (let i = 0; i <= 24; i += 1) {
+      const p = easeInOut(i / 24);
+      const y = mix(liftedY, 0, p);
+      const size = mix(scale, 1, p);
+      const shift = slide * p;
+      const hidden = i === 24 ? 0 : Math.max(0, cardHeight - (envFloor + shift - y) / size);
+      cardFrames.push({ transform: `translateY(${y.toFixed(2)}px) scale(${size.toFixed(4)})`, clipPath: `inset(0 0 ${hidden.toFixed(1)}px 0)` });
+      stageFrames.push({ height: `${mix(stageRect.height, cardHeight, p).toFixed(1)}px` });
+      slideFrames.push({ transform: `translateY(${shift.toFixed(2)}px)` });
+      flapFrames.push({ transform: `perspective(60rem) translateY(${shift.toFixed(2)}px) rotateX(180deg)` });
+    }
+    const settleTiming = { duration: settleFor, delay: settleAt, easing: "linear", fill: "forwards" };
+    const settle = inviteCard.animate(cardFrames, settleTiming);
+    envelopeStage.animate(stageFrames, settleTiming);
+    // Nothing shows below the stage's bottom edge, so the envelope disappears under it.
     envelopeStage.animate(
-      [{ height: `${stageRect.height}px` }, { height: `${cardHeight}px` }],
-      { duration: 1100, delay: settleAt, easing: ease, fill: "forwards" }
+      [{ clipPath: "inset(-200vh -4rem -4rem -4rem)" }, { clipPath: "inset(-200vh -4rem 0px -4rem)" }],
+      { duration: 200, delay: settleAt, easing: "linear", fill: "forwards" }
     );
-    [back, pocket].forEach((part) => {
-      part?.animate(
-        [
-          { transform: "translateY(0px)", opacity: 1 },
-          { transform: `translateY(${drop}px)`, opacity: 0 }
-        ],
-        { duration: 650, delay: settleAt, easing: "ease-in", fill: "forwards" }
-      );
-    });
-    flap?.animate(
-      [
-        { transform: "perspective(60rem) translateY(0px) rotateX(180deg)", opacity: 1 },
-        { transform: `perspective(60rem) translateY(${drop}px) rotateX(180deg)`, opacity: 0 }
-      ],
-      { duration: 650, delay: settleAt, easing: "ease-in", fill: "forwards" }
-    );
+    [back, pocket].forEach((part) => part?.animate(slideFrames, settleTiming));
+    flap?.animate(flapFrames, settleTiming);
 
     settle.finished.then(finishEnvelope, finishEnvelope);
   };
