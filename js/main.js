@@ -1051,8 +1051,7 @@
       el?.getAnimations?.().forEach((animation) => animation.cancel());
     });
     if (inviteCard) inviteCard.style.visibility = "";
-    const flap = envelope.querySelector("[data-envelope-flap]");
-    if (flap) flap.style.zIndex = "";
+    envelope.style.animation = "";
   };
 
   const openEnvelope = () => {
@@ -1060,6 +1059,8 @@
     envelopeState = "opening";
     envelopeObserver?.disconnect();
     envelopeStage.classList.add("is-opening");
+    // The entrance fade would briefly layer the whole envelope under the card, so end it before opening.
+    envelope.style.animation = "none";
 
     const stageRect = envelopeStage.getBoundingClientRect();
     const envRect = envelope.getBoundingClientRect();
@@ -1075,7 +1076,7 @@
     const envFloor = envTop + envHeight * 0.97;
     const scale = (envRect.width * 0.9) / cardWidth;
     const tuckedY = envTop + envHeight * 0.08;
-    const liftedY = envTop - envHeight * 0.38;
+    const liftedY = Math.max(0, envTop - envHeight * 0.38);
     // Hide whatever part of the card would hang below the envelope.
     const clipAt = (y) => `inset(0 0 ${Math.max(0, cardHeight - (envFloor - y) / scale).toFixed(1)}px 0)`;
     const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
@@ -1094,22 +1095,14 @@
       ],
       { duration: 800, delay: flapAt, easing: "cubic-bezier(0.45, 0, 0.3, 1)", fill: "both" }
     );
-    // Swap to the liner side at the moment the flap is edge-on (halfway through the same eased turn).
+    // At the moment the flap is edge-on (halfway through the same eased turn) swap to its inner face,
+    // which takes the seal out of view, and drop the flap behind the card.
     const flapTiming = { duration: 800, delay: flapAt, easing: "cubic-bezier(0.45, 0, 0.3, 1)", fill: "both" };
-    envelope.querySelector(".envelope__flap-face--front")?.animate(
-      [{ visibility: "visible" }, { visibility: "hidden" }],
-      flapTiming
-    );
-    envelope.querySelector(".envelope__flap-face--back")?.animate(
-      [{ visibility: "hidden" }, { visibility: "visible" }],
-      flapTiming
-    );
-    // Once the flap is past upright it belongs behind the card.
-    window.setTimeout(() => {
-      if (envelopeState !== "opening") return;
-      if (flap) flap.style.zIndex = "1";
-      inviteCard.style.visibility = "visible";
-    }, flapAt + 430);
+    const swapAtHalf = (from, to) => [{ ...from, easing: "step-end" }, { ...to, offset: 0.5 }, to];
+    envelope.querySelector(".envelope__flap-face--front")?.animate(swapAtHalf({ opacity: 1 }, { opacity: 0 }), flapTiming);
+    envelope.querySelector(".envelope__flap-face--back")?.animate(swapAtHalf({ opacity: 0 }, { opacity: 1 }), flapTiming);
+    flap?.animate(swapAtHalf({ zIndex: 4 }, { zIndex: 1 }), flapTiming);
+    inviteCard.style.visibility = "visible";
 
     inviteCard.animate(
       [
@@ -1120,8 +1113,9 @@
     );
     // Settle: the envelope slides down off the card and out under the card's bottom edge, staying solid
     // the whole way, while the card grows to full size. Sampled so the card's hidden part tracks the envelope.
-    const settleFor = 1400;
     const slide = cardHeight - envTop;
+    // Taller cards give the envelope further to travel, so allow a little longer.
+    const settleFor = Math.min(1900, Math.max(1300, 900 + slide));
     const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     const mix = (from, to, p) => from + (to - from) * p;
     const cardFrames = [];
@@ -1157,7 +1151,11 @@
     if (!envelopeStage || !envelope || !inviteCard || envelopeState !== "none") return;
     if (reduceMotion || data.rsvp || typeof envelope.animate !== "function" || !("IntersectionObserver" in window)) return;
     const name = envelope.querySelector("[data-envelope-name]");
-    if (name) name.textContent = data.party?.label?.trim() || "";
+    const label = data.party?.label?.trim() || "";
+    if (name) {
+      name.textContent = label;
+      name.classList.toggle("envelope__name--long", label.length > 20);
+    }
     envelope.hidden = false;
     envelopeStage.classList.add("is-sealed");
     envelopeState = "sealed";

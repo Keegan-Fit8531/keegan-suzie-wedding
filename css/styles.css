@@ -1887,7 +1887,7 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   width: var(--w);
   aspect-ratio: 10 / 7;
   /* Headroom for the opened flap and the card as it lifts out. */
-  margin: calc(var(--w) * 0.21) auto 0;
+  margin: calc(var(--w) * 0.27) auto 0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -1936,13 +1936,13 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 
 /* Side folds. */
 .envelope__pocket::before {
-  clip-path: polygon(0 0, 50% 54%, 100% 0, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, 50% 50%, 100% 0, 100% 100%, 0 100%);
   background: linear-gradient(90deg, #3d4a37, #48553f 50%, #3d4a37);
 }
 
 /* Bottom fold. */
 .envelope__pocket::after {
-  clip-path: polygon(0 100%, 50% 47%, 100% 100%);
+  clip-path: polygon(0 100%, 50% 44%, 100% 100%);
   background: linear-gradient(180deg, #55634a, #46533e 75%);
 }
 
@@ -1962,10 +1962,22 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   color: var(--copper-light);
 }
 
+/* Longer party names drop a size and may run to two lines. */
+.envelope__name--long {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  bottom: 5%;
+  font-size: calc(var(--w) * 0.062);
+  line-height: 1.25;
+  white-space: normal;
+  text-wrap: balance;
+}
+
 .envelope__flap {
   z-index: 4;
   bottom: auto;
-  height: 60%;
+  height: 56%;
   transform-origin: top center;
   transform: perspective(60rem) rotateX(0deg);
 }
@@ -1974,9 +1986,9 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   filter: drop-shadow(0 2px 3px rgba(20, 26, 18, 0.4));
 }
 
-/* The liner side; the script swaps faces as the flap passes upright. */
+/* The inner side; the script swaps faces as the flap passes upright. */
 .envelope__flap-face--back {
-  visibility: hidden;
+  opacity: 0;
 }
 
 .envelope__flap-paper {
