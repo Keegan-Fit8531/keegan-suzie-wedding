@@ -470,6 +470,8 @@ button {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  /* Deep forest behind the photo, so it fades up from dark instead of painting in strips. */
+  background: #1f281d;
 }
 
 /* Drift on a wrapper so blur stays a static layer (avoids per-frame re-blur jitter). */
@@ -489,7 +491,29 @@ button {
   object-position: center 42%;
   filter: blur(1.5px);
   transform: translateZ(0);
+  opacity: 0;
+  transition: opacity 1.4s var(--ease);
 }
+
+.hero__photo.is-loaded {
+  opacity: 1;
+}
+
+/* Hero entrance: the lines wait for the fonts (briefly), then rise in turn, buttons included. */
+.hero__content > * {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 1s var(--ease), transform 1s var(--ease);
+}
+
+.hero.is-in .hero__content > * {
+  opacity: 1;
+  transform: none;
+}
+
+.hero.is-in .hero__content > :nth-child(2) { transition-delay: 0.12s; }
+.hero.is-in .hero__content > :nth-child(3) { transition-delay: 0.24s; }
+.hero.is-in .hero__content > :nth-child(4) { transition-delay: 0.36s; }
 
 .hero__veil {
   position: absolute;
@@ -605,17 +629,6 @@ button {
 
 .hero__actions .btn {
   min-width: 10rem;
-}
-
-/* Invite pages: hold hero CTAs until RSVP label is known (avoids Reply → Finish/Edit flash). */
-html.has-invite:not(.invite-ready) .hero__actions {
-  opacity: 0;
-  pointer-events: none;
-}
-
-html.has-invite.invite-ready .hero__actions {
-  opacity: 1;
-  transition: opacity 0.35s var(--ease);
 }
 
 html.has-invite a[data-hero-rsvp] {
@@ -1470,6 +1483,8 @@ html.has-invite a[data-hero-rsvp] {
   --band: var(--cream);
   padding-top: var(--space-5);
   padding-bottom: var(--space-4);
+  /* View invite stops with the section's top edge just under the fixed header, not behind it. */
+  scroll-margin-top: var(--header-h);
 }
 
 /* Sit the wedding-party card close under the invitation. */
@@ -3358,7 +3373,9 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 
-  .reveal {
+  .reveal,
+  .hero__content > *,
+  .hero__photo {
     opacity: 1;
     transform: none;
     transition: none;

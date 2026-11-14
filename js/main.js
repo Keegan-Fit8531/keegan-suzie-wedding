@@ -158,6 +158,36 @@
     updateButtons();
   });
 
+  // Hero: the photo fades up once it has fully loaded, and the lines rise in once the fonts are in
+  // (or after a short wait), so nothing swaps typeface or pops in mid-animation.
+  const hero = document.querySelector(".hero");
+  const heroPhoto = hero?.querySelector(".hero__photo");
+  if (heroPhoto) {
+    const showPhoto = () => heroPhoto.classList.add("is-loaded");
+    if (heroPhoto.complete) showPhoto();
+    else {
+      heroPhoto.addEventListener("load", showPhoto, { once: true });
+      heroPhoto.addEventListener("error", showPhoto, { once: true });
+    }
+  }
+  if (hero) {
+    let heroStarted = false;
+    const startHero = () => {
+      if (heroStarted) return;
+      heroStarted = true;
+      requestAnimationFrame(() => hero.classList.add("is-in"));
+    };
+    if (reduceMotion || !document.fonts?.load) startHero();
+    else {
+      Promise.all([
+        document.fonts.load('500 1em "Cormorant Garamond"'),
+        document.fonts.load('400 1em "Great Vibes"'),
+        document.fonts.load('500 1em "Outfit"')
+      ]).then(startHero, startHero);
+      window.setTimeout(startHero, 900);
+    }
+  }
+
   if (!reduceMotion) {
     const reveals = document.querySelectorAll(".reveal");
     const observer = new IntersectionObserver(
