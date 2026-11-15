@@ -2166,6 +2166,8 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   padding-top: var(--space-3);
   font-size: 1.1rem;
   text-wrap: pretty;
+  /* Keep the line breaks the hosts typed into the brief. */
+  white-space: pre-line;
 }
 
 .invitation-card--party .section__body::before {
@@ -2742,10 +2744,12 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 }
 
 .rsvp-summary .invitation-card__guest {
+  min-width: 0;
   font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 500;
   color: var(--forest);
+  overflow-wrap: break-word;
 }
 
 .rsvp-summary__plus-label {
@@ -2809,6 +2813,13 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
 .rsvp-summary__details dd {
   margin: 0;
   white-space: pre-line;
+  /* A long email address or pasted link wraps inside the card rather than stretching the page. */
+  overflow-wrap: anywhere;
+}
+
+.rsvp-summary__details,
+.rsvp-summary__details div {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .rsvp-confirmation .btn {
@@ -3166,6 +3177,14 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   max-width: 40rem;
 }
 .brief-card p:not(.section__eyebrow) { min-height: 3rem; white-space: pre-line; }
+/* Long email addresses and unbroken text wrap inside their card instead of widening the page. */
+.brief-card, .host-party-card { overflow-wrap: break-word; }
+/* Single-column grids that may shrink below their longest word, so the text above can wrap. */
+.host-family-groups,
+.host-party-list,
+.host-guest-list,
+.host-rsvp-details,
+.host-briefs [data-contact-list] { grid-template-columns: minmax(0, 1fr); }
 .host-contact-card {
   padding: 0.85rem 1rem;
 }
@@ -3612,10 +3631,10 @@ body.has-dialog-open {
     flex-direction: column;
   }
 
+  /* minmax(0, …) lets the columns shrink below their longest word, so nothing pushes the page sideways. */
   .host-stats,
-  .host-briefs [data-brief-list],
-  .host-briefs [data-contact-list] {
-    grid-template-columns: 1fr 1fr;
+  .host-briefs [data-brief-list] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .host-filters {
@@ -3685,6 +3704,10 @@ body.has-dialog-open {
   .invitation-card__actions .btn,
   .contact-actions .btn {
     width: 100%;
+  }
+
+  .host-briefs [data-brief-list] {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

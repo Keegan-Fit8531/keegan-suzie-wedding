@@ -10,6 +10,8 @@
 
   const setHeaderState = () => {
     if (!header) return;
+    // While a pop-up holds the page still, the scroll position reads as zero. Keep the header as it was.
+    if (document.body.classList.contains("has-dialog-open")) return;
     header.classList.toggle("is-scrolled", window.scrollY > 48);
   };
 
@@ -303,8 +305,19 @@
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
     }[character]));
 
+  const OFFLINE_MESSAGE = "We couldn’t reach the server. Check your connection and try again.";
+
+  // fetch, with a plain-language message when the request never arrives (offline, patchy signal).
+  const request = async (url, options) => {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      throw new Error(OFFLINE_MESSAGE);
+    }
+  };
+
   const rpc = async (name, params) => {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
+    const response = await request(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
       method: "POST",
       headers: {
         apikey: SUPABASE_KEY,
@@ -316,6 +329,18 @@
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.message || body.error || "Something went wrong. Please try again.");
     return body;
+  };
+
+  // The server's own wording for the cases a guest can do something about.
+  const replyErrorMessage = (error) => {
+    const message = error?.message || "";
+    if (/guest mismatch/i.test(message)) {
+      return "This invitation has been updated since you opened it. Reload the page, then send your reply again.";
+    }
+    if (/rsvp is closed/i.test(message)) {
+      return "Replies are now closed. Please contact Keegan if you need to change yours.";
+    }
+    return message || "Something went wrong. Please try again.";
   };
 
   // The keyboard's Enter key (shown as a tick or "Done" via enterkeyhint) just closes the keyboard.
@@ -380,7 +405,14 @@
 
   const openContactDialog = () => {
     if (!contactDialog) return;
-    contactForm?.querySelector(".form-status") && (contactForm.querySelector(".form-status").textContent = "");
+    if (contactForm) {
+      // Start clean each time: no note or status left from last time, and Send ready to use again.
+      clearFormError(contactForm);
+      const status = contactForm.querySelector(".form-status");
+      if (status) status.textContent = "";
+      const submit = contactForm.querySelector('[type="submit"]');
+      if (submit) submit.disabled = false;
+    }
     openAnimatedDialog(contactDialog);
     window.setTimeout(() => contactForm?.querySelector("input[name='name']")?.focus(), reduceMotion ? 0 : 280);
   };
@@ -655,11 +687,17 @@
     );
 
     if (deadline) {
-      deadline.hidden = Boolean(rsvp) && !pending;
-      if (pending) {
-        deadline.innerHTML = `Some replies are still pending. Please finish by <strong>1 January 2027</strong>.`;
-      } else if (!rsvp) {
-        deadline.innerHTML = `Please reply by <strong>1 January 2027</strong>.`;
+      if (!data.rsvp_open) {
+        // Past the deadline: no asking for a reply that can no longer be sent. A saved reply carries its own closed note.
+        deadline.hidden = Boolean(rsvp);
+        if (!rsvp) deadline.textContent = "Replies are now closed. If you would still like to come, please contact Keegan.";
+      } else {
+        deadline.hidden = Boolean(rsvp) && !pending;
+        if (pending) {
+          deadline.innerHTML = `Some replies are still pending. Please finish by <strong>1 January 2027</strong>.`;
+        } else if (!rsvp) {
+          deadline.innerHTML = `Please reply by <strong>1 January 2027</strong>.`;
+        }
       }
     }
 
@@ -1053,11 +1091,13 @@
       }
       const cabinChoice = form.querySelector("[data-cabin-choice]");
       const cabinAnswer = formData.get("cabin_requested");
-      if (cabinAnswer !== "true" && cabinAnswer !== "false") {
+      const anyoneComing = Object.values(guestResponses).includes("true");
+      // Staying overnight only matters once someone is coming; a reply that declines can skip it.
+      if (anyoneComing && cabinAnswer !== "true" && cabinAnswer !== "false") {
         return [cabinChoice, "Let us know if you would like to stay overnight."];
       }
       if (cabinAnswer === "true") {
-        if (!Object.values(guestResponses).includes("true")) {
+        if (!anyoneComing) {
           return [cabinChoice, "A cabin room can only be requested when someone is coming."];
         }
         const staying = formData.getAll("cabin_guest").filter((guestId) => guestResponses[guestId] === "true");
@@ -1132,7 +1172,7 @@
         renderSummary(updated);
         closeRsvpDialog();
       } catch (error) {
-        status.textContent = error.message;
+        status.textContent = replyErrorMessage(error);
         submit.disabled = false;
       }
     });
@@ -1328,7 +1368,10 @@
   };
 
   const clearInviteLoading = () => {
-    document.documentElement.classList.remove("has-invite", "invite-ready");
+    const root = document.documentElement;
+    root.classList.remove("has-invite", "invite-ready");
+    // The page head swaps in the invitation title early; put the public one back.
+    if (root.dataset.publicTitle) document.title = root.dataset.publicTitle;
     clearInviteChrome();
     if (invitationSection) {
       invitationSection.hidden = true;
@@ -1339,7 +1382,11 @@
   };
 
   const loadInvitation = async () => {
-    if (!inviteCode) return;
+    if (!inviteCode) {
+      // A link cut short (an empty invite code) may already have put the page into invitation mode.
+      if (document.documentElement.classList.contains("has-invite")) clearInviteLoading();
+      return;
+    }
     showInviteLoading();
     try {
       const data = await rpc("guest_invite", { p_invite_code: inviteCode });
@@ -1368,7 +1415,7 @@
         const namesTarget = invitationSection.querySelector("[data-invite-names]");
         if (namesTarget) {
           namesTarget.hidden = false;
-          namesTarget.innerHTML = `<p class="invitation-card__limit">We could not load this invitation. Please contact Keegan for help.</p>`;
+          namesTarget.innerHTML = `<p class="invitation-card__limit">We could not load this invitation. Check your connection and reload the page, or contact Keegan for help.</p>`;
         }
         if (rsvpSummary) rsvpSummary.innerHTML = "";
         if (openRsvpButton) openRsvpButton.hidden = true;
@@ -1417,7 +1464,8 @@
     const name = String(formData.get("name") || "").trim();
     const email = String(formData.get("email") || "").trim();
     const message = String(formData.get("message") || "").trim();
-    const company = String(formData.get("company") || "").trim();
+    // Spam trap: a hidden box people never see. Sent on as "company", the name the server checks.
+    const company = String(formData.get("trap") || "").trim();
     const fieldBlock = (fieldName) => contactForm.querySelector(`[name="${fieldName}"]`)?.closest("label");
     const emailInput = contactForm.querySelector('[name="email"]');
     const missing = !name
@@ -1438,7 +1486,7 @@
     if (submit) submit.disabled = true;
     if (status) status.textContent = "Sending…";
     try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/send-contact-message`, {
+      const response = await request(`${SUPABASE_URL}/functions/v1/send-contact-message`, {
         method: "POST",
         headers: {
           apikey: SUPABASE_KEY,
@@ -1451,6 +1499,7 @@
       if (!response.ok) throw new Error(body.error || "Could not send your message. Please try again.");
       if (status) status.textContent = body.message || "Message received. Thanks.";
       contactForm.reset();
+      // Send stays off until the pop-up is next opened, so a second tap can't send it twice.
       window.setTimeout(() => closeContactDialog(), reduceMotion ? 500 : 800);
     } catch (error) {
       if (status) status.textContent = error.message;

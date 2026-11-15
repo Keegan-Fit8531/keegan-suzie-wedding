@@ -15,7 +15,18 @@
   const filterClear = document.querySelector("[data-filter-clear]");
   const briefList = document.querySelector("[data-brief-list]");
   const contactList = document.querySelector("[data-contact-list]");
-  let pin = sessionStorage.getItem("wedding-host-pin") || "";
+  // The PIN is remembered for this tab only. Browsers that block storage simply ask for it each visit.
+  const PIN_KEY = "wedding-host-pin";
+  const readStoredPin = () => {
+    try { return sessionStorage.getItem(PIN_KEY) || ""; } catch (error) { return ""; }
+  };
+  const storePin = (value) => {
+    try {
+      if (value) sessionStorage.setItem(PIN_KEY, value);
+      else sessionStorage.removeItem(PIN_KEY);
+    } catch (error) { /* storage unavailable */ }
+  };
+  let pin = readStoredPin();
   let dashboard;
   let guestFieldId = 0;
 
@@ -24,20 +35,38 @@
   }[character]));
 
   const rpc = async (name, params) => {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
-      method: "POST",
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify(params)
-    });
+    let response;
+    try {
+      response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
+        method: "POST",
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify(params)
+      });
+    } catch (error) {
+      throw new Error("Couldn’t reach the server. Check your connection and try again.");
+    }
     const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(body.message || body.error || "Something went wrong.");
+    if (!response.ok) throw new Error(body.message || body.error || "Something went wrong. Please try again.");
     return body;
+  };
+
+  // Run a dashboard change; if it fails, say so rather than leaving the button looking as if it worked.
+  const runAction = async (button, action, fallbackMessage) => {
+    if (button) button.disabled = true;
+    try {
+      dashboard = await action();
+      render();
+    } catch (error) {
+      if (button) button.disabled = false;
+      window.alert(error.message || fallbackMessage);
+    }
   };
 
   const inviteUrl = (code) => {
     // Query links survive Messenger (and similar apps) that strip # fragments.
     // Hash invites still open via main.js for any older shared links.
-    const path = window.location.pathname.replace(/host\.html$/, "").replace(/\/?$/, "/");
+    // The dashboard may be open as /host.html or /host; either way the invite lives at the site root beside it.
+    const path = window.location.pathname.replace(/host(\.html)?\/?$/, "").replace(/\/?$/, "/");
     return `${window.location.origin}${path}?invite=${encodeURIComponent(code)}`;
   };
 
@@ -412,9 +441,15 @@
 
   const bindActions = () => {
     partyList.querySelectorAll("[data-copy]").forEach((button) => button.addEventListener("click", async () => {
-      await navigator.clipboard.writeText(inviteUrl(button.dataset.copy));
-      button.textContent = "Copied";
-      setTimeout(() => { button.textContent = "Copy invite"; }, 1500);
+      const url = inviteUrl(button.dataset.copy);
+      try {
+        await navigator.clipboard.writeText(url);
+        button.textContent = "Copied";
+        setTimeout(() => { button.textContent = "Copy invite"; }, 1500);
+      } catch (error) {
+        // Some browsers refuse clipboard access; show the link so it can be copied by hand.
+        window.prompt("Copy this invite link:", url);
+      }
     }));
     partyList.querySelectorAll("[data-qr]").forEach((button) => button.addEventListener("click", async () => {
       const previous = button.textContent;
@@ -441,44 +476,35 @@
       setTimeout(() => { button.textContent = previous; }, 1500);
     }));
     partyList.querySelectorAll("[data-edit]").forEach((button) => button.addEventListener("click", () => openParty(button.dataset.edit)));
-    partyList.querySelectorAll("[data-invite-sent]").forEach((button) => button.addEventListener("click", async () => {
+    partyList.querySelectorAll("[data-invite-sent]").forEach((button) => button.addEventListener("click", () => {
       const sent = button.dataset.sent === "true";
-      button.disabled = true;
-      try {
-        dashboard = await rpc("host_mark_invite_sent", {
-          p_pin: pin,
-          p_party_id: button.dataset.inviteSent,
-          p_sent: sent
-        });
-        render();
-      } catch (error) {
-        button.disabled = false;
-        window.alert(error.message || "Could not update invite sent status.");
-      }
+      runAction(button, () => rpc("host_mark_invite_sent", {
+        p_pin: pin,
+        p_party_id: button.dataset.inviteSent,
+        p_sent: sent
+      }), "Could not update invite sent status.");
     }));
-    partyList.querySelectorAll("[data-reset]").forEach((button) => button.addEventListener("click", async () => {
+    partyList.querySelectorAll("[data-reset]").forEach((button) => button.addEventListener("click", () => {
       const party = dashboard.parties.find((item) => item.id === button.dataset.reset);
       if (!party?.rsvp) return;
       if (!window.confirm(`Reset RSVP for ${partyTitle(party)}? Their answers will be cleared. The invite link stays the same.`)) return;
-      dashboard = await rpc("host_reset_party_rsvp", { p_pin: pin, p_party_id: party.id });
-      render();
+      runAction(button, () => rpc("host_reset_party_rsvp", { p_pin: pin, p_party_id: party.id }), "Could not reset this RSVP.");
     }));
-    partyList.querySelectorAll("[data-delete]").forEach((button) => button.addEventListener("click", async () => {
+    partyList.querySelectorAll("[data-delete]").forEach((button) => button.addEventListener("click", () => {
       const party = dashboard.parties.find((item) => item.id === button.dataset.delete);
+      if (!party) return;
       if (!window.confirm(`Delete ${partyTitle(party)} and their RSVP?`)) return;
-      dashboard = await rpc("host_delete_party", { p_pin: pin, p_party_id: party.id });
-      render();
+      runAction(button, () => rpc("host_delete_party", { p_pin: pin, p_party_id: party.id }), "Could not delete this invitation.");
     }));
     briefList.querySelectorAll("[data-edit-brief]").forEach((button) => button.addEventListener("click", () => openBrief(button.dataset.editBrief)));
-    contactList?.querySelectorAll("[data-delete-contact]").forEach((button) => button.addEventListener("click", async () => {
+    contactList?.querySelectorAll("[data-delete-contact]").forEach((button) => button.addEventListener("click", () => {
       const message = dashboard.contact_messages?.find((item) => item.id === button.dataset.deleteContact);
       const label = message?.name ? `message from ${message.name}` : "this message";
       if (!window.confirm(`Delete ${label}?`)) return;
-      dashboard = await rpc("host_delete_contact_message", {
+      runAction(button, () => rpc("host_delete_contact_message", {
         p_pin: pin,
         p_message_id: button.dataset.deleteContact
-      });
-      render();
+      }), "Could not delete this message.");
     }));
   };
 
@@ -494,9 +520,16 @@
 
   let storedRolesTaken = null;
 
+  // A dialog opens clean: no message left from the last save, and its Save button ready.
+  const resetDialogForm = (form) => {
+    form.querySelector(".form-status").textContent = "";
+    form.querySelector('[type="submit"]').disabled = false;
+  };
+
   const openParty = (id) => {
     const party = id ? dashboard.parties.find((item) => item.id === id) : null;
     partyForm.reset();
+    resetDialogForm(partyForm);
     partyForm.querySelector("[name=id]").value = party?.id || "";
     partyForm.querySelector("[name=label]").value = party?.label || "";
     const side = party?.wedding_side === "bride" || party?.wedding_side === "groom" ? party.wedding_side : "";
@@ -522,6 +555,7 @@
 
   const openBrief = (side) => {
     const brief = dashboard.briefs?.[side] || {};
+    resetDialogForm(briefForm);
     briefForm.querySelector("[name=side]").value = side;
     briefForm.querySelector("[name=title]").value = brief.title || "";
     briefForm.querySelector("[name=body]").value = brief.body || "";
@@ -537,14 +571,17 @@
 
   pinForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    pin = new FormData(pinForm).get("pin");
+    pin = String(new FormData(pinForm).get("pin") || "").trim();
     const status = pinForm.querySelector(".form-status");
     status.textContent = "Opening dashboard…";
     try {
       await loadDashboard();
-      sessionStorage.setItem("wedding-host-pin", pin);
+      storePin(pin);
     } catch (error) {
-      status.textContent = "Incorrect PIN. Please try again.";
+      // Only blame the PIN when the server did; a dropped connection gets its own message.
+      status.textContent = /incorrect pin/i.test(error.message || "")
+        ? "Incorrect PIN. Please try again."
+        : (error.message || "Could not open the dashboard. Please try again.");
     }
   });
 
@@ -622,17 +659,21 @@
       };
     }).filter((guest) => guest.name);
     const status = partyForm.querySelector(".form-status");
+    const submit = partyForm.querySelector('[type="submit"]');
+    // A second tap while the first save is still on its way would create the invitation twice.
+    if (submit.disabled) return;
     if (!guests.length) {
       status.textContent = "Add at least one named guest.";
       return;
     }
+    const weddingSide = data.get("wedding_side");
+    if (weddingSide !== "bride" && weddingSide !== "groom") {
+      status.textContent = "Choose whose family this invitation is for.";
+      return;
+    }
     status.textContent = "Saving…";
+    submit.disabled = true;
     try {
-      const weddingSide = data.get("wedding_side");
-      if (weddingSide !== "bride" && weddingSide !== "groom") {
-        status.textContent = "Choose whose family this invitation is for.";
-        return;
-      }
       dashboard = await rpc("host_save_party", {
         p_pin: pin,
         p_payload: {
@@ -643,10 +684,13 @@
         }
       });
       storedRolesTaken = null;
+      status.textContent = "";
       partyDialog.close();
       render();
     } catch (error) {
       status.textContent = error.message;
+    } finally {
+      submit.disabled = false;
     }
   });
 
@@ -654,7 +698,10 @@
     event.preventDefault();
     const data = new FormData(briefForm);
     const status = briefForm.querySelector(".form-status");
+    const submit = briefForm.querySelector('[type="submit"]');
+    if (submit.disabled) return;
     status.textContent = "Saving…";
+    submit.disabled = true;
     try {
       dashboard = await rpc("host_save_brief", {
         p_pin: pin,
@@ -662,16 +709,19 @@
         p_title: data.get("title"),
         p_body: data.get("body")
       });
+      status.textContent = "";
       briefDialog.close();
       render();
     } catch (error) {
       status.textContent = error.message;
+    } finally {
+      submit.disabled = false;
     }
   });
 
   if (pin) {
     loadDashboard().catch(() => {
-      sessionStorage.removeItem("wedding-host-pin");
+      storePin("");
       pin = "";
     });
   }

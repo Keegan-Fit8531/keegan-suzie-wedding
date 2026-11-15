@@ -34,10 +34,11 @@
   <link rel="stylesheet" href="css/styles.css" />
   <script>
     (function () {
-      var searchInvite = /[?&]invite=/.test(location.search);
-      var hashInvite = /(?:^|[&#])invite=/.test(location.hash);
+      var searchInvite = /[?&]invite=[^&#]/.test(location.search);
+      var hashInvite = /(?:^|[&#])invite=[^&#]/.test(location.hash);
       if (!searchInvite && !hashInvite) return;
       document.documentElement.classList.add("has-invite");
+      document.documentElement.setAttribute("data-public-title", document.title);
       document.title = "You're invited to Suzie & Keegan's wedding";
     })();
   </script>
@@ -184,7 +185,8 @@
           <label class="form-field">Your name<input name="name" type="text" autocomplete="name" enterkeyhint="done" required /></label>
           <label class="form-field">Your email<input name="email" type="email" autocomplete="email" enterkeyhint="done" required /></label>
           <label class="form-field">Message<textarea name="message" rows="5" required></textarea></label>
-          <label class="visually-hidden" aria-hidden="true">Company<input name="company" type="text" tabindex="-1" autocomplete="off" /></label>
+          <!-- Spam trap. Named so browser autofill leaves it alone: a filled trap drops the message. -->
+          <label class="visually-hidden" aria-hidden="true">Leave this box empty<input name="trap" type="text" tabindex="-1" autocomplete="off" /></label>
           <p class="form-status" aria-live="polite"></p>
           <button class="btn btn--primary" type="submit">Send message</button>
         </form>
