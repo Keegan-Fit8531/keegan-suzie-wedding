@@ -2648,6 +2648,16 @@ html.has-invite.invite-ready #your-invitation [data-invite-card][hidden] {
   font-weight: 400;
 }
 
+/* "120 characters left", shown under a longer box once it is nearly full. */
+.form-field .form-field__count {
+  justify-self: end;
+  margin-top: -0.15rem;
+}
+
+.form-field .form-field__count.is-full {
+  color: #9b3e38;
+}
+
 .form-field input,
 .form-field textarea {
   width: 100%;

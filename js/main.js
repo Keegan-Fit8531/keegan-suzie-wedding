@@ -340,6 +340,9 @@
     if (/rsvp is closed/i.test(message)) {
       return "Replies are now closed. Please contact Keegan if you need to change yours.";
     }
+    if (/check constraint/i.test(message)) {
+      return "One of your answers is too long. Please shorten it and send again.";
+    }
     return message || "Something went wrong. Please try again.";
   };
 
@@ -351,6 +354,32 @@
       if (event.key !== "Enter" || event.isComposing || !(field instanceof HTMLInputElement)) return;
       event.preventDefault();
       if (!["radio", "checkbox"].includes(field.type)) field.blur();
+    });
+  };
+
+  // Every box has a length limit. The longer ones say how much room is left once they are nearly
+  // full, so typing never just stops without a reason.
+  const watchLengthLimits = (form) => {
+    form?.querySelectorAll("textarea[maxlength]").forEach((field) => {
+      const limit = field.maxLength;
+      const label = field.closest("label");
+      if (!label || limit <= 0) return;
+      const hint = document.createElement("span");
+      hint.className = "form-field__count";
+      hint.hidden = true;
+      label.append(hint);
+      const update = () => {
+        const left = limit - field.value.length;
+        hint.hidden = left > Math.max(20, Math.round(limit * 0.15));
+        hint.classList.toggle("is-full", left <= 0);
+        hint.textContent = left <= 0
+          ? `That’s the limit of ${limit} characters.`
+          : `${left} ${left === 1 ? "character" : "characters"} left`;
+      };
+      field.addEventListener("input", update);
+      // A reset empties the box without an input event; update once it has.
+      form.addEventListener("reset", () => window.setTimeout(update));
+      update();
     });
   };
 
@@ -879,15 +908,15 @@
           </div>
         </fieldset>
         <div class="rsvp-contacts" data-contact-fields>
-          <label class="form-field">Contact email <span>Optional</span><input name="contact_email" type="email" autocomplete="email" enterkeyhint="done" value="${escapeHtml(saved.contact_email || "")}" /></label>
+          <label class="form-field">Contact email <span>Optional</span><input name="contact_email" type="email" autocomplete="email" enterkeyhint="done" maxlength="120" value="${escapeHtml(saved.contact_email || "")}" /></label>
           <div class="rsvp-contacts__secondary" data-secondary-contact ${saved.contact_email_secondary ? "" : "hidden"}>
-            <label class="form-field">Second contact email <span>Optional</span><input name="contact_email_secondary" type="email" autocomplete="email" enterkeyhint="done" value="${escapeHtml(saved.contact_email_secondary || "")}" /></label>
+            <label class="form-field">Second contact email <span>Optional</span><input name="contact_email_secondary" type="email" autocomplete="email" enterkeyhint="done" maxlength="120" value="${escapeHtml(saved.contact_email_secondary || "")}" /></label>
             <button class="text-link" type="button" data-remove-secondary-contact>Remove</button>
           </div>
           <button class="text-link rsvp-contacts__add" type="button" data-add-secondary-contact ${saved.contact_email_secondary ? "hidden" : ""}>+ Add another contact</button>
         </div>
-        <label class="form-field">Dietary needs or allergies <span>Optional</span><textarea name="dietary_notes" rows="3">${escapeHtml(saved.dietary_notes || "")}</textarea></label>
-        <label class="form-field">Questions or notes <span>Optional</span><textarea name="note" rows="3">${escapeHtml(saved.note || "")}</textarea></label>
+        <label class="form-field">Dietary needs or allergies <span>Optional</span><textarea name="dietary_notes" rows="3" maxlength="500">${escapeHtml(saved.dietary_notes || "")}</textarea></label>
+        <label class="form-field">Questions or notes <span>Optional</span><textarea name="note" rows="3" maxlength="800">${escapeHtml(saved.note || "")}</textarea></label>
         <p class="rsvp-form__aside">Saving updates the whole invitation. Later replies can change earlier answers.</p>
         <p class="form-status" aria-live="polite"></p>
         <button class="btn btn--primary" type="submit">Send reply</button>
@@ -1071,6 +1100,7 @@
     syncPlusFields();
     syncCabinAvailability();
     keepEnterFromSubmitting(form);
+    watchLengthLimits(form);
 
     // The first detail still needed, top to bottom, as [where it is, what to say]; null when all is well.
     const findMissingDetail = (formData, guestResponses) => {
@@ -1456,6 +1486,7 @@
     closeContactDialog();
   });
   keepEnterFromSubmitting(contactForm);
+  watchLengthLimits(contactForm);
   contactForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const status = contactForm.querySelector(".form-status");

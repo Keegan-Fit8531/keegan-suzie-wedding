@@ -31,7 +31,7 @@
       <p class="section__eyebrow section__eyebrow--caps">Private area</p>
       <h1 class="section__title">Wedding host dashboard</h1>
       <form data-pin-form>
-        <label class="form-field">PIN<input name="pin" type="password" inputmode="numeric" autocomplete="current-password" required /></label>
+        <label class="form-field">PIN<input name="pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="40" required /></label>
         <p class="form-status" aria-live="polite"></p>
         <button class="btn btn--primary" type="submit">Open dashboard</button>
       </form>
@@ -60,7 +60,7 @@
       <div class="host-filters" data-host-filters>
         <label class="host-filters__search">
           <span class="host-filters__label">Search</span>
-          <input type="search" data-filter-search placeholder="Name or household" autocomplete="off" />
+          <input type="search" data-filter-search placeholder="Name or household" autocomplete="off" maxlength="80" />
         </label>
         <fieldset class="host-filters__family">
           <legend class="host-filters__label">Family</legend>
@@ -135,7 +135,7 @@
         <label><input type="radio" name="wedding_side" value="groom" required /> Keegan’s family</label>
         <label><input type="radio" name="wedding_side" value="bride" required /> Suzie’s family</label>
       </fieldset>
-      <label class="form-field">Household label <span>Optional</span><input name="label" placeholder="e.g. Dad’s family" /></label>
+      <label class="form-field">Household label <span>Optional</span><input name="label" placeholder="e.g. Dad’s family" maxlength="60" /></label>
       <fieldset class="guest-editor">
         <legend>Named guests</legend>
         <p>Add their real name first. Nickname is optional, for example Grandad. Plus ones and kids are a count, not a name, so only that many can come.</p>
@@ -157,8 +157,8 @@
         <button class="host-dialog__close" type="button" data-close-brief aria-label="Close">×</button>
       </div>
       <input type="hidden" name="side" />
-      <label class="form-field">Heading<input name="title" required /></label>
-      <label class="form-field">Details<textarea name="body" rows="8" required></textarea></label>
+      <label class="form-field">Heading<input name="title" maxlength="80" required /></label>
+      <label class="form-field">Details<textarea name="body" rows="8" maxlength="3000" required></textarea></label>
       <p class="form-status" aria-live="polite"></p>
       <div class="host-dialog__actions">
         <button class="btn btn--primary" type="submit">Save brief</button>

@@ -123,11 +123,11 @@
       <div class="guest-editor__names">
         <label class="form-field">
           <span class="form-field__heading">Real name</span>
-          <input data-guest-legal-name value="${escapeHtml(realNameValue)}" placeholder="e.g. Mike Fitzgerald" required />
+          <input data-guest-legal-name value="${escapeHtml(realNameValue)}" placeholder="e.g. Mike Fitzgerald" maxlength="80" required />
         </label>
         <label class="form-field">
           <span class="form-field__heading">Nickname <span>Optional</span></span>
-          <input data-guest-name value="${escapeHtml(nicknameValue)}" placeholder="e.g. Grandad" />
+          <input data-guest-name value="${escapeHtml(nicknameValue)}" placeholder="e.g. Grandad" maxlength="40" />
         </label>
       </div>
       <div class="guest-editor__meta">
@@ -526,6 +526,23 @@
     form.querySelector('[type="submit"]').disabled = false;
   };
 
+  // The brief's details box says how much room is left once it is nearly full.
+  const briefBody = briefForm.querySelector("[name=body]");
+  const briefCount = document.createElement("span");
+  briefCount.className = "form-field__count";
+  briefCount.hidden = true;
+  briefBody.closest("label").append(briefCount);
+  const updateBriefCount = () => {
+    const limit = briefBody.maxLength;
+    const left = limit - briefBody.value.length;
+    briefCount.hidden = limit <= 0 || left > Math.round(limit * 0.15);
+    briefCount.classList.toggle("is-full", left <= 0);
+    briefCount.textContent = left <= 0
+      ? `That’s the limit of ${limit} characters.`
+      : `${left} ${left === 1 ? "character" : "characters"} left`;
+  };
+  briefBody.addEventListener("input", updateBriefCount);
+
   const openParty = (id) => {
     const party = id ? dashboard.parties.find((item) => item.id === id) : null;
     partyForm.reset();
@@ -559,6 +576,7 @@
     briefForm.querySelector("[name=side]").value = side;
     briefForm.querySelector("[name=title]").value = brief.title || "";
     briefForm.querySelector("[name=body]").value = brief.body || "";
+    updateBriefCount();
     briefDialog.showModal();
   };
 
